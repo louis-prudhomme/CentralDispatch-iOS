@@ -3,5 +3,11 @@ import Foundation
 import {{ group }}Entity
 
 public extension {{ group }}Repository {
-
+    static func mock(
+        base: BaseRepository<{{ group }}Entity> = .mock(),
+    ) -> {{ group }}Repository {
+        {{ group }}Repository(
+            base: base
+        )
+    }
 }
