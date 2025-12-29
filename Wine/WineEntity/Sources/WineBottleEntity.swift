@@ -8,11 +8,13 @@ import SharedCommonPersistence
 public final class WineBottleEntity: IdentifiableEntity {
     @Attribute(.unique) public var id: UUID
     @Attribute public var name: String
+    @Attribute public var millesime: Int
     @Attribute public var createdAt: Date
 
-    public init(id: UUID, name: String, createdAt: Date) {
+    public init(id: UUID, name: String, millesime: Int, createdAt: Date) {
         self.id = id
         self.name = name
+        self.millesime = millesime
         self.createdAt = createdAt
     }
     
@@ -22,13 +24,14 @@ public final class WineBottleEntity: IdentifiableEntity {
 }
 
 public extension WineBottleEntity {
-    static func new(id: UUID, name: String, createdAt: Date) -> WineBottleEntity {
-        return WineBottleEntity(id: id, name: name, createdAt: createdAt)
+    static func new(id: UUID, name: String, millesime: Int, createdAt: Date) -> WineBottleEntity {
+        return WineBottleEntity(id: id, name: name, millesime: millesime, createdAt: createdAt)
     }
     
     func update(from entity: WineBottleEntity) {
         // id is immutable, no update needed
         name = entity.name
+        millesime = entity.millesime
         createdAt = entity.createdAt
     }
 }

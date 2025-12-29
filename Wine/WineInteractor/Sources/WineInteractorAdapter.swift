@@ -9,6 +9,7 @@ public extension WineBottleEntity {
         WineBottle(
             id: id,
             name: name,
+            millesime: millesime,
             createdAt: createdAt
         )
     }
@@ -22,6 +23,7 @@ public extension WineBottle {
         WineBottleEntity(
             id: id,
             name: name,
+            millesime: millesime,
             createdAt: createdAt
         )
     }
