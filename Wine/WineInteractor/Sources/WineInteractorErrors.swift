@@ -3,6 +3,7 @@ import SharedCommonInteractor
 
 public enum WineInteractorError: InteractorError {
     case nameEmpty
+    case millesimeInvalid
     case notFound
     case unknown
 
@@ -17,6 +18,7 @@ public enum WineInteractorError: InteractorError {
     var localizedDescription: String {
         switch self {
             case .nameEmpty: "Name cannot be empty."
+            case .millesimeInvalid: "Vintage year cannot be in the future."
             case .notFound: "Wine not found."
             case .unknown: "An unknown error occurred."
         }
