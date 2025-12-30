@@ -33,7 +33,7 @@ public struct WineFeatureAddWine {
     public init() {}
 
     @Dependency(\.dismiss) var dismiss
-    @Dependency(\.wineInteractor.upsert) var upsert
+    @Dependency(\.wineInteractor) var wineInteractor
 
     public var body: some ReducerOf<Self> {
         BindingReducer()
@@ -41,7 +41,7 @@ public struct WineFeatureAddWine {
         Reduce { state, action in
             switch action {
                 case .submitButtonTapped:
-                    return .run { [upsert, name = state.name, millesime = state.millesime] send in
+                    return .run { [upsert = wineInteractor.upsert, name = state.name, millesime = state.millesime] send in
                         let wine = Wine.new(name: name, millesime: millesime)
                         await send(.wineAdded(await upsert(wine)))
                     }
