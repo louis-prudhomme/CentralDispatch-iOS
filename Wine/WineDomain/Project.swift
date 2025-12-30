@@ -7,5 +7,9 @@ let project = Project.project(
     hasTests: false,
     dependencies: [
         .external(name: "Dependencies"),
+        .project(
+            target: "SharedCommonDomain",
+            path: .relativeToRoot("Shared/SharedCommonDomain")
+        )
     ]
 )

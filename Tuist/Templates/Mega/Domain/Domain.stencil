@@ -1,7 +1,8 @@
 import Foundation
 import Dependencies
+import SharedCommonDomain
 
-public struct {{ group }}: Equatable, Identifiable, Sendable {
+public struct {{ group }}: Interactable {
     public let id: UUID
     public let name: String
     public let createdAt: Date

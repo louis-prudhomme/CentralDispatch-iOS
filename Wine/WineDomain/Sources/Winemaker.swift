@@ -1,7 +1,8 @@
 import Foundation
 import Dependencies
+import SharedCommonDomain
 
-public struct Winemaker: Equatable, Identifiable, Sendable {
+public struct Winemaker: Interactable {
     public let id: UUID
     public let name: String
     public let createdAt: Date

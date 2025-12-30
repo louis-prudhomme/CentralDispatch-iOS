@@ -1,7 +1,8 @@
 import Foundation
 import Dependencies
+import SharedCommonDomain
 
-public struct WineBottle: Equatable, Identifiable, Sendable {
+public struct WineBottle: Interactable {
     public let id: UUID
     public let name: String
     public let millesime: Int
