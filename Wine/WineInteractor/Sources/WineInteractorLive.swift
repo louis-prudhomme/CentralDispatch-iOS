@@ -12,6 +12,13 @@ extension WineInteractor {
                 try await repository.fetchAll().map { $0.toDomain() }
             }
         },
+        fetchAllWinemakers: { searchText in
+            @Dependency(\.wineRepository) var repository
+
+            return await withInteractorResult(parser: WineInteractorError.init) { @MainActor in
+                try await repository.fetchAllWinemakers(searchText).map { $0.toDomain() }
+            }
+        },
         fetch: { id in
             @Dependency(\.wineRepository) var repository
 

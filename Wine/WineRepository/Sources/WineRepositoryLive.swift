@@ -1,6 +1,7 @@
 import Dependencies
 import Foundation
 import SharedCommonPersistence
+import SwiftData
 import WineEntity
 
 // CRUD operations are already provided by BaseRepository
@@ -10,7 +11,16 @@ public extension WineRepository {
         base: BaseRepository<WineBottleEntity> = .live(),
     ) -> WineRepository {
         WineRepository(
-            base: base
+            base: base,
+            fetchAllWinemakers: { searchText in
+                @Dependency(\.modelContainer) var container
+
+                let context = container.mainContext
+                let predicate = #Predicate<WinemakerEntity> { $0.name.contains(searchText) }
+                let descriptor = FetchDescriptor<WinemakerEntity>(predicate: predicate)
+    
+                return try context.fetch(descriptor)
+            }
         )
     }
 }

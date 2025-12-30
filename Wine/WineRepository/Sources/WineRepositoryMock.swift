@@ -8,7 +8,8 @@ public extension WineRepository {
         base: BaseRepository<WineBottleEntity> = .mock(),
     ) -> WineRepository {
         WineRepository(
-            base: base
+            base: base,
+            fetchAllWinemakers: { _ in fatalError("Not mocked yet") }
         )
     }
 }

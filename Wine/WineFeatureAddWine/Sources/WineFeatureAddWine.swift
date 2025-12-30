@@ -1,3 +1,4 @@
+import Foundation
 import SharedCommonArchitecture
 import WineDomain
 import WineInteractor
@@ -8,9 +9,11 @@ public struct WineFeatureAddWine {
     public struct State: Equatable {
         var name: String = ""
         var millesime: Int
+        var winemaker: Winemaker?
         var isLoading: Bool = false
 
         @Presents var alert: AlertState<Never>?
+        @Presents var winemakerSheet: MultipleChoiceSelection<Winemaker, WineInteractorError>.State?
 
         public init() {
             @Dependency(\.date) var date
@@ -21,9 +24,11 @@ public struct WineFeatureAddWine {
 
     public enum Action: BindableAction, Equatable {
         case submitButtonTapped
+        case selectWinemakerButtonTapped
         case wineAdded(VoidResult<WineInteractorError>)
 
         case alert(PresentationAction<Never>)
+        case winemakerSheet(PresentationAction<MultipleChoiceSelection<Winemaker, WineInteractorError>.Action>)
         case binding(BindingAction<State>)
         
         case delegate(Delegate)
@@ -41,10 +46,21 @@ public struct WineFeatureAddWine {
         Reduce { state, action in
             switch action {
                 case .submitButtonTapped:
-                    return .run { [upsert = wineInteractor.upsert, name = state.name, millesime = state.millesime] send in
-                        let wine = Wine.new(name: name, millesime: millesime)
+                    return .run { [upsert = wineInteractor.upsert, name = state.name, millesime = state.millesime, winemaker = state.winemaker] send in
+                        let wine = WineBottle.new(name: name, millesime: millesime, winemaker: winemaker)
                         await send(.wineAdded(await upsert(wine)))
                     }
+                
+                case .selectWinemakerButtonTapped:
+                    let winemakerInteractorDelegate = MultipleChoiceInteractorDelegate<Winemaker, WineInteractorError>(
+                        fetchChoices: wineInteractor.fetchAllWinemakers,
+                        getDisplayName: { $0.name }
+                    )
+                    state.winemakerSheet = MultipleChoiceSelection<Winemaker, WineInteractorError>.State(
+                        title: "Select Winemaker",
+                        delegate: winemakerInteractorDelegate
+                    )
+                    return .none
 
                 case .wineAdded(.failure(let error)):
                     state.isLoading = false
@@ -56,6 +72,14 @@ public struct WineFeatureAddWine {
                 case .wineAdded(.success):
                     state.isLoading = false
                     return .run { [dismiss] _ in await dismiss() }
+                
+                case .winemakerSheet(.presented(.delegate(.choiceSelected(let winemaker)))):
+                    state.winemaker = winemaker
+                    state.winemakerSheet = nil
+                    return .none
+                
+                case .winemakerSheet:
+                    return .none
 
                 case .alert:
                     return .none
@@ -67,5 +91,12 @@ public struct WineFeatureAddWine {
                     return .none
             }
         }
+        .ifLet(\.$winemakerSheet, action: \.winemakerSheet) {
+            MultipleChoiceSelection<Winemaker, WineInteractorError>()
+        }
     }
 }
+
+// MARK: Conformances
+
+extension Winemaker: Choosable {}
