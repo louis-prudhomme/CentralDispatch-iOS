@@ -56,8 +56,8 @@ public extension Project {
             name: sanitizedName,
             organizationName: organization,
             options: .options(
-                defaultKnownRegions: ["fr"],
-                developmentRegion: "fr"
+                defaultKnownRegions: ["en"],
+                developmentRegion: "en"
             ),
             settings: .settings(
                 base: commonSettings,
