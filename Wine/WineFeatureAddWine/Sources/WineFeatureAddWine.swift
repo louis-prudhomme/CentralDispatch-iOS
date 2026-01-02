@@ -1,5 +1,6 @@
 import Foundation
 import SharedCommonArchitecture
+import SharedCommonDependencies
 import WineDomain
 import WineInteractor
 

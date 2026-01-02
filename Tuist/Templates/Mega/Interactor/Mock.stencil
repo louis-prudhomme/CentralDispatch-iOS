@@ -1,5 +1,5 @@
 import Dependencies
-import SharedCommonInteractor
+import SharedCommonDependencies
 
 extension {{ group }}Interactor {
     static let mock = {{ group }}Interactor(

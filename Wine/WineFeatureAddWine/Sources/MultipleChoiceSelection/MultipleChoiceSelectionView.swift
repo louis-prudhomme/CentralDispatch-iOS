@@ -1,8 +1,8 @@
 import SharedCommonArchitecture
-import SharedCommonInteractor
+import SharedCommonDependencies
 import SwiftUI
 
-struct MultipleChoiceSelectionView<Choice: Choosable, IError: InteractorError>: View {
+struct MultipleChoiceSelectionView<Choice: Choosable, IError: ClientError>: View {
     @Bindable var store: StoreOf<MultipleChoiceSelection<Choice, IError>>
 
     init(store: StoreOf<MultipleChoiceSelection<Choice, IError>>) {
@@ -92,7 +92,7 @@ private struct Example: Choosable {
     let name = "Xavier Frissant"
 }
 
-private enum ExampleEmptyError: InteractorError {}
+private enum ExampleEmptyError: ClientError {}
 
 #Preview {
     let delegate = MultipleChoiceInteractorDelegate<Example, ExampleEmptyError>(

@@ -1,6 +1,5 @@
-import Dependencies
 import Foundation
-import SharedCommonInteractor
+import SharedCommonDependencies
 import WineDomain
 
 public struct WineInteractor: Sendable {

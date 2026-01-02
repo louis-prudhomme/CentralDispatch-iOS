@@ -241,6 +241,11 @@ custom_rules:
     regex: "import ComposableArchitecture"
     message: "Most of the time, you'll want to import SharedCommonArchitecture which encapsulate TCA and Helpers at once."
     severity: warning
+  use_umbrella_to_import_dependencies:
+    name: "Do you really want to import Dependencies only ?"
+    regex: "import Dependencies"
+    message: "Most of the time, you'll want to import SharedCommonArchitecture which encapsulate Dependencies and Helpers at once."
+    severity: warning
 
 analyzer_rules:
   - unused_declaration

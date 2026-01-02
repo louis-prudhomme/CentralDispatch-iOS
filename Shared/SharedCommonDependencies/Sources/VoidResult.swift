@@ -1,5 +1,3 @@
-
-
 public enum VoidResult<Failure: Error>: Sendable, Equatable where Failure: Equatable {
     /// A success, storing a `Success` value.
     case success

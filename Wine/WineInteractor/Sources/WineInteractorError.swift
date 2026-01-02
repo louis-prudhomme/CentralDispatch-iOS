@@ -1,7 +1,7 @@
 import Foundation
-import SharedCommonInteractor
+import SharedCommonDependencies
 
-public enum WineInteractorError: InteractorError {
+public enum WineInteractorError: ClientError {
     case nameEmpty
     case millesimeInvalid
     case grapeVarietyEmpty

@@ -1,9 +1,9 @@
 import SharedCommonArchitecture
-import SharedCommonInteractor
+import SharedCommonDependencies
 import SwiftUI
 
 @Reducer
-public struct MultipleChoiceSelection<Choice: Choosable, IError: InteractorError> {
+public struct MultipleChoiceSelection<Choice: Choosable, IError: ClientError> {
     @ObservableState
     public struct State: Equatable {
         public let delegate: MultipleChoiceInteractorDelegate<Choice, IError>
@@ -133,7 +133,7 @@ public struct MultipleChoiceSelection<Choice: Choosable, IError: InteractorError
 
 public protocol Choosable: Equatable, Identifiable, Sendable {}
 
-public struct MultipleChoiceInteractorDelegate<Choice: Choosable, IError: InteractorError>: Sendable {
+public struct MultipleChoiceInteractorDelegate<Choice: Choosable, IError: ClientError>: Sendable {
     let fetchChoices: @Sendable (String) async -> Result<[Choice], IError>
     let createChoice: @Sendable (String) async -> VoidResult<IError>
     let getDisplayName: @Sendable (Choice) -> String

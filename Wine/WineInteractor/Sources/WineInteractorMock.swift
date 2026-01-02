@@ -1,5 +1,4 @@
-import Dependencies
-import SharedCommonInteractor
+import SharedCommonDependencies
 
 extension WineInteractor {
     static let mock = WineInteractor(

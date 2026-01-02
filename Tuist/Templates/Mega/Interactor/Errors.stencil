@@ -1,7 +1,7 @@
 import Foundation
-import SharedCommonInteractor
+import SharedCommonDependencies
 
-public enum {{ group }}InteractorError: InteractorError {
+public enum {{ group }}InteractorError: ClientError {
     case nameEmpty
     case notFound
     case unknown

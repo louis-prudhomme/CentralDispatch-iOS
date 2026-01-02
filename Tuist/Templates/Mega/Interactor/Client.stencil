@@ -1,6 +1,6 @@
 import Dependencies
 import Foundation
-import SharedCommonInteractor
+import SharedCommonDependencies
 import {{ group }}Domain
 
 public struct {{ group }}Interactor: Sendable {

@@ -1,9 +1,9 @@
 import SharedCommonArchitecture
-import SharedCommonInteractor
+import SharedCommonDependencies
 import SwiftUI
 
 @Reducer
-public struct AddChoice<Choice: Choosable, IError: InteractorError> {
+public struct AddChoice<Choice: Choosable, IError: ClientError> {
     @ObservableState
     public struct State: Equatable {
         public let delegate: MultipleChoiceInteractorDelegate<Choice, IError>
