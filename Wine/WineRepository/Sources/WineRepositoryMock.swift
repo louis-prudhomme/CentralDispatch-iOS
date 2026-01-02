@@ -10,7 +10,9 @@ public extension WineRepository {
         WineRepository(
             base: base,
             fetchAllWinemakers: { _ in fatalError("Not mocked yet") },
-            upsertWinemaker: { _ in fatalError("Not mocked yet") }
+            upsertWinemaker: { _ in fatalError("Not mocked yet") },
+            fetchAllGrapeVarieties: { _ in fatalError("Not mocked yet") },
+            upsertGrapeVariety: { _ in fatalError("Not mocked yet") }
         )
     }
 }

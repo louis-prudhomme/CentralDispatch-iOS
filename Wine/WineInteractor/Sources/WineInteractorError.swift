@@ -4,6 +4,7 @@ import SharedCommonInteractor
 public enum WineInteractorError: InteractorError {
     case nameEmpty
     case millesimeInvalid
+    case grapeVarietyEmpty
     case notFound
     case unknown
 
@@ -19,6 +20,7 @@ public enum WineInteractorError: InteractorError {
         switch self {
             case .nameEmpty: "Name cannot be empty."
             case .millesimeInvalid: "Vintage year cannot be in the future."
+            case .grapeVarietyEmpty: "At least one grape variety must be selected."
             case .notFound: "Wine not found."
             case .unknown: "An unknown error occurred."
         }

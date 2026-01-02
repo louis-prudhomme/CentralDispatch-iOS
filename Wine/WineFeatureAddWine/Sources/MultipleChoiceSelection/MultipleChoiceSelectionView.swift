@@ -17,22 +17,19 @@ struct MultipleChoiceSelectionView<Choice: Choosable, IError: InteractorError>: 
                 } else {
                     List {
                         ForEach(store.choices) { choice in
-                            Button {
-                                store.send(.choiceSelected(choice))
-                            } label: {
-                                Text(getDisplayName(for: choice))
-                            }
+                            let isSelected = store.selectedChoices.contains(choice)
+                            ChoiceView(choice: choice, isSelected: isSelected, store: store)
                         }
                     }
                     .searchable(text: $store.searchText)
+
+
+                    if store.isMultiSelect {
+                        submitButton
+                    }
                 }
             }
-            .navigationDestination(
-                item: $store.scope(
-                    state: \.destination?.addChoice,
-                    action: \.destination.addChoice
-                )
-            ) { store in
+            .navigationDestination(item: $store.scope(state: \.destination?.addChoice, action: \.destination.addChoice)) { store in
                 AddChoiceView(store: store)
             }
             .toolbar {
@@ -42,15 +39,50 @@ struct MultipleChoiceSelectionView<Choice: Choosable, IError: InteractorError>: 
                     }
                 }
             }
-            .navigationTitle("Select a \(store.title)")
+            .navigationTitle(store.isMultiSelect ? "Select one or more" : "Pick a \(store.title)")
             .navigationBarTitleDisplayMode(.inline)
             .task { store.send(.onAppear) }
             .alert($store.scope(state: \.alert, action: \.alert))
         }
     }
 
-    func getDisplayName(for choice: Choice) -> String {
-        store.delegate.getDisplayName(choice)
+    var submitButton: some View {
+        Button("Select \(store.selectedChoices.count)") {
+            store.send(.submitSelectedChoicesButtonTapped)
+        }
+        .padding()
+    }
+}
+
+private extension MultipleChoiceSelectionView {
+    struct ChoiceView: View {
+        let choice: Choice
+        let isSelected: Bool
+
+        var store: StoreOf<MultipleChoiceSelection<Choice, IError>>
+
+        var body: some View {
+            Button {
+                store.send(.choiceSelected(choice))
+            } label: {
+                HStack {
+                    Text(displayName)
+
+                    Spacer()
+
+                    if store.isMultiSelect, isSelected {
+                        Image(systemName: "checkmark")
+                            .accessibilityHidden(true)
+                    }
+                }
+                .accessibilityHint(isSelected ? "Deselect \(displayName)" : "Select \(displayName)")
+                .accessibilityAddTraits(isSelected && store.isMultiSelect ? .isSelected : [])
+            }
+        }
+
+        var displayName: String {
+            store.delegate.getDisplayName(choice)
+        }
     }
 }
 
@@ -72,6 +104,7 @@ private enum ExampleEmptyError: InteractorError {}
     )
     let state = MultipleChoiceSelection.State(
         title: "Winemaker",
+        isMultiSelect: false,
         delegate: delegate
     )
 

@@ -36,6 +36,29 @@ public extension WineRepository {
                 }
 
                 try context.save()
+            },
+            fetchAllGrapeVarieties: { searchText in
+                @Dependency(\.modelContainer) var container
+
+                let context = container.mainContext
+                let predicate = #Predicate<GrapeVarietyEntity> { $0.name.contains(searchText) }
+                let descriptor = FetchDescriptor<GrapeVarietyEntity>(predicate: searchText.isEmpty ? nil : predicate)
+
+                return try context.fetch(descriptor)
+            },
+            upsertGrapeVariety: { proposed in
+                @Dependency(\.modelContainer) var container
+                let context = container.mainContext
+                let predicate = GrapeVarietyEntity.idPredicate(for: proposed.id)
+                let descriptor = FetchDescriptor<GrapeVarietyEntity>(predicate: predicate)
+                if let existing = try context.fetch(descriptor).first {
+                    existing.update(from: proposed)
+                } else {
+                    // TODO: check if name exists before inserting
+                    context.insert(proposed)
+                }
+
+                try context.save()
             }
         )
     }

@@ -5,7 +5,8 @@ public enum ModelContainerConfiguration {
     /// All @Model types registered in the app.
     public static let modelTypes: [any PersistentModel.Type] = [
         WineBottleEntity.self,
-        WinemakerEntity.self
+        WinemakerEntity.self,
+        GrapeVarietyEntity.self
     ]
 
     /// Creates a configured ModelContainer with all registered models

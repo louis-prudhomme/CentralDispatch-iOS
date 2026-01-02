@@ -22,6 +22,8 @@ public struct WineFeatureAddWineView: View {
 
             winemakerSelectionButton
 
+            grapeVarietiesSelectionButton
+
             Spacer()
 
             CellarButton("Add Wine", systemImage: "plus", isLoading: store.isLoading) {
@@ -32,6 +34,10 @@ public struct WineFeatureAddWineView: View {
         .padding()
         .alert($store.scope(state: \.alert, action: \.alert))
         .sheet(item: $store.scope(state: \.winemakerSheet, action: \.winemakerSheet)) { store in
+            MultipleChoiceSelectionView(store: store)
+                .presentationDetents([.medium, .large])
+        }
+        .sheet(item: $store.scope(state: \.grapeVarietySheet, action: \.grapeVarietySheet)) { store in
             MultipleChoiceSelectionView(store: store)
                 .presentationDetents([.medium, .large])
         }
@@ -51,6 +57,25 @@ public struct WineFeatureAddWineView: View {
                     .accessibilityHidden(true)
             }
             .accessibilityHint("Select or edit the winemaker")
+            .padding()
+            .cornerRadius(8)
+        }
+        .buttonStyle(.bordered)
+    }
+
+    @ViewBuilder var grapeVarietiesSelectionButton: some View {
+        Button {
+            store.send(.selectGrapeVarietiesButtonTapped)
+        } label: {
+            HStack {
+                Text(store.grapeVarieties.isEmpty ? "Select Grape varieties" : store.grapeVarieties.map(\.name).joined(separator: ", "))
+
+                Spacer()
+
+                Image(systemName: store.grapeVarieties.isEmpty ? "chevron.right" : "square.and.pencil")
+                    .accessibilityHidden(true)
+            }
+            .accessibilityHint("Select or edit grape varieties")
             .padding()
             .cornerRadius(8)
         }

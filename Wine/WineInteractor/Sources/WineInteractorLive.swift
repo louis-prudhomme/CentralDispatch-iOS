@@ -19,6 +19,13 @@ extension WineInteractor {
                 try await repository.fetchAllWinemakers(searchText).map { $0.toDomain() }
             }
         },
+        fetchAllGrapeVarieties: { searchText in
+            @Dependency(\.wineRepository) var repository
+
+            return await withInteractorResult(parser: WineInteractorError.init) { @MainActor in
+                try await repository.fetchAllGrapeVarieties(searchText).map { $0.toDomain() }
+            }
+        },
         fetch: { id in
             @Dependency(\.wineRepository) var repository
 
@@ -45,6 +52,10 @@ extension WineInteractor {
                 return .failure(WineInteractorError.millesimeInvalid)
             }
 
+            guard !domain.grapeVarieties.isEmpty else {
+                return .failure(WineInteractorError.grapeVarietyEmpty)
+            }
+
             return await withInteractorResult(parser: WineInteractorError.init) {
                 try await repository.upsert(domain.toEntity())
             }
@@ -58,6 +69,17 @@ extension WineInteractor {
 
             return await withInteractorResult(parser: WineInteractorError.init) {
                 try await repository.upsertWinemaker(winemaker.toEntity())
+            }
+        },
+        upsertGrapeVariety: { grapeVariety in
+            @Dependency(\.wineRepository) var repository
+
+            guard !grapeVariety.name.isEmpty else {
+                return .failure(WineInteractorError.nameEmpty)
+            }
+
+            return await withInteractorResult(parser: WineInteractorError.init) {
+                try await repository.upsertGrapeVariety(grapeVariety.toEntity())
             }
         },
         delete: { id in

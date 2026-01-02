@@ -1,5 +1,6 @@
 import SharedCommonArchitecture
 import SharedCommonDesignSystem
+import WineDomain
 import SwiftUI
 
 public struct WineFeatureListWineView: View {
@@ -15,14 +16,8 @@ public struct WineFeatureListWineView: View {
                 ProgressView()
             } else {
                 List {
-                    ForEach(store.wines) { wine in
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text(wine.name)
-                                .font(.headline)
-                            Text("Vintage: \(wine.millesime)")
-                                .font(.subheadline)
-                                .foregroundStyle(.secondary)
-                        }
+                    ForEach(store.wines) { bottle in
+                        WineBottleView(bottle: bottle)
                     }
                 }
             }
@@ -42,6 +37,29 @@ public struct WineFeatureListWineView: View {
                 Button("Add a wine", systemImage: "plus") {
                     store.send(.delegate(.addButtonTapped))
                 }
+            }
+        }
+    }
+}
+
+extension WineFeatureListWineView {
+    struct WineBottleView: View {
+        let bottle: WineBottle
+
+        var body: some View {
+            VStack(alignment: .leading, spacing: 4) {
+                Text(
+                    """
+                    \(Text(bottle.name)) - \
+                    \(Text(bottle.millesime.formatted(.number.grouping(.never)))
+                        .foregroundStyle(.secondary))
+                    """
+                )
+                .font(.headline)
+
+                Text(bottle.grapeVarieties.map(\.name).joined(separator: ", "))
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
             }
         }
     }

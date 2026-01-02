@@ -10,10 +10,12 @@ public struct WineFeatureAddWine {
         var name = ""
         var millesime: Int
         var winemaker: Winemaker?
+        var grapeVarieties = [GrapeVariety]()
         var isLoading = false
 
         @Presents var alert: AlertState<Never>?
         @Presents var winemakerSheet: MultipleChoiceSelection<Winemaker, WineInteractorError>.State?
+        @Presents var grapeVarietySheet: MultipleChoiceSelection<GrapeVariety, WineInteractorError>.State?
 
         public init() {
             @Dependency(\.date) var date
@@ -25,10 +27,12 @@ public struct WineFeatureAddWine {
     public enum Action: BindableAction {
         case submitButtonTapped
         case selectWinemakerButtonTapped
+        case selectGrapeVarietiesButtonTapped
         case wineAdded(VoidResult<WineInteractorError>)
 
         case alert(PresentationAction<Never>)
         case winemakerSheet(PresentationAction<MultipleChoiceSelection<Winemaker, WineInteractorError>.Action>)
+        case grapeVarietySheet(PresentationAction<MultipleChoiceSelection<GrapeVariety, WineInteractorError>.Action>)
         case binding(BindingAction<State>)
 
         case delegate(Delegate)
@@ -46,8 +50,8 @@ public struct WineFeatureAddWine {
         Reduce { state, action in
             switch action {
                 case .submitButtonTapped:
-                    return .run { [upsert = wineInteractor.upsert, name = state.name, millesime = state.millesime, winemaker = state.winemaker] send in
-                        let wine = WineBottle.new(name: name, millesime: millesime, winemaker: winemaker)
+                    return .run { [upsert = wineInteractor.upsert, name = state.name, millesime = state.millesime, grapeVarieties = state.grapeVarieties, winemaker = state.winemaker] send in
+                        let wine = WineBottle.new(name: name, millesime: millesime, grapeVarieties: grapeVarieties, winemaker: winemaker)
                         await send(.wineAdded(upsert(wine)))
                     }
 
@@ -59,7 +63,21 @@ public struct WineFeatureAddWine {
                     )
                     state.winemakerSheet = MultipleChoiceSelection<Winemaker, WineInteractorError>.State(
                         title: "Winemaker",
+                        isMultiSelect: false,
                         delegate: winemakerInteractorDelegate
+                    )
+                    return .none
+
+                case .selectGrapeVarietiesButtonTapped:
+                    let grapeVarietyInteractorDelegate = MultipleChoiceInteractorDelegate<GrapeVariety, WineInteractorError>(
+                        fetchChoices: wineInteractor.fetchAllGrapeVarieties,
+                        createChoice: { [upsertGrapeVariety = wineInteractor.upsertGrapeVariety] name in await upsertGrapeVariety(GrapeVariety.new(name: name)) },
+                        getDisplayName: { $0.name }
+                    )
+                    state.grapeVarietySheet = MultipleChoiceSelection<GrapeVariety, WineInteractorError>.State(
+                        title: "Grape Varieties",
+                        isMultiSelect: true,
+                        delegate: grapeVarietyInteractorDelegate
                     )
                     return .none
 
@@ -74,12 +92,20 @@ public struct WineFeatureAddWine {
                     state.isLoading = false
                     return .run { [dismiss] _ in await dismiss() }
 
-                case let .winemakerSheet(.presented(.delegate(.choiceSelected(winemaker)))):
-                    state.winemaker = winemaker
+                case let .winemakerSheet(.presented(.delegate(.choicesSelected(winemakers)))):
+                    state.winemaker = winemakers.first
                     state.winemakerSheet = nil
                     return .none
 
+                case let .grapeVarietySheet(.presented(.delegate(.choicesSelected(grapeVarieties)))):
+                    state.grapeVarieties = grapeVarieties
+                    state.grapeVarietySheet = nil
+                    return .none
+
                 case .winemakerSheet:
+                    return .none
+
+                case .grapeVarietySheet:
                     return .none
 
                 case .alert:
@@ -95,9 +121,13 @@ public struct WineFeatureAddWine {
         .ifLet(\.$winemakerSheet, action: \.winemakerSheet) {
             MultipleChoiceSelection<Winemaker, WineInteractorError>()
         }
+        .ifLet(\.$grapeVarietySheet, action: \.grapeVarietySheet) {
+            MultipleChoiceSelection<GrapeVariety, WineInteractorError>()
+        }
     }
 }
 
 // MARK: Conformances
 
 extension Winemaker: Choosable {}
+extension GrapeVariety: Choosable {}

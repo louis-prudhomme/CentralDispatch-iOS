@@ -7,17 +7,20 @@ public struct MultipleChoiceSelection<Choice: Choosable, IError: InteractorError
     @ObservableState
     public struct State: Equatable {
         public let delegate: MultipleChoiceInteractorDelegate<Choice, IError>
+        public let isMultiSelect: Bool
         public let title: String
 
         @Presents var alert: AlertState<Never>?
         @Presents var destination: Destination.State?
 
         public var searchText = ""
-        public var choices: [Choice] = []
+        public var choices = [Choice]()
+        public var selectedChoices = [Choice]()
         public var isLoading = false
 
-        public init(title: String, delegate: MultipleChoiceInteractorDelegate<Choice, IError>) {
+        public init(title: String, isMultiSelect: Bool, delegate: MultipleChoiceInteractorDelegate<Choice, IError>) {
             self.title = title
+            self.isMultiSelect = isMultiSelect
             self.delegate = delegate
         }
 
@@ -39,6 +42,7 @@ public struct MultipleChoiceSelection<Choice: Choosable, IError: InteractorError
         case choiceSelected(Choice)
         case searchTextChanged(String)
         case choicesLoaded(Result<[Choice], IError>)
+        case submitSelectedChoicesButtonTapped
 
         case addChoiceButtonTapped
 
@@ -48,7 +52,7 @@ public struct MultipleChoiceSelection<Choice: Choosable, IError: InteractorError
         case delegate(Delegate)
 
         public enum Delegate: Equatable {
-            case choiceSelected(Choice)
+            case choicesSelected([Choice])
         }
     }
 
@@ -80,10 +84,22 @@ public struct MultipleChoiceSelection<Choice: Choosable, IError: InteractorError
 
                 case let .searchTextChanged(text):
                     state.searchText = text
-                    return .none
+                    return .run { send in await send(.onAppear) }
 
                 case let .choiceSelected(choice):
-                    return .send(.delegate(.choiceSelected(choice)))
+                    if state.isMultiSelect {
+                        if state.selectedChoices.contains(choice) {
+                            state.selectedChoices.removeAll { $0 == choice }
+                        } else {
+                            state.selectedChoices.append(choice)
+                        }
+                        return .none
+                    } else {
+                        return .send(.delegate(.choicesSelected([choice])))
+                    }
+
+                case .submitSelectedChoicesButtonTapped:
+                    return .send(.delegate(.choicesSelected(state.selectedChoices)))
 
                 case .addChoiceButtonTapped:
                     state.destination = .addChoice(AddChoice<Choice, IError>.State(

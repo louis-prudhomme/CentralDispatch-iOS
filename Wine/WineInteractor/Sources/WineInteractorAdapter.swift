@@ -20,8 +20,19 @@ public extension WineBottleEntity {
             id: id,
             name: name,
             millesime: millesime,
+            grapeVarieties: grapeVarieties.map { $0.toDomain() },
             createdAt: createdAt,
             winemaker: winemaker?.toDomain()
+        )
+    }
+}
+
+public extension GrapeVarietyEntity {
+    func toDomain() -> GrapeVariety {
+        GrapeVariety(
+            id: id,
+            name: name,
+            createdAt: createdAt
         )
     }
 }
@@ -46,8 +57,20 @@ public extension WineBottle {
             id: id,
             name: name,
             millesime: millesime,
+            grapeVarieties: grapeVarieties.map { $0.toEntity() },
             createdAt: createdAt,
             winemaker: winemaker?.toEntity()
+        )
+    }
+}
+
+public extension GrapeVariety {
+    /// Creates a new Entity instance from this Domain model.
+    func toEntity() -> GrapeVarietyEntity {
+        GrapeVarietyEntity(
+            id: id,
+            name: name,
+            createdAt: createdAt
         )
     }
 }
