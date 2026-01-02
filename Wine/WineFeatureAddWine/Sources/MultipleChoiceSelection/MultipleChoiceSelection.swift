@@ -40,7 +40,6 @@ public struct MultipleChoiceSelection<Choice: Choosable, IError: ClientError> {
     public enum Action: BindableAction {
         case onAppear
         case choiceSelected(Choice)
-        case searchTextChanged(String)
         case choicesLoaded(Result<[Choice], IError>)
         case submitSelectedChoicesButtonTapped
 
@@ -65,9 +64,9 @@ public struct MultipleChoiceSelection<Choice: Choosable, IError: ClientError> {
             switch action {
                 case .onAppear:
                     state.isLoading = true
-                    state.choices = []
                     return .run { [delegate = state.delegate, searchText = state.searchText] send in
-                        await send(.choicesLoaded(delegate.fetchChoices(searchText)))
+                        let result = await delegate.fetchChoices(searchText)
+                        await send(.choicesLoaded(result))
                     }
 
                 case let .choicesLoaded(.success(choices)):
@@ -81,10 +80,6 @@ public struct MultipleChoiceSelection<Choice: Choosable, IError: ClientError> {
                         TextState(error.localizedDescription)
                     }
                     return .none
-
-                case let .searchTextChanged(text):
-                    state.searchText = text
-                    return .run { send in await send(.onAppear) }
 
                 case let .choiceSelected(choice):
                     if state.isMultiSelect {

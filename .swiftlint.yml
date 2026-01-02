@@ -241,16 +241,16 @@ custom_rules:
     regex: "import ComposableArchitecture"
     message: "Most of the time, you'll want to import SharedCommonArchitecture which encapsulate TCA and Helpers at once."
     severity: warning
-  use_umbrella_to_import_dependencies:
-    name: "Do you really want to import Dependencies only ?"
-    regex: "import Dependencies"
-    message: "Most of the time, you'll want to import SharedCommonArchitecture which encapsulate Dependencies and Helpers at once."
-    severity: warning
   use_dependency_for_date:
     name: "Use Dependency Injection for Date"
     regex: "Calendar\\.current|Date\\(\\)"
     message: "Use Dependency Injection to get the current date or calendar instance instead of directly accessing Calendar.current or creating a new Date instance."
     severity: error
+  tca_break_down_runs:
+    name: "Break down TCA run effects"
+    regex: "send\\(\\.[a-zA-Z]+\\(await"
+    message: "Break down TCA run effects to improve compiler performance. Consider separating the send action from the await call."
+    severity: warning
 
 analyzer_rules:
   - unused_declaration
