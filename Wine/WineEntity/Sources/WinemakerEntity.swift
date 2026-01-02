@@ -24,10 +24,6 @@ public final class WinemakerEntity: IdentifiableEntity {
 }
 
 public extension WinemakerEntity {
-    static func new(id: UUID, name: String, createdAt: Date) -> WinemakerEntity {
-        return WinemakerEntity(id: id, name: name, createdAt: createdAt)
-    }
-
     func update(from entity: WinemakerEntity) {
         // id is immutable, no update needed
         name = entity.name

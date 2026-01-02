@@ -58,14 +58,14 @@ public struct WineFeatureAddWine {
             switch action {
                 case .submitButtonTapped:
                     return .run { [upsert = wineInteractor.upsert, name = state.name, millesime = state.millesime, abv = state.abv, grapeVarieties = state.grapeVarieties, winemaker = state.winemaker] send in
-                        let wine = WineBottle.new(name: name, millesime: millesime, abv: abv, grapeVarieties: grapeVarieties, winemaker: winemaker)
+                        let wine = WineBottle(name: name, millesime: millesime, abv: abv, grapeVarieties: grapeVarieties, winemaker: winemaker)
                         await send(.wineAdded(upsert(wine)))
                     }
 
                 case .selectWinemakerButtonTapped:
                     let winemakerInteractorDelegate = MultipleChoiceInteractorDelegate<Winemaker, WineInteractorError>(
                         fetchChoices: wineInteractor.fetchAllWinemakers,
-                        createChoice: { [upsertWinemaker = wineInteractor.upsertWinemaker] name in await upsertWinemaker(Winemaker.new(name: name)) },
+                        createChoice: { [upsertWinemaker = wineInteractor.upsertWinemaker] name in await upsertWinemaker(Winemaker(name: name)) },
                         getDisplayName: { $0.name }
                     )
                     state.destination = .winemaker(MultipleChoiceSelection<Winemaker, WineInteractorError>.State(
@@ -78,7 +78,7 @@ public struct WineFeatureAddWine {
                 case .selectGrapeVarietiesButtonTapped:
                     let grapeVarietyInteractorDelegate = MultipleChoiceInteractorDelegate<GrapeVariety, WineInteractorError>(
                         fetchChoices: wineInteractor.fetchAllGrapeVarieties,
-                        createChoice: { [upsertGrapeVariety = wineInteractor.upsertGrapeVariety] name in await upsertGrapeVariety(GrapeVariety.new(name: name)) },
+                        createChoice: { [upsertGrapeVariety = wineInteractor.upsertGrapeVariety] name in await upsertGrapeVariety(GrapeVariety(name: name)) },
                         getDisplayName: { $0.name }
                     )
                     state.destination = .grapeVarieties(MultipleChoiceSelection<GrapeVariety, WineInteractorError>.State(

@@ -15,10 +15,10 @@ public struct GrapeVariety: Interactable {
 }
 
 public extension GrapeVariety {
-    static func new(name: String) -> GrapeVariety {
+    init(name: String) {
         @Dependency(\.uuid) var uuid
         @Dependency(\.date) var date
 
-        return GrapeVariety(id: uuid(), name: name, createdAt: date())
+        self.init(id: uuid(), name: name, createdAt: date())
     }
 }

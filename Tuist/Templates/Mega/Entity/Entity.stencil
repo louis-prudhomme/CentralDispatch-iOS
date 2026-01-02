@@ -21,11 +21,7 @@ public final class {{ group }}Entity: IdentifiableEntity {
     }
 }
 
-public extension {{ group }}Entity {
-    static func new(id: UUID, name: String, createdAt: Date) -> {{ group }}Entity {
-        return {{ group }}Entity(id: id, name: name, createdAt: createdAt)
-    }
-    
+public extension {{ group }}Entity {    
     func update(from entity: {{ group }}Entity) {
         // id is immutable, no update needed
         name = entity.name

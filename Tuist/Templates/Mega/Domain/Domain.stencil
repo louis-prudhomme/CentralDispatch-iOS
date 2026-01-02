@@ -15,10 +15,10 @@ public struct {{ group }}: Interactable {
 }
 
 public extension {{ group }} {
-    static func new(name: String) -> {{ group }} {
+    init(name: String) {
         @Dependency(\.uuid) var uuid
         @Dependency(\.date) var date
 
-        return {{ group }}(id: uuid(), name: name, createdAt: date())
+        self.init(id: uuid(), name: name, createdAt: date())
     }
 }

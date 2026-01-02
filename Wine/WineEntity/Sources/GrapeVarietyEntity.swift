@@ -24,10 +24,6 @@ public final class GrapeVarietyEntity: IdentifiableEntity {
 }
 
 public extension GrapeVarietyEntity {
-    static func new(id: UUID, name: String, createdAt: Date) -> GrapeVarietyEntity {
-        return GrapeVarietyEntity(id: id, name: name, createdAt: createdAt)
-    }
-
     func update(from entity: GrapeVarietyEntity) {
         // id is immutable, no update needed
         name = entity.name

@@ -32,11 +32,6 @@ public final class WineBottleEntity: IdentifiableEntity {
 }
 
 public extension WineBottleEntity {
-    // swiftlint:disable:next function_parameter_count
-    static func new(id: UUID, name: String, millesime: Int, abv: Double, grapeVarieties: [GrapeVarietyEntity], createdAt: Date, winemaker: WinemakerEntity?) -> WineBottleEntity {
-        return WineBottleEntity(id: id, name: name, millesime: millesime, abv: abv, grapeVarieties: grapeVarieties, createdAt: createdAt, winemaker: winemaker)
-    }
-
     func update(from entity: WineBottleEntity) {
         // id is immutable, no update needed
         name = entity.name

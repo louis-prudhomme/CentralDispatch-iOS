@@ -37,7 +37,7 @@ public struct {{ group }}FeatureAdd{{ group }} {
             switch action {
                 case .submitButtonTapped:
                     return .run { [upsert, name = state.name] send in
-                        let {{ group | lowerFirstWord }} = {{ group }}.new(name: name)
+                        let {{ group | lowerFirstWord }} = {{ group }}(name: name)
                         await send(.{{ group | lowerFirstWord }}Added(await upsert({{ group | lowerFirstWord }})))
                     }
 

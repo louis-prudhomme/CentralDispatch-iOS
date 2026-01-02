@@ -15,10 +15,10 @@ public struct Winemaker: Interactable {
 }
 
 public extension Winemaker {
-    static func new(name: String) -> Winemaker {
+    init(name: String) {
         @Dependency(\.uuid) var uuid
         @Dependency(\.date) var date
 
-        return Winemaker(id: uuid(), name: name, createdAt: date())
+        self.init(id: uuid(), name: name, createdAt: date())
     }
 }
