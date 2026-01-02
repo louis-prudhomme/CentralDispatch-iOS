@@ -6,6 +6,9 @@ let project = Project.project(
     hasResources: false,
     hasTests: false,
     dependencies: [
-        .external(name: "Dependencies")
+        .project(
+            target: "SharedCommonDependencies",
+            path: .relativeToRoot("Shared/SharedCommonDependencies")
+        )
     ]
 )

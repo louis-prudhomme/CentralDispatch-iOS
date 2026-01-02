@@ -1,4 +1,5 @@
 import Foundation
+import SharedCommonDependencies
 
 public func withInteractorResult<TSuccess, TError: InteractorError>(parser: (any Error) -> TError, _ operation: @escaping @Sendable () async throws -> TSuccess) async -> InteractorResult<TSuccess, TError> where TSuccess: Equatable {
     do {
@@ -18,6 +19,6 @@ public func withInteractorResult<TError: InteractorError>(parser: (any Error) ->
     }
 }
 
-public typealias InteractorResult<TSuccess: Equatable, TError: InteractorError> = Result<TSuccess, TError>
+public typealias InteractorResult = ClientResult
 
-public protocol InteractorError: Error, LocalizedError, Equatable {}
+public typealias InteractorError = ClientError
