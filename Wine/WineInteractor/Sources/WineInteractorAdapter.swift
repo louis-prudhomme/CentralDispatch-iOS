@@ -20,6 +20,7 @@ public extension WineBottleEntity {
             id: id,
             name: name,
             millesime: millesime,
+            abv: abv,
             grapeVarieties: grapeVarieties.map { $0.toDomain() },
             createdAt: createdAt,
             winemaker: winemaker?.toDomain()
@@ -57,6 +58,7 @@ public extension WineBottle {
             id: id,
             name: name,
             millesime: millesime,
+            abv: abv,
             grapeVarieties: grapeVarieties.map { $0.toEntity() },
             createdAt: createdAt,
             winemaker: winemaker?.toEntity()

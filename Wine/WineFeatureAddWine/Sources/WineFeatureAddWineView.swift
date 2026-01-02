@@ -22,6 +22,14 @@ public struct WineFeatureAddWineView: View {
                         .textFieldStyle(.roundedBorder)
                 }
 
+                HStack(spacing: 16) {
+                    Text("AbV (%)")
+
+                    TextField("Enter AbV", value: $store.abv, format: .number)
+                        .multilineTextAlignment(.trailing)
+                        .textFieldStyle(.roundedBorder)
+                }
+
                 yearPicker
 
                 winemakerSelectionButton

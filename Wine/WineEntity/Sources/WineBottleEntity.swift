@@ -9,16 +9,18 @@ public final class WineBottleEntity: IdentifiableEntity {
     @Attribute(.unique) public var id: UUID
     @Attribute public var name: String
     @Attribute public var millesime: Int
+    @Attribute public var abv: Double
 
     @Attribute public var createdAt: Date
 
     @Relationship(deleteRule: .nullify) public var winemaker: WinemakerEntity?
     @Relationship(deleteRule: .nullify) public var grapeVarieties: [GrapeVarietyEntity]
 
-    public init(id: UUID, name: String, millesime: Int, grapeVarieties: [GrapeVarietyEntity], createdAt: Date, winemaker: WinemakerEntity?) {
+    public init(id: UUID, name: String, millesime: Int, abv: Double, grapeVarieties: [GrapeVarietyEntity], createdAt: Date, winemaker: WinemakerEntity?) {
         self.id = id
         self.name = name
         self.millesime = millesime
+        self.abv = abv
         self.createdAt = createdAt
         self.winemaker = winemaker
         self.grapeVarieties = grapeVarieties
@@ -31,14 +33,15 @@ public final class WineBottleEntity: IdentifiableEntity {
 
 public extension WineBottleEntity {
     // swiftlint:disable:next function_parameter_count
-    static func new(id: UUID, name: String, millesime: Int, grapeVarieties: [GrapeVarietyEntity], createdAt: Date, winemaker: WinemakerEntity?) -> WineBottleEntity {
-        return WineBottleEntity(id: id, name: name, millesime: millesime, grapeVarieties: grapeVarieties, createdAt: createdAt, winemaker: winemaker)
+    static func new(id: UUID, name: String, millesime: Int, abv: Double, grapeVarieties: [GrapeVarietyEntity], createdAt: Date, winemaker: WinemakerEntity?) -> WineBottleEntity {
+        return WineBottleEntity(id: id, name: name, millesime: millesime, abv: abv, grapeVarieties: grapeVarieties, createdAt: createdAt, winemaker: winemaker)
     }
 
     func update(from entity: WineBottleEntity) {
         // id is immutable, no update needed
         name = entity.name
         millesime = entity.millesime
+        abv = entity.abv
         createdAt = entity.createdAt
         winemaker = entity.winemaker
         grapeVarieties = entity.grapeVarieties

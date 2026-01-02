@@ -56,6 +56,10 @@ extension WineInteractor {
                 return .failure(WineInteractorError.grapeVarietyEmpty)
             }
 
+            guard domain.abv >= 0.0 && domain.abv <= 100.0 else {
+                return .failure(WineInteractorError.invalidAbv)
+            }
+
             return await withInteractorResult(parser: WineInteractorError.init) {
                 try await repository.upsert(domain.toEntity())
             }

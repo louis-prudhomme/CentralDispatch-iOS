@@ -11,11 +11,11 @@ public struct WineFeatureAddWine {
         var millesime: Int
         var winemaker: Winemaker?
         var grapeVarieties = [GrapeVariety]()
+        var abv: Double = 12.5
         var isLoading = false
 
         @Presents var alert: AlertState<Never>?
-        @Presents var winemakerSheet: MultipleChoiceSelection<Winemaker, WineInteractorError>.State?
-        @Presents var grapeVarietySheet: MultipleChoiceSelection<GrapeVariety, WineInteractorError>.State?
+        @Presents var destination: Destination.State?
 
         public init() {
             @Dependency(\.date) var date
@@ -55,8 +55,8 @@ public struct WineFeatureAddWine {
         Reduce { state, action in
             switch action {
                 case .submitButtonTapped:
-                    return .run { [upsert = wineInteractor.upsert, name = state.name, millesime = state.millesime, grapeVarieties = state.grapeVarieties, winemaker = state.winemaker] send in
-                        let wine = WineBottle.new(name: name, millesime: millesime, grapeVarieties: grapeVarieties, winemaker: winemaker)
+                    return .run { [upsert = wineInteractor.upsert, name = state.name, millesime = state.millesime, abv = state.abv, grapeVarieties = state.grapeVarieties, winemaker = state.winemaker] send in
+                        let wine = WineBottle.new(name: name, millesime: millesime, abv: abv, grapeVarieties: grapeVarieties, winemaker: winemaker)
                         await send(.wineAdded(upsert(wine)))
                     }
 

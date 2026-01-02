@@ -6,6 +6,7 @@ public enum WineInteractorError: InteractorError {
     case millesimeInvalid
     case grapeVarietyEmpty
     case notFound
+    case invalidAbv
     case unknown
 
     public init(_: any Error) {
@@ -22,6 +23,7 @@ public enum WineInteractorError: InteractorError {
             case .millesimeInvalid: "Vintage year cannot be in the future."
             case .grapeVarietyEmpty: "At least one grape variety must be selected."
             case .notFound: "Wine not found."
+            case .invalidAbv: "AbV must be between 0 and 100."
             case .unknown: "An unknown error occurred."
         }
     }
