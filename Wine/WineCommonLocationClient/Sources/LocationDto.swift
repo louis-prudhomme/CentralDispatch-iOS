@@ -17,8 +17,8 @@ public struct GeoNameDTO: Codable {
     public let adminName3: String? // 373
     public let adminCode4: String? // Mosnes
     public let adminName4: String? // 37530
-    public let adminCode5: String? // ?
-    public let adminName5: String? // ?
+    public let adminCode5: String? // Districts
+    public let adminName5: String? // Marseille 8
     public let population: Int?
     public let elevation: Int?
     public let timezone: Timezone?
@@ -115,10 +115,11 @@ public struct GeoNamesQueryParameters: Codable {
     // one of query / placename is required, but placename is better suited for our use case
     let placename: String
     let maxRows: Int
-    let countryBias: [String]
+    let countryBias: String
     let languageCode: String // 2-letter ISO code
     let responseStyle: ResponseStyle
-    let featureClass: [FeatureClass]
+    let featureClass: FeatureClass // FIXME: we'd like several, but URLQueryItemEncoder is busted
+    //let featureCode: String = "PPL&featureCode=PPLA3&featureCode=PPLA4" // TODO: should be an enum - PPLAx are for admin divisions (ex: Saumur is PPLA3) but URLQueryItemEncoder is busted
 
     enum CodingKeys: String, CodingKey {
         // case query = "q"
@@ -128,6 +129,7 @@ public struct GeoNamesQueryParameters: Codable {
         case languageCode = "lang"
         case responseStyle = "style"
         case featureClass
+        //case featureCode
     }
 }
 
@@ -136,7 +138,7 @@ public extension GeoNamesQueryParameters {
         case short = "SHORT"
         case medium = "MEDIUM"
         case long = "LONG"
-        case full = "FULL"
+        case full = "FULL" // the only one with all administrative divisions
     }
 }
 
@@ -159,10 +161,10 @@ extension GeoNamesQueryParameters {
         return GeoNamesQueryParameters(
             placename: name,
             maxRows: maxRows,
-            countryBias: ["FR", "IT", "ES"],
+            countryBias: "FR",
             languageCode: languageCode,
-            responseStyle: .medium,
-            featureClass: [.P]
+            responseStyle: .full,
+            featureClass: .P
         )
     }
 }
