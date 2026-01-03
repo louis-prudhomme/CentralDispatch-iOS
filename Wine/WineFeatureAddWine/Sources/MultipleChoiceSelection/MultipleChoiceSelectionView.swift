@@ -1,5 +1,6 @@
 import SharedCommonArchitecture
 import SharedCommonDependencies
+import SharedCommonDesignSystem
 import SwiftUI
 
 struct MultipleChoiceSelectionView<Choice: Choosable, IError: ClientError>: View {
@@ -10,43 +11,38 @@ struct MultipleChoiceSelectionView<Choice: Choosable, IError: ClientError>: View
     }
 
     var body: some View {
-        NavigationStack {
-            VStack {
-                if store.isLoading {
-                    ProgressView()
-                } else {
-                    List {
-                        ForEach(store.choices) { choice in
-                            let isSelected = store.selectedChoices.contains(choice)
-                            ChoiceView(choice: choice, isSelected: isSelected, store: store)
-                        }
-                    }
-                    .searchable(text: $store.searchText)
+        VStack {
+            List {
+                ForEach(store.choices) { choice in
+                    let isSelected = store.selectedChoices.contains(choice)
+                    ChoiceView(choice: choice, isSelected: isSelected, store: store)
+                }
+            }
 
-                    if store.isMultiSelect {
-                        submitButton
-                    }
-                }
+            if store.isMultiSelect {
+                submitButton
             }
-            .navigationDestination(item: $store.scope(state: \.destination?.addChoice, action: \.destination.addChoice)) { store in
-                AddChoiceView(store: store)
-            }
-            .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("Add a \(store.title)", systemImage: "plus") {
-                        store.send(.addChoiceButtonTapped)
-                    }
-                }
-            }
-            .navigationTitle(store.isMultiSelect ? "Select one or more" : "Pick a \(store.title)")
-            .navigationBarTitleDisplayMode(.inline)
-            .task { store.send(.onAppear) }
-            .alert($store.scope(state: \.alert, action: \.alert))
         }
+        .loadable(isLoading: store.isLoading)
+        .searchable(text: $store.searchText)
+        .toolbar {
+            ToolbarItem(placement: .navigationBarTrailing) {
+                Button("Add a \(store.title)", systemImage: "plus") {
+                    store.send(.addChoiceButtonTapped)
+                }
+            }
+        }
+        .navigationTitle(store.isMultiSelect ? "Select one or more" : "Pick a \(store.title)")
+        .navigationBarTitleDisplayMode(.inline)
+        .navigationDestination(item: $store.scope(state: \.destination?.addChoice, action: \.destination.addChoice)) { store in
+            AddChoiceView(store: store)
+        }
+        .task { store.send(.onAppear) }
+        .alert($store.scope(state: \.alert, action: \.alert))
     }
 
     var submitButton: some View {
-        Button("Select \(store.selectedChoices.count)") {
+        CellarButton("Select \(store.selectedChoices.count)", isDisabled: store.isLoading) {
             store.send(.submitSelectedChoicesButtonTapped)
         }
         .padding()
@@ -108,11 +104,13 @@ private enum ExampleEmptyError: ClientError {}
     )
 
     Color.pink.ignoresSafeArea().sheet(isPresented: .constant(true)) {
-        MultipleChoiceSelectionView<Example, ExampleEmptyError>(
-            store: Store(initialState: state) {
-                MultipleChoiceSelection()
-            }
-        )
+        NavigationStack {
+            MultipleChoiceSelectionView<Example, ExampleEmptyError>(
+                store: Store(initialState: state) {
+                    MultipleChoiceSelection()
+                }
+            )
+        }
     }
 }
 #endif
