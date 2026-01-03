@@ -24,6 +24,7 @@ struct BottlingLocationSelectionView: View {
                 }
             }
         }
+        .task { store.send(.onAppear) }
         .loadable(isLoading: store.isLoading)
         .searchable(text: $store.searchText)
         .navigationTitle(navigationTitle)

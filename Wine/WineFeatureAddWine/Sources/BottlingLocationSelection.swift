@@ -25,6 +25,7 @@ public struct BottlingLocationSelection {
     }
 
     public enum Action: BindableAction, Sendable {
+        case onAppear
         case locationsLoaded(Result<[Location], LocationClientError>)
         case locationSelected(Location)
 
@@ -48,7 +49,7 @@ public struct BottlingLocationSelection {
         Reduce {
             state, action in
             switch action {
-                case .binding(\.searchText):
+                case .binding(\.searchText), .onAppear:
                     if state.searchText.isEmpty, state.isLoading == false {
                         return .none
                     }
