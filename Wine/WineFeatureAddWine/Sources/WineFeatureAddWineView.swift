@@ -41,7 +41,7 @@ public struct WineFeatureAddWineView: View {
                 bottlingLocationSelectionButton
             }
             .overlay(alignment: .bottom) {
-                CellarButton("Add Wine", systemImage: "plus", isLoading: store.isLoading) {
+                CellarButton("Create \(store.name)", systemImage: "plus", isLoading: store.isLoading) {
                     store.send(.submitButtonTapped)
                 }
                 .buttonStyle(.borderedProminent)
