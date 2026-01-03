@@ -15,7 +15,7 @@ public final class WineBottlingLocationEntity: IdentifiableEntity {
     @Attribute public var administrativeDivisions: Data // JSON encoded array of AdministrativeDivision
     @Attribute public var providerId: Int // GeoNames ID
     @Attribute public var createdAt: Date
-    
+
     @Relationship(deleteRule: .nullify, inverse: \WineBottleEntity.bottlingLocation) public var wines: [WineBottleEntity]?
 
     public init(

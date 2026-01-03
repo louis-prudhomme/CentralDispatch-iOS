@@ -1,9 +1,9 @@
+@preconcurrency import Dispatch // FIXME: not acceptable
 import SharedCommonArchitecture
 import SharedCommonDependencies
-import WineInteractor
-import WineCommonLocationClient
 import SwiftUI
-@preconcurrency import Dispatch // FIXME: not acceptable
+import WineCommonLocationClient
+import WineInteractor
 
 @Reducer
 public struct BottlingLocationSelection {
@@ -19,7 +19,7 @@ public struct BottlingLocationSelection {
         public init(existing: String?) {
             self.existing = existing
             if let existing, !existing.isEmpty {
-                self.searchText = existing
+                searchText = existing
             }
         }
     }
@@ -96,7 +96,7 @@ extension WineBottlingLocation {
             name: location.name,
             coordinates: GeographicalCoordinates(from: location.coordinates),
             administrativeDivisions: location.administrativeDivisions.map { AdministrativeDivision(from: $0) },
-            providerId: location.id,
+            providerId: location.id
         )
     }
 }

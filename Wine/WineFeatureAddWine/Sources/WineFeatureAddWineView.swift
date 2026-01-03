@@ -51,17 +51,17 @@ public struct WineFeatureAddWineView: View {
         .sheet(item: $store.scope(state: \.destination, action: \.destination)) { store in
             NavigationStack {
                 switch store.case {
-                case let .winemaker(store):
-                    MultipleChoiceSelectionView(store: store)
-                        .presentationDetents([.medium, .large])
-                    
-                case let .grapeVarieties(store):
-                    MultipleChoiceSelectionView(store: store)
-                        .presentationDetents([.medium, .large])
-                    
-                case let .bottlingLocation(store):
-                    BottlingLocationSelectionView(store: store)
-                        .presentationDetents([.medium, .large])
+                    case let .winemaker(store):
+                        MultipleChoiceSelectionView(store: store)
+                            .presentationDetents([.medium, .large])
+
+                    case let .grapeVarieties(store):
+                        MultipleChoiceSelectionView(store: store)
+                            .presentationDetents([.medium, .large])
+
+                    case let .bottlingLocation(store):
+                        BottlingLocationSelectionView(store: store)
+                            .presentationDetents([.medium, .large])
                 }
             }
         }

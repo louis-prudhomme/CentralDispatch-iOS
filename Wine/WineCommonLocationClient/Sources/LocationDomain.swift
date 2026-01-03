@@ -32,9 +32,9 @@ public extension Location {
 
             var importance: Int {
                 switch self {
-                case .country: 1
-                case .region: 2
-                case .countyOrSmaller: 3
+                    case .country: 1
+                    case .region: 2
+                    case .countyOrSmaller: 3
                 }
             }
         }

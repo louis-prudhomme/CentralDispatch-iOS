@@ -93,9 +93,9 @@ public struct Timezone: Codable {
 // MARK: - Search Result
 
 struct GeoNamesSearchDTO: Codable {
-    public let geonames: [GeoNameDTO]?
-    public let status: GeoNamesStatusDto?
-    public let totalResultsCount: Int?
+    let geonames: [GeoNameDTO]?
+    let status: GeoNamesStatusDto?
+    let totalResultsCount: Int?
 
     init(geonames: [GeoNameDTO]?, status: GeoNamesStatusDto?, totalResultsCount: Int?) {
         self.geonames = geonames
@@ -142,15 +142,15 @@ public extension GeoNamesQueryParameters {
 
 public extension GeoNamesQueryParameters {
     enum FeatureClass: String, Codable {
-        case A = "A"
-        case H = "H"
-        case L = "L"
-        case P = "P"
-        case R = "R"
-        case S = "S"
-        case T = "T"
-        case U = "U"
-        case V = "V"
+        case A
+        case H
+        case L
+        case P
+        case R
+        case S
+        case T
+        case U
+        case V
     }
 }
 

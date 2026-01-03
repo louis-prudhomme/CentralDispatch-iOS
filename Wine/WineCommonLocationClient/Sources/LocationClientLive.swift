@@ -28,7 +28,6 @@ extension LocationClient {
 // MARK: - API Configuration
 
 private let geoNamesBaseURL = "https://secure.geonames.org/searchJSON"
-private let maxNumberOfResults: Int = 1000
 private let username = "LouisPH2" // TODO: extract to config
 
 // MARK: - Response Models
@@ -59,6 +58,7 @@ private func performGeoNamesRequest<T>(
     guard var queryItems = try? encoder.encode(queryParameters) else {
         return .failure(.encodingError)
     }
+
     queryItems.append(URLQueryItem(name: "username", value: username))
 
     urlComponents.queryItems = queryItems

@@ -150,6 +150,7 @@ public extension TargetDependency {
         guard let name = path.components(separatedBy: "/").last else {
             fatalError("Invalid module path: \(path)")
         }
+
         return .project(
             target: name,
             path: .relativeToRoot("\(path)")

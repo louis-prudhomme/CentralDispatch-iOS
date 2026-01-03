@@ -48,7 +48,7 @@ public enum LocationClientError: ClientError {
             case .noData: "No data returned from the API."
             case .invalidURL: "Invalid URL format."
             case .unknown: "An unknown error occurred."
-            case .other(let reason): reason
+            case let .other(reason): reason
         }
     }
 

@@ -1,7 +1,7 @@
 import SharedCommonArchitecture
 import SharedCommonDependencies
-import WineCommonLocationClient
 import SwiftUI
+import WineCommonLocationClient
 
 struct BottlingLocationSelectionView: View {
     @Bindable var store: StoreOf<BottlingLocationSelection>
@@ -55,7 +55,6 @@ private extension BottlingLocationSelectionView {
                     .font(.subheadline)
                     .accessibilityLabel("\(location.region), \(location.country)")
 
-                
                 ForEach(location.administrativeDivisions, id: \.code) { division in
                     Text("\(division.name) (\(division.code))")
                         .foregroundStyle(.secondary)
@@ -76,9 +75,10 @@ private extension Location {
     }
 
     var countryAsEmoji: String {
-        let baseFlagScalar: UInt32 = 127397
+        let baseFlagScalar: UInt32 = 127_397
 
         guard let countryCode else { return "🏴" }
+
         return countryCode
             .uppercased()
             .unicodeScalars
