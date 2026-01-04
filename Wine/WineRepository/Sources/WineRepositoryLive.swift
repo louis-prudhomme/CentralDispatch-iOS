@@ -28,14 +28,15 @@ public extension WineRepository {
                 let predicate = WinemakerEntity.idPredicate(for: proposed.id)
                 let descriptor = FetchDescriptor<WinemakerEntity>(predicate: predicate)
 
-                if let existing = try context.fetch(descriptor).first {
+                let entity = try context.fetch(descriptor).first
+                if let existing = entity {
                     existing.update(from: proposed)
                 } else {
-                    // TODO: check if name exists before inserting
                     context.insert(proposed)
                 }
 
                 try context.save()
+                return entity ?? proposed
             },
             fetchAllGrapeVarieties: { searchText in
                 @Dependency(\.modelContainer) var container
@@ -51,14 +52,16 @@ public extension WineRepository {
                 let context = container.mainContext
                 let predicate = GrapeVarietyEntity.idPredicate(for: proposed.id)
                 let descriptor = FetchDescriptor<GrapeVarietyEntity>(predicate: predicate)
-                if let existing = try context.fetch(descriptor).first {
+
+                let entity = try context.fetch(descriptor).first
+                if let existing = entity {
                     existing.update(from: proposed)
                 } else {
-                    // TODO: check if name exists before inserting
                     context.insert(proposed)
                 }
 
                 try context.save()
+                return entity ?? proposed
             }
         )
     }

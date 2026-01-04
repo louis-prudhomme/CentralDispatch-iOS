@@ -20,13 +20,13 @@ public protocol IdentifiableEntity: PersistentModel {
 public struct BaseRepository<TEntity: IdentifiableEntity>: Sendable {
     public var fetchAll: @MainActor @Sendable () async throws -> [TEntity]
     public var fetch: @MainActor @Sendable (UUID) async throws -> TEntity?
-    public var upsert: @MainActor @Sendable (TEntity) async throws -> Void
+    public var upsert: @MainActor @Sendable (TEntity) async throws -> TEntity
     public var delete: @MainActor @Sendable (UUID) async throws -> Void
 
     public init(
         fetchAll: @escaping @MainActor @Sendable () async throws -> [TEntity],
         fetch: @escaping @MainActor @Sendable (UUID) async throws -> TEntity?,
-        upsert: @escaping @MainActor @Sendable (TEntity) async throws -> Void,
+        upsert: @escaping @MainActor @Sendable (TEntity) async throws -> TEntity,
         delete: @escaping @MainActor @Sendable (UUID) async throws -> Void
     ) {
         self.fetchAll = fetchAll
@@ -54,17 +54,21 @@ public extension BaseRepository {
                 let descriptor = FetchDescriptor<TEntity>(predicate: predicate)
                 return try context.fetch(descriptor).first
             },
-            upsert: { @MainActor entity in
+            upsert: { @MainActor proposed in
                 @Dependency(\.modelContainer) var container
                 let context = container.mainContext
-                let predicate = TEntity.idPredicate(for: entity.id)
+                let predicate = TEntity.idPredicate(for: proposed.id)
                 let descriptor = FetchDescriptor<TEntity>(predicate: predicate)
-                if let existing = try context.fetch(descriptor).first {
-                    existing.update(from: entity)
+
+                let entity = try context.fetch(descriptor).first
+                if let existing = entity {
+                    existing.update(from: proposed)
                 } else {
-                    context.insert(entity)
+                    context.insert(proposed)
                 }
+
                 try context.save()
+                return entity ?? proposed
             },
             delete: { @MainActor id in
                 @Dependency(\.modelContainer) var container
@@ -98,17 +102,21 @@ public extension BaseRepository {
                 let descriptor = FetchDescriptor<TEntity>(predicate: predicate)
                 return try context.fetch(descriptor).first
             },
-            upsert: { @MainActor entity in
+            upsert: { @MainActor proposed in
                 @Dependency(\.modelContainer) var container
                 let context = container.mainContext
-                let predicate = TEntity.idPredicate(for: entity.id)
+                let predicate = TEntity.idPredicate(for: proposed.id)
                 let descriptor = FetchDescriptor<TEntity>(predicate: predicate)
-                if let existing = try context.fetch(descriptor).first {
-                    existing.update(from: entity)
+
+                let entity = try context.fetch(descriptor).first
+                if let existing = entity {
+                    existing.update(from: proposed)
                 } else {
-                    context.insert(entity)
+                    context.insert(proposed)
                 }
+
                 try context.save()
+                return entity ?? proposed
             },
             delete: { @MainActor id in
                 @Dependency(\.modelContainer) var container

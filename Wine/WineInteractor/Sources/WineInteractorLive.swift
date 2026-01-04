@@ -57,8 +57,9 @@ extension WineInteractor {
                 return .failure(WineInteractorError.invalidAbv)
             }
 
-            return await withResult(parser: WineInteractorError.init) {
-                try await repository.upsert(domain.toEntity())
+            return await withResult(parser: WineInteractorError.init) { @MainActor in
+                let entity = try await repository.upsert(domain.toEntity())
+                return try entity.toDomain()
             }
         },
         upsertWinemaker: { winemaker in
@@ -68,8 +69,9 @@ extension WineInteractor {
                 return .failure(WineInteractorError.nameEmpty)
             }
 
-            return await withResult(parser: WineInteractorError.init) {
-                try await repository.upsertWinemaker(winemaker.toEntity())
+            return await withResult(parser: WineInteractorError.init) { @MainActor in
+                let entity = try await repository.upsertWinemaker(winemaker.toEntity())
+                return entity.toDomain()
             }
         },
         upsertGrapeVariety: { grapeVariety in
@@ -79,8 +81,9 @@ extension WineInteractor {
                 return .failure(WineInteractorError.nameEmpty)
             }
 
-            return await withResult(parser: WineInteractorError.init) {
-                try await repository.upsertGrapeVariety(grapeVariety.toEntity())
+            return await withResult(parser: WineInteractorError.init) { @MainActor in
+                let entity = try await repository.upsertGrapeVariety(grapeVariety.toEntity())
+                return entity.toDomain()
             }
         },
         delete: { id in

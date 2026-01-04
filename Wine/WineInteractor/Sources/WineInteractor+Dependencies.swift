@@ -7,9 +7,9 @@ public struct WineInteractor: Sendable {
     public var fetchAllWinemakers: @Sendable (String) async -> Result<[Winemaker], WineInteractorError>
     public var fetchAllGrapeVarieties: @Sendable (String) async -> Result<[GrapeVariety], WineInteractorError>
     public var fetch: @Sendable (UUID) async -> Result<WineBottle, WineInteractorError>
-    public var upsert: @Sendable (WineBottle) async -> VoidResult<WineInteractorError>
-    public var upsertWinemaker: @Sendable (Winemaker) async -> VoidResult<WineInteractorError>
-    public var upsertGrapeVariety: @Sendable (GrapeVariety) async -> VoidResult<WineInteractorError>
+    public var upsert: @Sendable (WineBottle) async -> Result<WineBottle, WineInteractorError>
+    public var upsertWinemaker: @Sendable (Winemaker) async -> Result<Winemaker, WineInteractorError>
+    public var upsertGrapeVariety: @Sendable (GrapeVariety) async -> Result<GrapeVariety, WineInteractorError>
     public var delete: @Sendable (UUID) async -> VoidResult<WineInteractorError>
 
     public init(
@@ -17,9 +17,9 @@ public struct WineInteractor: Sendable {
         fetchAllWinemakers: @escaping @Sendable (String) async -> Result<[Winemaker], WineInteractorError>,
         fetchAllGrapeVarieties: @escaping @Sendable (String) async -> Result<[GrapeVariety], WineInteractorError>,
         fetch: @escaping @Sendable (UUID) async -> Result<WineBottle, WineInteractorError>,
-        upsert: @escaping @Sendable (WineBottle) async -> VoidResult<WineInteractorError>,
-        upsertWinemaker: @escaping @Sendable (Winemaker) async -> VoidResult<WineInteractorError>,
-        upsertGrapeVariety: @escaping @Sendable (GrapeVariety) async -> VoidResult<WineInteractorError>,
+        upsert: @escaping @Sendable (WineBottle) async -> Result<WineBottle, WineInteractorError>,
+        upsertWinemaker: @escaping @Sendable (Winemaker) async -> Result<Winemaker, WineInteractorError>,
+        upsertGrapeVariety: @escaping @Sendable (GrapeVariety) async -> Result<GrapeVariety, WineInteractorError>,
         delete: @escaping @Sendable (UUID) async -> VoidResult<WineInteractorError>
     ) {
         self.fetchAll = fetchAll

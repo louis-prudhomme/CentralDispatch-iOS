@@ -7,9 +7,9 @@ import WineEntity
 public struct WineRepository: Sendable {
     public let base: BaseRepository<WineBottleEntity>
     public let fetchAllWinemakers: @MainActor @Sendable (String) async throws -> [WinemakerEntity]
-    public let upsertWinemaker: @MainActor @Sendable (WinemakerEntity) async throws -> Void
+    public let upsertWinemaker: @MainActor @Sendable (WinemakerEntity) async throws -> WinemakerEntity
     public let fetchAllGrapeVarieties: @MainActor @Sendable (String) async throws -> [GrapeVarietyEntity]
-    public let upsertGrapeVariety: @MainActor @Sendable (GrapeVarietyEntity) async throws -> Void
+    public let upsertGrapeVariety: @MainActor @Sendable (GrapeVarietyEntity) async throws -> GrapeVarietyEntity
 }
 
 // MARK: - Convenience Accessors
@@ -17,7 +17,7 @@ public struct WineRepository: Sendable {
 public extension WineRepository {
     var fetchAll: @MainActor @Sendable () async throws -> [WineBottleEntity] { base.fetchAll }
     var fetch: @MainActor @Sendable (UUID) async throws -> WineBottleEntity? { base.fetch }
-    var upsert: @MainActor @Sendable (WineBottleEntity) async throws -> Void { base.upsert }
+    var upsert: @MainActor @Sendable (WineBottleEntity) async throws -> WineBottleEntity { base.upsert }
     var delete: @MainActor @Sendable (UUID) async throws -> Void { base.delete }
 }
 
