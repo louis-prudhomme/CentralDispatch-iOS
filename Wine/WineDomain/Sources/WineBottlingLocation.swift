@@ -64,13 +64,13 @@ public extension WineBottlingLocation {
         public enum DivisionType: Equatable, Sendable {
             case country
             case region
-            case countyOrSmaller
+            case countyOrSmaller(Int)
 
             public var importance: Int {
                 switch self {
-                    case .country: 1
-                    case .region: 2
-                    case .countyOrSmaller: 3
+                    case .country: 0
+                    case .region: 1
+                    case let .countyOrSmaller(importance): importance
                 }
             }
         }

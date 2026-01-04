@@ -68,6 +68,7 @@ private extension BottlingLocationSelectionView {
     }
 }
 
+// TODO: refactor into Location
 private extension Location {
     var countryCode: String? {
         administrativeDivisions

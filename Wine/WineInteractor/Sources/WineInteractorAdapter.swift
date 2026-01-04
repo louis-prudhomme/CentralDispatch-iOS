@@ -19,8 +19,8 @@ public extension WineBottleEntity {
             abv: abv,
             bottlingLocation: decodedLocation,
             grapeVarieties: grapeVarieties.map { $0.toDomain() },
-            createdAt: createdAt,
-            winemaker: winemaker?.toDomain()
+            winemaker: winemaker?.toDomain(),
+            createdAt: createdAt
         )
     }
 }
@@ -159,8 +159,14 @@ extension WineBottlingLocation.AdministrativeDivision.DivisionType: @retroactive
         switch rawValue {
             case "country": self = .country
             case "region": self = .region
-            case "countyOrSmaller": self = .countyOrSmaller
-            default: throw DecodingError.dataCorruptedError(in: container, debugDescription: "Invalid DivisionType value")
+            default:
+                if rawValue.starts(with: "countyOrSmaller_"),
+                   let importanceString = rawValue.split(separator: "_").last,
+                   let importance = Int(importanceString) {
+                    self = .countyOrSmaller(importance)
+                } else {
+                    throw DecodingError.dataCorruptedError(in: container, debugDescription: "Invalid DivisionType value: \(rawValue)")
+                }
         }
     }
 
@@ -169,7 +175,7 @@ extension WineBottlingLocation.AdministrativeDivision.DivisionType: @retroactive
         let rawValue = switch self {
             case .country: "country"
             case .region: "region"
-            case .countyOrSmaller: "countyOrSmaller"
+            case .countyOrSmaller(let importance): "countyOrSmaller_\(importance)"
         }
         try container.encode(rawValue)
     }

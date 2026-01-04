@@ -28,13 +28,13 @@ public extension Location {
         public enum `Type`: ClientSuccess {
             case country
             case region
-            case countyOrSmaller
+            case countyOrSmaller(Int)
 
             var importance: Int {
                 switch self {
-                    case .country: 1
-                    case .region: 2
-                    case .countyOrSmaller: 3
+                    case .country: 0
+                    case .region: 1
+                    case let .countyOrSmaller(importance): importance
                 }
             }
         }
@@ -60,16 +60,16 @@ public extension Location {
             includedIn.append(AdministrativeDivision(type: .region, name: adminName1, code: adminCode1))
         }
         if let adminName2 = dto.adminName2, let adminCode2 = dto.adminCode2 {
-            includedIn.append(AdministrativeDivision(type: .countyOrSmaller, name: adminName2, code: adminCode2))
+            includedIn.append(AdministrativeDivision(type: .countyOrSmaller(2), name: adminName2, code: adminCode2))
         }
         if let adminName3 = dto.adminName3, let adminCode3 = dto.adminCode3 {
-            includedIn.append(AdministrativeDivision(type: .countyOrSmaller, name: adminName3, code: adminCode3))
+            includedIn.append(AdministrativeDivision(type: .countyOrSmaller(3), name: adminName3, code: adminCode3))
         }
         if let adminName4 = dto.adminName4, let adminCode4 = dto.adminCode4 {
-            includedIn.append(AdministrativeDivision(type: .countyOrSmaller, name: adminName4, code: adminCode4))
+            includedIn.append(AdministrativeDivision(type: .countyOrSmaller(4), name: adminName4, code: adminCode4))
         }
         if let adminName5 = dto.adminName5, let adminCode5 = dto.adminCode5 {
-            includedIn.append(AdministrativeDivision(type: .countyOrSmaller, name: adminName5, code: adminCode5))
+            includedIn.append(AdministrativeDivision(type: .countyOrSmaller(5), name: adminName5, code: adminCode5))
         }
         administrativeDivisions = includedIn.sorted { $0.type.importance < $1.type.importance }
 
