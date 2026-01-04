@@ -162,7 +162,8 @@ extension WineBottlingLocation.AdministrativeDivision.DivisionType: @retroactive
             default:
                 if rawValue.starts(with: "countyOrSmaller_"),
                    let importanceString = rawValue.split(separator: "_").last,
-                   let importance = Int(importanceString) {
+                   let importance = Int(importanceString)
+                {
                     self = .countyOrSmaller(importance)
                 } else {
                     throw DecodingError.dataCorruptedError(in: container, debugDescription: "Invalid DivisionType value: \(rawValue)")
@@ -175,7 +176,7 @@ extension WineBottlingLocation.AdministrativeDivision.DivisionType: @retroactive
         let rawValue = switch self {
             case .country: "country"
             case .region: "region"
-            case .countyOrSmaller(let importance): "countyOrSmaller_\(importance)"
+            case let .countyOrSmaller(importance): "countyOrSmaller_\(importance)"
         }
         try container.encode(rawValue)
     }

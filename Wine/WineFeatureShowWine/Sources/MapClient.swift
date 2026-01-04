@@ -1,7 +1,7 @@
 import Dependencies
 import Foundation
-import SharedCommonDependencies
 @preconcurrency import MapKit // FIXME: not acceptable
+import SharedCommonDependencies
 
 public struct MapClient: Sendable {
     public var open: @Sendable (_ latitude: Double, _ longitude: Double, _ name: String?) async -> SimpleResult

@@ -12,7 +12,7 @@ public struct WineBottle: Interactable {
     public let winemaker: Winemaker? // TODO: a wine can probably have several winemakers
     public let grapeVarieties: [GrapeVariety]
 
-    public init(id: UUID, name: String, millesime: Int, abv: Double, bottlingLocation: WineBottlingLocation, grapeVarieties: [GrapeVariety], winemaker: Winemaker? = nil, createdAt: Date) {
+    public init(id: UUID, name: String, millesime: Int, abv: Double, bottlingLocation: WineBottlingLocation, grapeVarieties: [GrapeVariety], winemaker: Winemaker?, createdAt: Date) {
         self.id = id
         self.name = name
         self.millesime = millesime

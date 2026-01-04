@@ -128,7 +128,7 @@ extension WineBottlingLocation.AdministrativeDivision.DivisionType {
         self = switch type {
             case .country: .country
             case .region: .region
-            case .countyOrSmaller(let importance): .countyOrSmaller(importance)
+            case let .countyOrSmaller(importance): .countyOrSmaller(importance)
         }
     }
 }

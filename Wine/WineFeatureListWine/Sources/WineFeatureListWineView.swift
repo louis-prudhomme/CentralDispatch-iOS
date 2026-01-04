@@ -50,7 +50,7 @@ extension WineFeatureListWineView {
         let bottle: WineBottle
 
         var body: some View {
-            Button { 
+            Button {
                 store.send(.delegate(.wineTapped(bottle)))
             } label: {
                 HStack {
