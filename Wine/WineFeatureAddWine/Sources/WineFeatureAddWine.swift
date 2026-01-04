@@ -39,7 +39,7 @@ public struct WineFeatureAddWine {
         case selectWinemakerButtonTapped
         case selectGrapeVarietiesButtonTapped
         case selectBottlingLocationButtonTapped
-        case wineAdded(VoidResult<WineInteractorError>)
+        case wineAdded(Result<WineBottle, WineInteractorError>)
 
         case alert(PresentationAction<Never>)
         case destination(PresentationAction<Destination.Action>)

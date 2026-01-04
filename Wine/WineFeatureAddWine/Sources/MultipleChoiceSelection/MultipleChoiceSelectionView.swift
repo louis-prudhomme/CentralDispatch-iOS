@@ -24,7 +24,7 @@ struct MultipleChoiceSelectionView<Choice: Choosable, IError: ClientError>: View
             }
         }
         .loadable(isLoading: store.isLoading)
-        .emptyable(store.choices, searchText: store.searchText, isLoading: store.isLoading)
+        .emptyable(store.choices, searchText: store.searchText, isLoading: store.isLoading) { emptyCta }
         .searchable(text: $store.searchText)
         .toolbar {
             ToolbarItem(placement: .navigationBarTrailing) {
@@ -48,6 +48,16 @@ struct MultipleChoiceSelectionView<Choice: Choosable, IError: ClientError>: View
         }
         .buttonStyle(.borderedProminent)
         .padding()
+    }
+
+    var emptyCta: some View {
+        VStack {
+            Text("Do you want to create a \(store.title)?")
+
+            Button("Create \(store.searchText)") {
+                store.send(.createChoiceButtonTapped)
+            }
+        }
     }
 }
 
@@ -96,7 +106,7 @@ private enum ExampleEmptyError: ClientError {}
         fetchChoices: { _ in .success([
             Example()
         ]) },
-        createChoice: { _ in .success },
+        createChoice: { _ in .success(Example()) },
         getDisplayName: { $0.name }
     )
     let state = MultipleChoiceSelection.State(

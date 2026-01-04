@@ -103,9 +103,12 @@ public struct MultipleChoiceSelection<Choice: Choosable, IError: ClientError> {
                     ))
                     return .none
 
-                case .destination(.presented(.addChoice(.delegate(.choiceAdded)))):
+                case let .destination(.presented(.addChoice(.delegate(.choiceAdded(choice))))):
                     state.destination = nil
-                    return .run { send in await send(.onAppear) }
+                    return .run { send in
+                        await send(.onAppear)
+                        await send(.choiceSelected(choice))
+                    }
 
                 case .destination:
                     return .none
@@ -130,7 +133,7 @@ public protocol Choosable: Equatable, Identifiable, Sendable {}
 
 public struct MultipleChoiceInteractorDelegate<Choice: Choosable, IError: ClientError>: Sendable {
     let fetchChoices: @Sendable (String) async -> Result<[Choice], IError>
-    let createChoice: @Sendable (String) async -> VoidResult<IError>
+    let createChoice: @Sendable (String) async -> Result<Choice, IError>
     let getDisplayName: @Sendable (Choice) -> String
 }
 

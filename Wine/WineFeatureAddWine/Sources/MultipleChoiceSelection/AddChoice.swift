@@ -28,14 +28,14 @@ public struct AddChoice<Choice: Choosable, IError: ClientError> {
 
     public enum Action: BindableAction {
         case submitChoiceButtonTapped
-        case choiceAdditionFinished(VoidResult<IError>)
+        case choiceAdditionFinished(Result<Choice, IError>)
 
         case alert(PresentationAction<Never>)
         case binding(BindingAction<State>)
         case delegate(Delegate)
 
         public enum Delegate: Sendable {
-            case choiceAdded
+            case choiceAdded(Choice)
         }
     }
 
@@ -50,7 +50,7 @@ public struct AddChoice<Choice: Choosable, IError: ClientError> {
                     state.isLoading = true
 
                     return .run { [delegate = state.delegate, choiceName = state.choiceName] send in
-                        let result: VoidResult<IError> = await delegate.createChoice(choiceName)
+                        let result = await delegate.createChoice(choiceName)
                         await send(.choiceAdditionFinished(result))
                     }
 
@@ -61,9 +61,9 @@ public struct AddChoice<Choice: Choosable, IError: ClientError> {
                     }
                     return .none
 
-                case .choiceAdditionFinished(.success):
+                case let .choiceAdditionFinished(.success(choice)):
                     state.isLoading = false
-                    return .run { send in await send(.delegate(.choiceAdded)) }
+                    return .run { send in await send(.delegate(.choiceAdded(choice))) }
 
                 case .alert:
                     return .none
