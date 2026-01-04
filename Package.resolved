@@ -1,5 +1,5 @@
 {
-  "originHash" : "bb31dd7eea76dadea9ea4dd1f5e5f47047fd387dbb2843d9954a6de1d72dc1d0",
+  "originHash" : "e54580df8c92abd3b0acbf74a55aa7709f6689ae91ea9459fa352a922a89199e",
   "pins" : [
     {
       "identity" : "combine-schedulers",
@@ -132,8 +132,7 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/louis-prudhomme/URLQueryItemCoder",
       "state" : {
-        "branch" : "main",
-        "revision" : "27515576a44bb790ebc96ff7df0f93fc33673487"
+        "revision" : "34f50741144844292beabe9009ad3c80b0ba1c87"
       }
     },
     {

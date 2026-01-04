@@ -54,7 +54,7 @@ private func performGeoNamesRequest<T>(
         return .failure(.invalidURL)
     }
 
-    let encoder = URLQueryItemEncoder(unkeyedIntMaxEncodingStrategy: .repeated)
+    let encoder = URLQueryItemEncoder(unkeyedContainerStrategy: .repeated)
     guard var queryItems = try? encoder.encode(queryParameters) else {
         return .failure(.encodingError)
     }

@@ -26,6 +26,6 @@ let package = Package(
         .package(url: "https://github.com/pointfreeco/swift-composable-architecture", from: "1.23.1"),
         .package(url: "https://github.com/pointfreeco/swift-dependencies", from: "1.4.0"), // we must match the version used by TCA
         .package(url: "https://github.com/tgrapperon/swift-dependencies-additions", branch: "xcode26"),
-        .package(url: "https://github.com/louis-prudhomme/URLQueryItemCoder", branch: "main") // Fork to support multiple values for the same key
+        .package(url: "https://github.com/louis-prudhomme/URLQueryItemCoder", revision: "34f50741144844292beabe9009ad3c80b0ba1c87") // Fork to support multiple values for the same key
     ]
 )
