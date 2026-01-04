@@ -30,20 +30,6 @@ extension LocationClient {
 private let geoNamesBaseURL = "https://secure.geonames.org/searchJSON"
 private let username = "LouisPH2" // TODO: extract to config
 
-// MARK: - Response Models
-
-private struct GeoNamesStatus: Codable {
-    let message: String
-    let value: Int
-}
-
-private extension GeoNamesSearchDTO {
-    struct Response: Codable {
-        let geonames: [GeoNameDTO]
-        let totalResultsCount: Int
-    }
-}
-
 // MARK: - Network Helper
 
 private func performGeoNamesRequest<T>(
