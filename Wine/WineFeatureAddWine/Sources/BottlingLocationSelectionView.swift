@@ -20,12 +20,12 @@ struct BottlingLocationSelectionView: View {
             }
         }
         .emptyable(store.suggestedLocations, searchText: store.searchText, isLoading: store.isLoading)
-        .onAppear { store.send(.onAppear) }
         .loadable(isLoading: store.isLoading)
         .searchable(text: $store.searchText)
         .navigationTitle(navigationTitle)
         .navigationBarTitleDisplayMode(.inline)
         .alert($store.scope(state: \.alert, action: \.alert))
+        .onAppear { store.send(.onAppear) }
     }
 
     private var navigationTitle: String {

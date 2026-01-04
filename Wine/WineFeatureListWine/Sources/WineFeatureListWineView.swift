@@ -11,42 +11,41 @@ public struct WineFeatureListWineView: View {
     }
 
     public var body: some View {
-        VStack {
-            if store.isLoading {
-                ProgressView()
-            } else {
-                List {
-                    ForEach(store.wines) { bottle in
-                        WineBottleView(store: store, bottle: bottle)
-                    }
-                }
+        List {
+            ForEach(store.wines) { bottle in
+                WineBottleView(store: store, bottle: bottle)
             }
         }
+        .loadable(isLoading: store.isLoading)
         .alert($store.scope(state: \.alert, action: \.alert))
+        .overlay { emptyDisplay }
+        .navigationTitle("Wines")
+        .toolbar { toolbarContent }
+        .refreshable { store.send(.screenPulled) }
         .onAppear { store.send(.screenAppeared) }
-        .overlay {
-            if store.wines.isEmpty {
-                ContentUnavailableView(
-                    "No wines yet.",
-                    systemImage: "arrow.up.right",
-                    description: Text("Try adding some!")
-                )
-                .symbolVariant(.none)
+    }
+
+    @ViewBuilder
+    var emptyDisplay: some View {
+        ContentUnavailableView(
+            "No wines yet.",
+            systemImage: "arrow.up.right",
+            description: Text("Try adding some!")
+        )
+        .symbolVariant(.none)
+    }
+
+    @ToolbarContentBuilder
+    var toolbarContent: some ToolbarContent {
+        ToolbarItem(placement: .navigationBarLeading) {
+            Button("Return to Root", systemImage: "xmark") {
+                store.send(.delegate(.popToRoot))
             }
         }
-        .refreshable { store.send(.screenPulled) }
-        .navigationTitle("Wines")
-        .toolbar {
-            ToolbarItem(placement: .navigationBarLeading) {
-                Button("Return to Root", systemImage: "xmark") {
-                    store.send(.delegate(.popToRoot))
-                }
-            }
 
-            ToolbarItem(placement: .navigationBarTrailing) {
-                Button("Add a wine", systemImage: "plus") {
-                    store.send(.delegate(.addButtonTapped))
-                }
+        ToolbarItem(placement: .navigationBarTrailing) {
+            Button("Add a wine", systemImage: "plus") {
+                store.send(.delegate(.addButtonTapped))
             }
         }
     }

@@ -38,8 +38,8 @@ struct MultipleChoiceSelectionView<Choice: Choosable, IError: ClientError>: View
         .navigationDestination(item: $store.scope(state: \.destination?.addChoice, action: \.destination.addChoice)) { store in
             AddChoiceView(store: store)
         }
-        .onAppear { store.send(.onAppear) }
         .alert($store.scope(state: \.alert, action: \.alert))
+        .onAppear { store.send(.onAppear) }
     }
 
     var submitButton: some View {

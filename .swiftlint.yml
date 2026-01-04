@@ -251,6 +251,31 @@ custom_rules:
     regex: "send\\(\\.[a-zA-Z]+\\(await"
     message: "Break down TCA run effects to improve compiler performance. Consider separating the send action from the await call."
     severity: warning
+  onappear_must_be_last:
+    name: "onAppear should be the outermost modifier"
+    regex: "\\.onAppear\\s*\\{[^}]*\\}\\s*\\."
+    message: "Place .onAppear as the last modifier in the chain to prevent it from being called multiple times. Lifecycle modifiers should be outermost."
+    severity: warning
+  ondisappear_must_be_last:
+    name: "onDisappear should be the outermost modifier"
+    regex: "\\.onDisappear\\s*\\{[^}]*\\}\\s*\\."
+    message: "Place .onDisappear as the last modifier in the chain to prevent it from being called multiple times. Lifecycle modifiers should be outermost."
+    severity: warning
+  task_must_be_last:
+    name: "task should be the outermost modifier"
+    regex: "\\.task\\s*\\{[^}]*\\}\\s*\\."
+    message: "Place .task as the last modifier in the chain to prevent it from being called multiple times. Lifecycle modifiers should be outermost."
+    severity: warning
+  onchange_must_be_last:
+    name: "onChange should be the outermost modifier"
+    regex: "\\.onChange\\(of:[^)]*\\)\\s*\\{[^}]*\\}\\s*\\."
+    message: "Place .onChange as the last modifier in the chain to prevent it from being called multiple times. Observation modifiers should be outermost."
+    severity: warning
+  onreceive_must_be_last:
+    name: "onReceive should be the outermost modifier"
+    regex: "\\.onReceive\\([^)]*\\)\\s*\\{[^}]*\\}\\s*\\."
+    message: "Place .onReceive as the last modifier in the chain to prevent it from being called multiple times. Observation modifiers should be outermost."
+    severity: warning
 
 analyzer_rules:
   - unused_declaration
