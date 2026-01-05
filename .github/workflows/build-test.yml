@@ -44,25 +44,14 @@ jobs:
           echo "📱 Configuring iOS Simulator..."
           xcrun simctl create "${{ env.IOS_SIMULATOR_NAME }}" com.apple.CoreSimulator.SimDeviceType.${{ env.IOS_SIMULATOR_TYPE }} com.apple.CoreSimulator.SimRuntime.iOS-$(echo ${{ env.IOS_SIMULATOR_VERSION }} | tr '.' '-')
 
-      - name: Build project
+      - name: Build & Test
         run: |
-          echo "🔨 Building project..."
+          echo "🔨 Building and testing project..."
           set -o pipefail
-          tuist xcodebuild build \
+          tuist xcodebuild clean build test \
             -workspace CellarDoor.xcworkspace \
             -scheme CellarDoor \
-            -destination "platform=iOS Simulator,name=${IOS_SIMULATOR_NAME},OS=${IOS_SIMULATOR_VERSION}" \
-            -configuration Debug \
-            clean | xcpretty --color --simple
-
-      - name: Run tests
-        run: |
-          echo "🧪 Running tests..."
-          set -o pipefail
-          tuist xcodebuild test \
-            -workspace CellarDoor.xcworkspace \
-            -scheme CellarDoor \
-            -destination 'platform=iOS Simulator,name=${{ env.IOS_SIMULATOR_NAME }},OS=${{ env.IOS_SIMULATOR_VERSION }}' \
+            -destination "platform=iOS Simulator,name=${{ env.IOS_SIMULATOR_NAME }},OS=${{ env.IOS_SIMULATOR_VERSION }}" \
             -configuration Debug | xcpretty --color --simple
 
       - name: Upload test results
