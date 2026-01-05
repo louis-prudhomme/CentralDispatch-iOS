@@ -1,0 +1,184 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [main, develop]
+  push:
+    branches: [main, develop]
+
+jobs:
+  lint-format:
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Get changed Swift files
+        id: changed-files
+        run: |
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            BASE_SHA=${{ github.event.pull_request.base.sha }}
+            HEAD_SHA=${{ github.event.pull_request.head.sha }}
+          else
+            BASE_SHA=${{ github.event.before }}
+            HEAD_SHA=${{ github.sha }}
+          fi
+
+          CHANGED_FILES=$(git diff --name-only --diff-filter=AM $BASE_SHA...$HEAD_SHA | grep '\.swift$' || true)
+
+          if [ -z "$CHANGED_FILES" ]; then
+            echo "No Swift files changed"
+            echo "has-changes=false" >> $GITHUB_OUTPUT
+          else
+            echo "Changed Swift files:"
+            echo "$CHANGED_FILES"
+            echo "has-changes=true" >> $GITHUB_OUTPUT
+            echo "$CHANGED_FILES" > changed_swift_files.txt
+          fi
+
+      - name: Run SwiftFormat check
+        if: steps.changed-files.outputs.has-changes == 'true'
+        run: |
+          echo "🔍 Checking SwiftFormat compliance on changed files..."
+          EXIT_CODE=0
+          while IFS= read -r file; do
+            if [ -f "$file" ]; then
+              echo "Checking SwiftFormat for: $file"
+              if ! swiftformat "$file" --lint; then
+                echo "❌ SwiftFormat violations found in: $file"
+                EXIT_CODE=1
+              else
+                echo "✅ SwiftFormat compliant: $file"
+              fi
+            fi
+          done < changed_swift_files.txt
+
+          if [ $EXIT_CODE -ne 0 ]; then
+            echo ""
+            echo "💡 To fix formatting issues, run: swiftformat ."
+            exit $EXIT_CODE
+          fi
+
+      - name: Run SwiftLint
+        if: steps.changed-files.outputs.has-changes == 'true'
+        run: |
+          echo "🔍 Running SwiftLint on changed files..."
+          EXIT_CODE=0
+          while IFS= read -r file; do
+            if [ -f "$file" ]; then
+              echo "Linting: $file"
+              if ! swiftlint lint --path "$file" --quiet; then
+                echo "❌ SwiftLint violations found in: $file"
+                EXIT_CODE=1
+              else
+                echo "✅ SwiftLint passed: $file"
+              fi
+            fi
+          done < changed_swift_files.txt
+
+          if [ $EXIT_CODE -ne 0 ]; then
+            echo ""
+            echo "💡 To fix SwiftLint issues, run: swiftlint --fix"
+            exit $EXIT_CODE
+          fi
+
+      - name: Quality check summary
+        if: always()
+        run: |
+          echo "## Swift Quality Check" >> $GITHUB_STEP_SUMMARY
+          if [ "${{ steps.changed-files.outputs.has-changes }}" = "false" ]; then
+            echo "✅ No Swift files modified" >> $GITHUB_STEP_SUMMARY
+          elif [ "${{ job.status }}" = "success" ]; then
+            echo "✅ All Swift files pass quality checks" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ Quality checks failed - run \`swiftformat .\` and \`swiftlint --fix\`" >> $GITHUB_STEP_SUMMARY
+          fi
+
+  build-and-test:
+    needs: lint-format
+    runs-on: macos-latest
+
+    env:
+      IOS_SIMULATOR_VERSION: "26.1"
+      IOS_SIMULATOR_TYPE: "iPhone-16"
+      IOS_SIMULATOR_NAME: "iPhone Test Runner"
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Xcode
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: latest-stable
+
+      - name: Install xcpretty
+        run: gem install xcpretty
+
+      - name: Install devtools
+        uses: jdx/mise-action@v2
+
+      - name: Fetch dependencies
+        run: tuist install
+
+      - name: Generate Xcode project
+        run: tuist generate --no-open
+
+      - name: Configure simulators
+        run: |
+          echo "🔎 Looking up simulators..."
+          xcrun simctl list devices
+
+          echo "📱 Configuring iOS Simulator..."
+          xcrun simctl create "${{ env.IOS_SIMULATOR_NAME }}" com.apple.CoreSimulator.SimDeviceType.${{ env.IOS_SIMULATOR_TYPE }} com.apple.CoreSimulator.SimRuntime.iOS-$(echo ${{ env.IOS_SIMULATOR_VERSION }} | tr '.' '-')
+
+      - name: Build & Test
+        run: |
+          echo "🔨 Building and testing project..."
+          set -o pipefail
+          tuist xcodebuild clean build test \
+            -workspace CellarDoor.xcworkspace \
+            -scheme CellarDoor \
+            -destination "platform=iOS Simulator,name=${{ env.IOS_SIMULATOR_NAME }},OS=${{ env.IOS_SIMULATOR_VERSION }}" \
+            -configuration Debug | xcpretty --color --simple
+
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test-results
+          path: |
+            build/reports/
+            **/*.xcresult
+          retention-days: 7
+
+      - name: Generate dependency graph
+        if: always()
+        run: |
+          echo "📊 Generating dependency graph..."
+          tuist graph --format svg --output-path dependency-graph.svg
+          echo "Graph generated successfully!"
+
+      - name: Upload dependency graph
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: dependency-graph
+          path: dependency-graph.svg
+          retention-days: 30
+
+      - name: Test Summary
+        if: always()
+        run: |
+          echo "## Build & Test Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          if [ "${{ job.status }}" = "success" ]; then
+            echo "✅ All tests passed successfully!" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ Build or tests failed. Check the logs above for details." >> $GITHUB_STEP_SUMMARY
+          fi
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "📊 **Dependency graph generated and uploaded as artifact**" >> $GITHUB_STEP_SUMMARY
