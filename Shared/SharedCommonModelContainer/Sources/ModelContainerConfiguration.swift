@@ -1,26 +1,38 @@
+import Dependencies
 import SwiftData
 import WineEntity
 
-public enum ModelContainerConfiguration {
+public struct ModelContainerConfigurator: Sendable {
+    public var initialize: @Sendable () throws -> ModelContainer
+    
     /// All @Model types registered in the app.
-    public static let modelTypes: [any PersistentModel.Type] = [
+    private static let modelTypes: [any PersistentModel.Type] = [
         WineBottleEntity.self,
         WinemakerEntity.self,
         GrapeVarietyEntity.self,
         WineBottlingLocationEntity.self
     ]
 
-    public static func makeContainer(inMemory: Bool = false) throws -> ModelContainer {
+    private static func makeContainer(inMemory: Bool = false) throws -> ModelContainer {
         let schema = Schema(modelTypes)
         let configuration = ModelConfiguration(isStoredInMemoryOnly: inMemory)
         return try ModelContainer(for: schema, configurations: configuration)
     }
+}
 
-    public static func initialize() throws -> ModelContainer {
-        return try makeContainer(inMemory: false)
+extension ModelContainerConfigurator: DependencyKey {
+    public static let liveValue = ModelContainerConfigurator {
+        try makeContainer(inMemory: false)
     }
+    
+    public static let testValue = ModelContainerConfigurator {
+        try makeContainer(inMemory: true)
+    }
+}
 
-    public static func initializeForTesting() throws -> ModelContainer {
-        return try makeContainer(inMemory: true)
+public extension DependencyValues {
+    var modelContainerConfigurator: ModelContainerConfigurator {
+        get { self[ModelContainerConfigurator.self] }
+        set { self[ModelContainerConfigurator.self] = newValue }
     }
 }

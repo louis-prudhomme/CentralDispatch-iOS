@@ -6,19 +6,15 @@ import SwiftUI
 @main
 struct CellarDoorApp: App {
     @State private var initializationError: (any Error)?
+    @Dependency(\.modelContainerConfigurator) var modelContainerConfigurator
 
     init() {
         do {
-            // TODO: proper init
-            let isRunningTests = ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] != nil
-            let modelContainer = isRunningTests
-                ? try ModelContainerConfiguration.initializeForTesting()
-                : try ModelContainerConfiguration.initialize()
+            let modelContainer = try modelContainerConfigurator.initialize()
             prepareDependencies {
                 $0.modelContainer = modelContainer
             }
         } catch {
-            // Don't use fatalError as it crashes before test runner can bootstrap
             print("❌ Failed to initialize ModelContainer: \(error)")
             print("Error details: \(String(describing: error))")
             _initializationError = State(initialValue: error)
