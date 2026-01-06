@@ -45,16 +45,16 @@ private struct ErrorView: View {
                 .font(.system(size: 60))
                 .foregroundColor(.red)
                 .accessibilityHidden(true)
-            
+
             Text("Initialization Error")
                 .font(.title)
                 .fontWeight(.bold)
-            
+
             Text(String(describing: error))
                 .font(.body)
                 .multilineTextAlignment(.center)
                 .padding()
-            
+
             Text("Please check the console logs for more details.")
                 .font(.caption)
                 .foregroundColor(.secondary)
