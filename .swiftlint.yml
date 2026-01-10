@@ -246,6 +246,11 @@ custom_rules:
     regex: "Calendar\\.current|Date\\(\\)"
     message: "Use Dependency Injection to get the current date or calendar instance instead of directly accessing Calendar.current or creating a new Date instance."
     severity: error
+  use_dependency_for_uuid:
+    name: "Use Dependency Injection for UUID"
+    regex: "UUID\\.uuidString|UUID\\(\\)"
+    message: "Use Dependency Injection to get UUID instances instead of directly accessing UUID.uuidString or creating a new UUID instance."
+    severity: error
   tca_break_down_runs:
     name: "Break down TCA run effects"
     regex: "send\\(\\.[a-zA-Z]+\\(await"

@@ -107,7 +107,7 @@ private extension WineFeatureShowWineView.Row where Label == Text {
 }
 
 #Preview {
-    // swiftlint:disable use_dependency_for_date
+    // swiftlint:disable use_dependency_for_date use_dependency_for_uuid
     let bottle = WineBottle(
         id: UUID(),
         name: "Château Margaux",
@@ -130,7 +130,7 @@ private extension WineFeatureShowWineView.Row where Label == Text {
         winemaker: Winemaker(id: UUID(), name: "Château Margaux", createdAt: Date()),
         createdAt: Date()
     )
-    // swiftlint:enable use_dependency_for_date
+    // swiftlint:enable use_dependency_for_date use_dependency_for_uuid
 
     NavigationStack {
         WineFeatureShowWineView(
