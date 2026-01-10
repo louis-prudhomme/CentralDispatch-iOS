@@ -13,41 +13,39 @@ public struct WineFeatureAddWineView: View {
     }
 
     public var body: some View {
-        VStack {
-            Form {
-                pictureSection
+        Form {
+            pictureSection
 
-                HStack(spacing: 16) {
-                    Text("Name")
+            HStack(spacing: 16) {
+                Text("Name")
 
-                    TextField("Enter Wine Name", text: $store.name)
-                        .multilineTextAlignment(.trailing)
-                        .textFieldStyle(.roundedBorder)
-                }
-
-                HStack(spacing: 16) {
-                    Text("AbV (%)")
-
-                    TextField("Enter AbV", value: $store.abv, format: .number)
-                        .multilineTextAlignment(.trailing)
-                        .keyboardType(.decimalPad)
-                        .textFieldStyle(.roundedBorder)
-                }
-
-                yearPicker
-
-                winemakerSelectionButton
-
-                grapeVarietiesSelectionButton
-
-                bottlingLocationSelectionButton
+                TextField("Enter Wine Name", text: $store.name)
+                    .multilineTextAlignment(.trailing)
+                    .textFieldStyle(.roundedBorder)
             }
-            .overlay(alignment: .bottom) {
-                CellarButton("Create \(store.name)", systemImage: "plus", isLoading: store.isLoading) {
-                    store.send(.submitButtonTapped)
-                }
-                .buttonStyle(.borderedProminent)
+
+            HStack(spacing: 16) {
+                Text("AbV (%)")
+
+                TextField("Enter AbV", value: $store.abv, format: .number)
+                    .multilineTextAlignment(.trailing)
+                    .keyboardType(.decimalPad)
+                    .textFieldStyle(.roundedBorder)
             }
+
+            yearPicker
+
+            winemakerSelectionButton
+
+            grapeVarietiesSelectionButton
+
+            bottlingLocationSelectionButton
+        }
+        .overlay(alignment: .bottom) {
+            CellarButton("Create \(store.name)", systemImage: "plus", isLoading: store.isLoading) {
+                store.send(.submitButtonTapped)
+            }
+            .buttonStyle(.borderedProminent)
         }
         .alert($store.scope(state: \.alert, action: \.alert))
         .sheet(item: $store.scope(state: \.destination, action: \.destination)) { store in
