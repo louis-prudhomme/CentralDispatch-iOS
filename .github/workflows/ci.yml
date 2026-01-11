@@ -122,7 +122,7 @@ jobs:
         run: |
           echo "🔨 Building and testing project..."
           set -o pipefail
-          tuist test --scheme CellarDoor --destination "platform=iOS Simulator,name=${{ env.IOS_SIMULATOR_NAME }},OS=${{ env.IOS_SIMULATOR_VERSION }}" | xcpretty --report junit --output build/reports/junit.xml
+          tuist test CellarDoor -- -destination "platform=iOS Simulator,name=${{ env.IOS_SIMULATOR_NAME }},OS=${{ env.IOS_SIMULATOR_VERSION }}" | xcpretty --report junit --output build/reports/junit.xml
 
       - name: Upload test results
         uses: actions/upload-artifact@v4
