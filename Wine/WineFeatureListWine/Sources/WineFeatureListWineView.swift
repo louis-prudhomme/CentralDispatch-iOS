@@ -26,12 +26,14 @@ public struct WineFeatureListWineView: View {
     }
 
     @ViewBuilder var emptyDisplay: some View {
-        ContentUnavailableView(
-            "No wines yet.",
-            systemImage: "arrow.up.right",
-            description: Text("Try adding some!")
-        )
-        .symbolVariant(.none)
+        if !store.isLoading, store.wines.isEmpty {
+            ContentUnavailableView(
+                "No wines yet.",
+                systemImage: "arrow.up.right",
+                description: Text("Try adding some!")
+            )
+            .symbolVariant(.none)
+        }
     }
 
     @ToolbarContentBuilder var toolbarContent: some ToolbarContent {
