@@ -5,12 +5,12 @@ import WineEntity
 
 public extension WinemakerRepository {
     static func mock(
-        fetchAll: @escaping @MainActor @Sendable (String) async throws -> [WinemakerEntity] = { _ in fatalError("Not mocked yet") },
-        upsert: @escaping @MainActor @Sendable (WinemakerEntity) async throws -> WinemakerEntity = { _ in fatalError("Not mocked yet") }
+        base: BaseRepository<WinemakerEntity> = .mock(),
+        search: @escaping @MainActor @Sendable (String) async throws -> [WinemakerEntity] = { _ in fatalError("Not mocked yet") }
     ) -> WinemakerRepository {
         WinemakerRepository(
-            fetchAll: fetchAll,
-            upsert: upsert
+            base: base,
+            search: search
         )
     }
 }

@@ -5,8 +5,17 @@ import SwiftData
 import WineEntity
 
 public struct WinemakerRepository: Sendable {
-    public let fetchAll: @MainActor @Sendable (String) async throws -> [WinemakerEntity]
-    public let upsert: @MainActor @Sendable (WinemakerEntity) async throws -> WinemakerEntity
+    public let base: BaseRepository<WinemakerEntity>
+    public let search: @MainActor @Sendable (String) async throws -> [WinemakerEntity]
+}
+
+// MARK: - Convenience Accessors
+
+public extension WinemakerRepository {
+    var fetchAll: @MainActor @Sendable () async throws -> [WinemakerEntity] { base.fetchAll }
+    var fetch: @MainActor @Sendable (UUID) async throws -> WinemakerEntity? { base.fetch }
+    var upsert: @MainActor @Sendable (WinemakerEntity) async throws -> WinemakerEntity { base.upsert }
+    var delete: @MainActor @Sendable (UUID) async throws -> Void { base.delete }
 }
 
 // MARK: - Dependency Registration

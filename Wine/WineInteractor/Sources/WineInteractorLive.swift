@@ -42,14 +42,14 @@ extension WineInteractor {
             @Dependency(\.winemakerRepository) var repository
 
             return await withResult(parser: WineInteractorError.init) { @MainActor in
-                try await repository.fetchAll(searchText).map { $0.toDomain() }
+                try await repository.search(searchText).map { $0.toDomain() }
             }
         },
         fetchAllGrapeVarieties: { searchText in
             @Dependency(\.grapeVarietyRepository) var repository
 
             return await withResult(parser: WineInteractorError.init) { @MainActor in
-                try await repository.fetchAll(searchText).map { $0.toDomain() }
+                try await repository.search(searchText).map { $0.toDomain() }
             }
         },
         fetch: { id in
