@@ -20,9 +20,8 @@ public struct WineExtractedData: Equatable, Sendable {
 
     public var suggestedName: String? {
         extractedStrings
-            .filter { string in
-                !string.allSatisfy { $0.isNumber || $0 == "." || $0 == "%" }
+            .first { string in
+                !string.allSatisfy { $0.isNumber || $0 == "." || $0 == "%" } && string.count > 2
             }
-            .first { $0.count > 2 }
     }
 }

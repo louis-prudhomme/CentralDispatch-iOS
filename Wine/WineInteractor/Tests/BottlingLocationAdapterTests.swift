@@ -22,7 +22,7 @@ struct BottlingLocationAdapterTests {
         #expect(domain.name == "Vosne-Romanée")
         #expect(domain.coordinates.latitude == 47.1611)
         #expect(domain.coordinates.longitude == 4.9589)
-        #expect(domain.providerId == 12345)
+        #expect(domain.providerId == 12_345)
         #expect(domain.createdAt == TestHelpers.testDate)
         #expect(domain.administrativeDivisions.count == 2)
         #expect(domain.administrativeDivisions[0].type == .country)
@@ -49,7 +49,7 @@ struct BottlingLocationAdapterTests {
         #expect(entity.longitude == 4.9589)
         #expect(entity.countryCode == "FR")
         #expect(entity.regionCode == "BFC")
-        #expect(entity.providerId == 12345)
+        #expect(entity.providerId == 12_345)
         #expect(entity.createdAt == TestHelpers.testDate)
 
         let decodedDivisions = try JSONDecoder().decode(

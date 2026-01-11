@@ -4,7 +4,7 @@ import WineEntity
 
 public struct ModelContainerConfigurator: Sendable {
     public var initialize: @Sendable () throws -> ModelContainer
-    
+
     /// All @Model types registered in the app.
     private static let modelTypes: [any PersistentModel.Type] = [
         WineBottleEntity.self,
@@ -24,7 +24,7 @@ extension ModelContainerConfigurator: DependencyKey {
     public static let liveValue = ModelContainerConfigurator {
         try makeContainer(inMemory: false)
     }
-    
+
     public static let testValue = ModelContainerConfigurator {
         try makeContainer(inMemory: true)
     }
