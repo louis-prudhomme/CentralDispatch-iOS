@@ -4,34 +4,22 @@ import WineDomain
 
 public struct WineInteractor: Sendable {
     public var fetchAll: @Sendable () async -> Result<[WineBottle], WineInteractorError>
-    public var fetchAllWinemakers: @Sendable (String) async -> Result<[Winemaker], WineInteractorError>
-    public var fetchAllGrapeVarieties: @Sendable (String) async -> Result<[GrapeVariety], WineInteractorError>
     public var fetch: @Sendable (UUID) async -> Result<WineBottle, WineInteractorError>
     public var create: @Sendable (PartialWineBottle) async -> Result<WineBottle, WineInteractorError>
     public var upsert: @Sendable (WineBottle) async -> Result<WineBottle, WineInteractorError>
-    public var upsertWinemaker: @Sendable (Winemaker) async -> Result<Winemaker, WineInteractorError>
-    public var upsertGrapeVariety: @Sendable (GrapeVariety) async -> Result<GrapeVariety, WineInteractorError>
     public var delete: @Sendable (UUID) async -> VoidResult<WineInteractorError>
 
     public init(
         fetchAll: @escaping @Sendable () async -> Result<[WineBottle], WineInteractorError>,
-        fetchAllWinemakers: @escaping @Sendable (String) async -> Result<[Winemaker], WineInteractorError>,
-        fetchAllGrapeVarieties: @escaping @Sendable (String) async -> Result<[GrapeVariety], WineInteractorError>,
         fetch: @escaping @Sendable (UUID) async -> Result<WineBottle, WineInteractorError>,
         create: @escaping @Sendable (PartialWineBottle) async -> Result<WineBottle, WineInteractorError>,
         upsert: @escaping @Sendable (WineBottle) async -> Result<WineBottle, WineInteractorError>,
-        upsertWinemaker: @escaping @Sendable (Winemaker) async -> Result<Winemaker, WineInteractorError>,
-        upsertGrapeVariety: @escaping @Sendable (GrapeVariety) async -> Result<GrapeVariety, WineInteractorError>,
         delete: @escaping @Sendable (UUID) async -> VoidResult<WineInteractorError>
     ) {
         self.fetchAll = fetchAll
-        self.fetchAllWinemakers = fetchAllWinemakers
-        self.fetchAllGrapeVarieties = fetchAllGrapeVarieties
         self.fetch = fetch
         self.create = create
         self.upsert = upsert
-        self.upsertWinemaker = upsertWinemaker
-        self.upsertGrapeVariety = upsertGrapeVariety
         self.delete = delete
     }
 }

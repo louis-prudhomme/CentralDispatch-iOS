@@ -38,20 +38,6 @@ extension WineInteractor {
                 try await repository.fetchAll().map { try $0.toDomain() }
             }
         },
-        fetchAllWinemakers: { searchText in
-            @Dependency(\.winemakerRepository) var repository
-
-            return await withResult(parser: WineInteractorError.init) { @MainActor in
-                try await repository.search(searchText).map { $0.toDomain() }
-            }
-        },
-        fetchAllGrapeVarieties: { searchText in
-            @Dependency(\.grapeVarietyRepository) var repository
-
-            return await withResult(parser: WineInteractorError.init) { @MainActor in
-                try await repository.search(searchText).map { $0.toDomain() }
-            }
-        },
         fetch: { id in
             @Dependency(\.wineRepository) var repository
 
@@ -88,30 +74,6 @@ extension WineInteractor {
         },
         upsert: { domain in
             await sharedUpsert(wineBottle: domain)
-        },
-        upsertWinemaker: { winemaker in
-            @Dependency(\.winemakerRepository) var repository
-
-            guard !winemaker.name.isEmpty else {
-                return .failure(WineInteractorError.nameEmpty)
-            }
-
-            return await withResult(parser: WineInteractorError.init) { @MainActor in
-                let entity = try await repository.upsert(winemaker.toEntity())
-                return entity.toDomain()
-            }
-        },
-        upsertGrapeVariety: { grapeVariety in
-            @Dependency(\.grapeVarietyRepository) var repository
-
-            guard !grapeVariety.name.isEmpty else {
-                return .failure(WineInteractorError.nameEmpty)
-            }
-
-            return await withResult(parser: WineInteractorError.init) { @MainActor in
-                let entity = try await repository.upsert(grapeVariety.toEntity())
-                return entity.toDomain()
-            }
         },
         delete: { id in
             @Dependency(\.wineRepository) var repository

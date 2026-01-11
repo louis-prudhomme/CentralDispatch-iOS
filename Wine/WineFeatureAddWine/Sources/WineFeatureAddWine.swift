@@ -72,6 +72,8 @@ public struct WineFeatureAddWine {
     public init() {}
 
     @Dependency(\.wineInteractor) var wineInteractor
+    @Dependency(\.winemakerInteractor) var winemakerInteractor
+    @Dependency(\.grapeVarietyInteractor) var grapeVarietyInteractor
     @Dependency(\.pictureClient.selectPicture) var selectPicture
 
     public var body: some ReducerOf<Self> {
@@ -87,8 +89,8 @@ public struct WineFeatureAddWine {
 
                 case .selectWinemakerButtonTapped:
                     let winemakerInteractorDelegate = MultipleChoiceInteractorDelegate<Winemaker, WineInteractorError>(
-                        fetchChoices: wineInteractor.fetchAllWinemakers,
-                        createChoice: { [upsertWinemaker = wineInteractor.upsertWinemaker] name in await upsertWinemaker(Winemaker(name: name)) },
+                        fetchChoices: winemakerInteractor.search,
+                        createChoice: { [upsert = winemakerInteractor.upsert] name in await upsert(Winemaker(name: name)) },
                         getDisplayName: { $0.name }
                     )
                     state.destination = .winemaker(MultipleChoiceSelection<Winemaker, WineInteractorError>.State(
@@ -100,8 +102,8 @@ public struct WineFeatureAddWine {
 
                 case .selectGrapeVarietiesButtonTapped:
                     let grapeVarietyInteractorDelegate = MultipleChoiceInteractorDelegate<GrapeVariety, WineInteractorError>(
-                        fetchChoices: wineInteractor.fetchAllGrapeVarieties,
-                        createChoice: { [upsertGrapeVariety = wineInteractor.upsertGrapeVariety] name in await upsertGrapeVariety(GrapeVariety(name: name)) },
+                        fetchChoices: grapeVarietyInteractor.search,
+                        createChoice: { [upsert = grapeVarietyInteractor.upsert] name in await upsert(GrapeVariety(name: name)) },
                         getDisplayName: { $0.name }
                     )
                     state.destination = .grapeVarieties(MultipleChoiceSelection<GrapeVariety, WineInteractorError>.State(
