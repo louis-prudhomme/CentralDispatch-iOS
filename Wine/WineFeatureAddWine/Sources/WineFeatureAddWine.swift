@@ -57,16 +57,20 @@ public struct WineFeatureAddWine {
         case selectPictureFromCameraButtonTapped
         case selectPictureFromLibraryButtonTapped
         case pictureSelected(Result<Data, PictureClientError>)
-        case wineAdded(Result<WineBottle, WineInteractorError>)
+        case wineAdditionFinished(Result<WineBottle, WineInteractorError>)
 
         case alert(PresentationAction<Never>)
         case destination(PresentationAction<Destination.Action>)
         case binding(BindingAction<State>)
+        case delegate(Delegate)
+    }
+
+    public enum Delegate {
+        case wineAdded
     }
 
     public init() {}
 
-    @Dependency(\.dismiss) var dismiss
     @Dependency(\.wineInteractor) var wineInteractor
     @Dependency(\.pictureClient.selectPicture) var selectPicture
 
@@ -78,7 +82,7 @@ public struct WineFeatureAddWine {
                 case .submitButtonTapped:
                     return .run { [create = wineInteractor.create, partialWine = state.partialWine] send in
                         let result = await create(partialWine)
-                        await send(.wineAdded(result))
+                        await send(.wineAdditionFinished(result))
                     }
 
                 case .selectWinemakerButtonTapped:
@@ -136,16 +140,16 @@ public struct WineFeatureAddWine {
                     }
                     return .none
 
-                case let .wineAdded(.failure(error)):
+                case let .wineAdditionFinished(.failure(error)):
                     state.isLoading = false
                     state.alert = AlertState {
                         TextState(error.localizedDescription)
                     }
                     return .none
 
-                case .wineAdded(.success):
+                case .wineAdditionFinished(.success):
                     state.isLoading = false
-                    return .run { [dismiss] _ in await dismiss() }
+                    return .send(.delegate(.wineAdded))
 
                 case let .destination(.presented(.winemaker(.delegate(.choicesSelected(winemakers))))):
                     state.partialWine.winemaker = winemakers.first
@@ -160,6 +164,9 @@ public struct WineFeatureAddWine {
                 case let .destination(.presented(.bottlingLocation(.delegate(.locationSelected(location))))):
                     state.partialWine.bottlingLocation = location
                     state.destination = nil
+                    return .none
+
+                case .delegate:
                     return .none
 
                 case .destination:
