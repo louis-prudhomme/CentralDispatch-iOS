@@ -10,6 +10,7 @@ public enum WineInteractorError: ClientError {
     case badData
     case bottlingLocationMissing
     case pictureMissing
+    case appellationMissing
     case unknown
 
     public init(_: any Error) {
@@ -30,6 +31,7 @@ public enum WineInteractorError: ClientError {
             case .badData: "Failed decoding data from the database."
             case .bottlingLocationMissing: "Bottling location is missing."
             case .pictureMissing: "Picture is missing."
+            case .appellationMissing: "Appellation is missing."
             case .unknown: "An unknown error occurred."
         }
     }

@@ -39,6 +39,8 @@ public struct WineFeatureAddWineView: View {
 
             grapeVarietiesSelectionButton
 
+            appellationSelectionButton
+
             bottlingLocationSelectionButton
         }
         .overlay(alignment: .bottom) {
@@ -58,6 +60,10 @@ public struct WineFeatureAddWineView: View {
 
                     case let .grapeVarieties(store):
                         MultipleChoiceSelectionView(store: store)
+                            .presentationDetents([.medium, .large])
+
+                    case let .appellation(store):
+                        AppellationSelectionView(store: store)
                             .presentationDetents([.medium, .large])
 
                     case let .bottlingLocation(store):
@@ -108,6 +114,22 @@ public struct WineFeatureAddWineView: View {
                     .accessibilityHidden(true)
             }
             .accessibilityHint("Select or edit grape varieties")
+        }
+    }
+
+    @ViewBuilder var appellationSelectionButton: some View {
+        Button {
+            store.send(.selectAppellationButtonTapped)
+        } label: {
+            HStack {
+                Text(store.partialWine.appellation?.name ?? "Select Appellation")
+
+                Spacer()
+
+                Image(systemName: store.partialWine.appellation == nil ? "chevron.right" : "square.and.pencil")
+                    .accessibilityHidden(true)
+            }
+            .accessibilityHint("Select or edit the appellation")
         }
     }
 

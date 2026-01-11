@@ -24,3 +24,20 @@ public extension Country {
         self.init(id: uuid(), name: name, code: code, createdAt: date())
     }
 }
+
+public extension Country {
+    var asEmoji: String {
+        let baseFlagScalar: UInt32 = 127_397
+
+        guard let countryCode else { return "🏴" }
+
+        return countryCode
+            .uppercased()
+            .unicodeScalars
+            .compactMap { scalar in
+                return UnicodeScalar(baseFlagScalar + scalar.value)
+            }
+            .map { String($0) }
+            .joined()
+    }
+}

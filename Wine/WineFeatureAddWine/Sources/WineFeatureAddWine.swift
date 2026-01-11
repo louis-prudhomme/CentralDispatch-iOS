@@ -46,6 +46,7 @@ public struct WineFeatureAddWine {
     public enum Destination {
         case winemaker(MultipleChoiceSelection<Winemaker, WineInteractorError>)
         case grapeVarieties(MultipleChoiceSelection<GrapeVariety, WineInteractorError>)
+        case appellation(AppellationSelection)
         case bottlingLocation(BottlingLocationSelection)
     }
 
@@ -53,6 +54,7 @@ public struct WineFeatureAddWine {
         case submitButtonTapped
         case selectWinemakerButtonTapped
         case selectGrapeVarietiesButtonTapped
+        case selectAppellationButtonTapped
         case selectBottlingLocationButtonTapped
         case selectPictureFromCameraButtonTapped
         case selectPictureFromLibraryButtonTapped
@@ -113,6 +115,10 @@ public struct WineFeatureAddWine {
                     ))
                     return .none
 
+                case .selectAppellationButtonTapped:
+                    state.destination = .appellation(AppellationSelection.State(existing: state.partialWine.appellation))
+                    return .none
+
                 case .selectBottlingLocationButtonTapped:
                     state.destination = .bottlingLocation(BottlingLocationSelection.State(existing: state.partialWine.bottlingLocation?.name))
                     return .none
@@ -160,6 +166,11 @@ public struct WineFeatureAddWine {
 
                 case let .destination(.presented(.grapeVarieties(.delegate(.choicesSelected(grapeVarieties))))):
                     state.partialWine.grapeVarieties = grapeVarieties
+                    state.destination = nil
+                    return .none
+
+                case let .destination(.presented(.appellation(.delegate(.appellationSelected(appellation))))):
+                    state.partialWine.appellation = appellation
                     state.destination = nil
                     return .none
 

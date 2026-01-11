@@ -1,0 +1,89 @@
+import SharedCommonArchitecture
+import SharedCommonDesignSystem
+import SwiftUI
+import WineDomain
+
+public struct AppellationSelectionView: View {
+    @Bindable var store: StoreOf<AppellationSelection>
+    @Environment(\.dismiss) var dismiss
+
+    public init(store: StoreOf<AppellationSelection>) {
+        self.store = store
+    }
+
+    public var body: some View {
+        List {
+            ForEach(store.suggestedAppellations) { appellation in
+                Button {
+                    store.send(.appellationSelected(appellation))
+                } label: {
+                    AppellationView(appellation: appellation)
+                }
+            }
+
+            if !store.searchText.isEmpty, !store.suggestedAppellations.isEmpty {
+                Button {
+                    store.send(.createNewAppellationButtonTapped)
+                } label: {
+                    Label("Create New Appellation", systemImage: "plus.circle.fill")
+                }
+            }
+        }
+        .listStyle(.plain)
+        .searchable(text: $store.searchText)
+        .loadable(isLoading: store.isLoading)
+        .emptyable(store.suggestedAppellations, searchText: store.searchText, isLoading: store.isLoading) { emptyCta }
+        .alert($store.scope(state: \.alert, action: \.alert))
+        .navigationTitle("Appellation")
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                Button("Create Appellation") {
+                    store.send(.submitAppellationButtonTapped)
+                }
+                .disabled(store.selectedRegion == nil || store.newAppellationName.isEmpty)
+            }
+        }
+        .navigationDestination(item: $store.scope(state: \.destination?.creation, action: \.destination.creation)) { _ in
+            // TODO: AppellationCreationView(store: store)
+        }
+    }
+
+    private var emptyCta: some View {
+        ContentUnavailableView {
+            Label("No appellations found", systemImage: "magnifyingglass")
+        } description: {
+            Text("Try a different search or create a new appellation")
+        } actions: {
+            Button("Create New Appellation") {
+                store.send(.createNewAppellationButtonTapped)
+            }
+            .buttonStyle(.borderedProminent)
+        }
+    }
+}
+
+private struct AppellationView: View {
+    let appellation: Appellation
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text(appellation.name)
+                .font(.headline)
+
+            Text("\(appellation.region.vineyard.country.asEmoji) \(appellation.region.vineyard.name), \(appellation.region.name)")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+        }
+    }
+}
+
+#Preview {
+    NavigationStack {
+        AppellationSelectionView(
+            store: Store(initialState: AppellationSelection.State(existing: nil)) {
+                AppellationSelection()
+            }
+        )
+    }
+}

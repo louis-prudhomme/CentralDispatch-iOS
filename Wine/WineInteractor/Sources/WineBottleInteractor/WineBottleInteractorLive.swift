@@ -60,6 +60,9 @@ extension WineInteractor {
             guard let pictureData = partialWine.picture else {
                 return .failure(WineInteractorError.pictureMissing)
             }
+            guard let appellation = partialWine.appellation else {
+                return .failure(WineInteractorError.appellationMissing)
+            }
 
             let completeDomain = WineBottle(
                 name: partialWine.name,
@@ -68,7 +71,8 @@ extension WineInteractor {
                 picture: pictureData,
                 bottlingLocation: bottlingLocation,
                 grapeVarieties: partialWine.grapeVarieties,
-                winemaker: partialWine.winemaker
+                winemaker: partialWine.winemaker,
+                appellation: appellation
             )
             return await sharedUpsert(wineBottle: completeDomain)
         },
