@@ -82,6 +82,7 @@ extension WineFeatureListWineView {
                         .foregroundStyle(.secondary)
                         .accessibilityHidden(true)
                 }
+                .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
             .accessibilityHint(Text("Tap to see more details."))
