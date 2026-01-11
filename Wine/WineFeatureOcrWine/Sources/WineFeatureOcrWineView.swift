@@ -41,7 +41,10 @@ public struct WineFeatureOcrWineView: View {
 
             Spacer()
 
-            if store.isProcessing {
+            if store.isTakingPicture {
+                ProgressView("Taking picture...")
+                    .padding()
+            } else if store.isProcessing {
                 ProgressView("Processing image...")
                     .padding()
             } else {

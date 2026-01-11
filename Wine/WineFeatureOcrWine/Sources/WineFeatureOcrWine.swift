@@ -7,6 +7,7 @@ import Vision
 public struct WineFeatureOcrWine {
     @ObservableState
     public struct State: Equatable {
+        var isTakingPicture = false
         var isProcessing = false
         var capturedImage: Data?
 
@@ -60,20 +61,22 @@ public struct WineFeatureOcrWine {
         Reduce { state, action in
             switch action {
                 case .takePictureButtonTapped:
-                    state.isProcessing = true
+                    state.isTakingPicture = true
                     return .run { [selectPicture] send in
                         let result = await selectPicture(.camera)
                         await send(.pictureSelected(result))
                     }
 
                 case .selectFromLibraryButtonTapped:
-                    state.isProcessing = true
+                    state.isTakingPicture = true
                     return .run { [selectPicture] send in
                         let result = await selectPicture(.photoLibrary)
                         await send(.pictureSelected(result))
                     }
 
                 case let .pictureSelected(.success(data)):
+                    state.isTakingPicture = false
+                    state.isProcessing = true
                     state.capturedImage = data
                     return .run { send in
                         let result = await performOcr(on: data)
@@ -81,11 +84,11 @@ public struct WineFeatureOcrWine {
                     }
 
                 case .pictureSelected(.failure(.cancelled)):
-                    state.isProcessing = false
+                    state.isTakingPicture = false
                     return .none
 
                 case let .pictureSelected(.failure(error)):
-                    state.isProcessing = false
+                    state.isTakingPicture = false
                     state.alert = AlertState {
                         TextState(error.localizedDescription)
                     }
