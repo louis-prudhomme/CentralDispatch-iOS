@@ -26,7 +26,7 @@ public struct AppellationSelection {
         case creation(AppellationCreation)
     }
 
-    public enum Action: BindableAction, Sendable {
+    public enum Action: BindableAction {
         case appellationsLoaded(Result<[Appellation], WineInteractorError>)
         case appellationSelected(Appellation)
         case createNewAppellationButtonTapped
@@ -99,3 +99,7 @@ public struct AppellationSelection {
         .ifLet(\.$destination, action: \.destination)
     }
 }
+
+// MARK: - Conformances
+
+extension AppellationSelection.Destination.State: Equatable {}

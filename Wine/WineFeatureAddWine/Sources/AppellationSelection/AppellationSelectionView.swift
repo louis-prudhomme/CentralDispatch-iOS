@@ -20,14 +20,6 @@ public struct AppellationSelectionView: View {
                     AppellationView(appellation: appellation)
                 }
             }
-
-            if !store.searchText.isEmpty, !store.suggestedAppellations.isEmpty {
-                Button {
-                    store.send(.createNewAppellationButtonTapped)
-                } label: {
-                    Label("Create New Appellation", systemImage: "plus.circle.fill")
-                }
-            }
         }
         .listStyle(.plain)
         .searchable(text: $store.searchText)
@@ -39,13 +31,12 @@ public struct AppellationSelectionView: View {
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 Button("Create Appellation") {
-                    store.send(.submitAppellationButtonTapped)
+                    store.send(.createNewAppellationButtonTapped)
                 }
-                .disabled(store.selectedRegion == nil || store.newAppellationName.isEmpty)
             }
         }
-        .navigationDestination(item: $store.scope(state: \.destination?.creation, action: \.destination.creation)) { _ in
-            // TODO: AppellationCreationView(store: store)
+        .navigationDestination(item: $store.scope(state: \.destination?.creation, action: \.destination.creation)) { store in
+            AppellationCreationView(store: store)
         }
     }
 

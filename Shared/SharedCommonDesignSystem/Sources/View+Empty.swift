@@ -2,14 +2,14 @@ import SwiftUI
 
 private struct EmptyableViewModifier<SearchResult, Description: View>: ViewModifier {
     let results: [SearchResult]
-    let searchText: String
+    let searchText: String?
     let isLoading: Bool
     let description: () -> Description
 
     func body(content: Content) -> some View {
         content.overlay {
             if results.isEmpty, !isLoading {
-                if searchText.isEmpty {
+                if let searchText, searchText.isEmpty {
                     ContentUnavailableView(
                         "Search for something.",
                         systemImage: "arrow.down",
@@ -27,7 +27,7 @@ private struct EmptyableViewModifier<SearchResult, Description: View>: ViewModif
 public extension View {
     func emptyable(
         _ results: [some Any],
-        searchText: String,
+        searchText: String? = nil,
         isLoading: Bool = false,
         description: @escaping () -> some View = { ContentUnavailableView.search }
     ) -> some View {

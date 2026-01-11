@@ -29,9 +29,7 @@ public extension Country {
     var asEmoji: String {
         let baseFlagScalar: UInt32 = 127_397
 
-        guard let countryCode else { return "🏴" }
-
-        return countryCode
+        return code
             .uppercased()
             .unicodeScalars
             .compactMap { scalar in
