@@ -37,10 +37,14 @@ public struct WineFeatureListWineView: View {
     }
 
     @ToolbarContentBuilder var toolbarContent: some ToolbarContent {
+        // TODO: find a proper way to have a "close" button without breaking toolbar constraints
+        // ToolbarItem(placement: .topBarLeading) {
+        //     Button("Return to Root", systemImage: "xmark") {
+        //         store.send(.delegate(.popToRoot))
+        //     }
+        // }
         ToolbarItem(placement: .topBarLeading) {
-            Button("Return to Root", systemImage: "xmark") {
-                store.send(.delegate(.popToRoot))
-            }
+            EmptyView()
         }
 
         ToolbarItemGroup(placement: .topBarTrailing) {
