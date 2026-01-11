@@ -9,24 +9,13 @@ import WineInteractor
 public struct WineFeatureAddWine {
     @ObservableState
     public struct State: Equatable {
-        var name = ""
-        var millesime: Int
-        var winemaker: Winemaker?
-        var grapeVarieties = [GrapeVariety]()
-        var abv = 12.5 // TODO: replace by the median ABV of existing wines
-        var bottlingLocation: WineBottlingLocation?
-        var picture: Data?
+        var partialWine = PartialWineBottle()
         var isLoading = false
 
         @Presents var alert: AlertState<Never>?
         @Presents var destination: Destination.State?
 
-        public init() {
-            @Dependency(\.date) var date
-            @Dependency(\.calendar) var calendar
-
-            millesime = calendar.component(.year, from: date())
-        }
+        public init() {}
     }
 
     @Reducer
@@ -63,26 +52,8 @@ public struct WineFeatureAddWine {
         Reduce { state, action in
             switch action {
                 case .submitButtonTapped:
-                    // TODO: create a PartialWineBottle type to delegate validation to the interactor
-                    guard let bottlingLocation = state.bottlingLocation else {
-                        return .run { send in await send(.wineAdded(.failure(WineInteractorError.bottlingLocationMissing))) }
-                    }
-                    guard let pictureData = state.picture else {
-                        return .run { send in await send(.wineAdded(.failure(WineInteractorError.pictureMissing))) }
-                    }
-
-                    return .run { [
-                        upsert = wineInteractor.upsert,
-                        name = state.name,
-                        millesime = state.millesime,
-                        abv = state.abv,
-                        bottlingLocation,
-                        grapeVarieties = state.grapeVarieties,
-                        winemaker = state.winemaker,
-                        picture = pictureData
-                    ] send in
-                        let wine = WineBottle(name: name, millesime: millesime, abv: abv, picture: picture, bottlingLocation: bottlingLocation, grapeVarieties: grapeVarieties, winemaker: winemaker)
-                        let result = await upsert(wine)
+                    return .run { [create = wineInteractor.create, partialWine = state.partialWine] send in
+                        let result = await create(partialWine)
                         await send(.wineAdded(result))
                     }
 
@@ -113,7 +84,7 @@ public struct WineFeatureAddWine {
                     return .none
 
                 case .selectBottlingLocationButtonTapped:
-                    state.destination = .bottlingLocation(BottlingLocationSelection.State(existing: state.bottlingLocation?.name))
+                    state.destination = .bottlingLocation(BottlingLocationSelection.State(existing: state.partialWine.bottlingLocation?.name))
                     return .none
 
                 case .selectPictureFromCameraButtonTapped:
@@ -129,7 +100,7 @@ public struct WineFeatureAddWine {
                     }
 
                 case let .pictureSelected(.success(data)):
-                    state.picture = data
+                    state.partialWine.picture = data
                     return .none
 
                 case .pictureSelected(.failure(.cancelled)):
@@ -153,17 +124,17 @@ public struct WineFeatureAddWine {
                     return .run { [dismiss] _ in await dismiss() }
 
                 case let .destination(.presented(.winemaker(.delegate(.choicesSelected(winemakers))))):
-                    state.winemaker = winemakers.first
+                    state.partialWine.winemaker = winemakers.first
                     state.destination = nil
                     return .none
 
                 case let .destination(.presented(.grapeVarieties(.delegate(.choicesSelected(grapeVarieties))))):
-                    state.grapeVarieties = grapeVarieties
+                    state.partialWine.grapeVarieties = grapeVarieties
                     state.destination = nil
                     return .none
 
                 case let .destination(.presented(.bottlingLocation(.delegate(.locationSelected(location))))):
-                    state.bottlingLocation = location
+                    state.partialWine.bottlingLocation = location
                     state.destination = nil
                     return .none
 

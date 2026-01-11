@@ -19,7 +19,7 @@ public struct WineFeatureAddWineView: View {
             HStack(spacing: 16) {
                 Text("Name")
 
-                TextField("Enter Wine Name", text: $store.name)
+                TextField("Enter Wine Name", text: $store.partialWine.name)
                     .multilineTextAlignment(.trailing)
                     .textFieldStyle(.roundedBorder)
             }
@@ -27,7 +27,7 @@ public struct WineFeatureAddWineView: View {
             HStack(spacing: 16) {
                 Text("AbV (%)")
 
-                TextField("Enter AbV", value: $store.abv, format: .number)
+                TextField("Enter AbV", value: $store.partialWine.abv, format: .number)
                     .multilineTextAlignment(.trailing)
                     .keyboardType(.decimalPad)
                     .textFieldStyle(.roundedBorder)
@@ -42,7 +42,7 @@ public struct WineFeatureAddWineView: View {
             bottlingLocationSelectionButton
         }
         .overlay(alignment: .bottom) {
-            CellarButton("Create \(store.name)", systemImage: "plus", isLoading: store.isLoading) {
+            CellarButton("Create \(store.partialWine.name)", systemImage: "plus", isLoading: store.isLoading) {
                 store.send(.submitButtonTapped)
             }
             .buttonStyle(.borderedProminent)
@@ -69,7 +69,7 @@ public struct WineFeatureAddWineView: View {
     }
 
     @ViewBuilder var yearPicker: some View {
-        Picker("Vintage Year", selection: $store.millesime) {
+        Picker("Vintage Year", selection: $store.partialWine.millesime) {
             let currentYear: Int = calendar.component(.year, from: date())
             ForEach(1_930 ... currentYear, id: \.self) { year in
                 Text(year.formatted(.number.grouping(.never))).tag(year)
@@ -83,11 +83,11 @@ public struct WineFeatureAddWineView: View {
             store.send(.selectWinemakerButtonTapped)
         } label: {
             HStack {
-                Text(store.winemaker?.name ?? "Select Winemaker")
+                Text(store.partialWine.winemaker?.name ?? "Select Winemaker")
 
                 Spacer()
 
-                Image(systemName: store.winemaker == nil ? "chevron.right" : "square.and.pencil")
+                Image(systemName: store.partialWine.winemaker == nil ? "chevron.right" : "square.and.pencil")
                     .accessibilityHidden(true)
             }
             .accessibilityHint("Select or edit the winemaker")
@@ -99,11 +99,11 @@ public struct WineFeatureAddWineView: View {
             store.send(.selectGrapeVarietiesButtonTapped)
         } label: {
             HStack {
-                Text(store.grapeVarieties.isEmpty ? "Select Grape varieties" : store.grapeVarieties.map(\.name).joined(separator: ", "))
+                Text(store.partialWine.grapeVarieties.isEmpty ? "Select Grape varieties" : store.partialWine.grapeVarieties.map(\.name).joined(separator: ", "))
 
                 Spacer()
 
-                Image(systemName: store.grapeVarieties.isEmpty ? "chevron.right" : "square.and.pencil")
+                Image(systemName: store.partialWine.grapeVarieties.isEmpty ? "chevron.right" : "square.and.pencil")
                     .accessibilityHidden(true)
             }
             .accessibilityHint("Select or edit grape varieties")
@@ -115,11 +115,11 @@ public struct WineFeatureAddWineView: View {
             store.send(.selectBottlingLocationButtonTapped)
         } label: {
             HStack {
-                Text(store.bottlingLocation?.name ?? "Select Bottling Location")
+                Text(store.partialWine.bottlingLocation?.name ?? "Select Bottling Location")
 
                 Spacer()
 
-                Image(systemName: store.bottlingLocation == nil ? "chevron.right" : "square.and.pencil")
+                Image(systemName: store.partialWine.bottlingLocation == nil ? "chevron.right" : "square.and.pencil")
                     .accessibilityHidden(true)
             }
             .accessibilityHint("Select or edit the bottling location")
@@ -129,7 +129,7 @@ public struct WineFeatureAddWineView: View {
     @ViewBuilder var pictureSection: some View {
         Section {
             VStack(spacing: 12) {
-                if let pictureData = store.picture, let image = Image(data: pictureData, label: pictureAccessibilityLabel) {
+                if let pictureData = store.partialWine.picture, let image = Image(data: pictureData, label: pictureAccessibilityLabel) {
                     image
                         .resizable()
                         .scaledToFit()
@@ -163,8 +163,8 @@ public struct WineFeatureAddWineView: View {
     }
 
     private var pictureAccessibilityLabel: String {
-        if !store.name.isEmpty {
-            "Picture of \(store.name)"
+        if !store.partialWine.name.isEmpty {
+            "Picture of \(store.partialWine.name)"
         } else {
             "Picture of the wine bottle"
         }
