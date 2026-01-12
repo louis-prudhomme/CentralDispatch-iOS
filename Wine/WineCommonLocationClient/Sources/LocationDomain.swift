@@ -3,7 +3,9 @@ import SharedCommonDependencies
 
 // MARK: - Domain Models
 
-public struct Country: Identifiable, ClientSuccess {
+// MARK: Country
+
+public struct LocationCountry: Identifiable, ClientSuccess {
     public let id: Int
     public let name: String
     public let code: String
@@ -14,6 +16,14 @@ public struct Country: Identifiable, ClientSuccess {
         public let longitude: Double
     }
 }
+
+public extension LocationCountry {
+    var asEmoji: String {
+        countryCodeToEmoji(countryCode: code)
+    }
+}
+
+// MARK: Location
 
 public struct Location: Identifiable, ClientSuccess {
     public let id: Int
@@ -53,6 +63,47 @@ public extension Location {
     }
 }
 
+// MARK: - Extensions
+
+public extension Location {
+    var countryCode: String? {
+        administrativeDivisions
+            .first { $0.type == .country }?
+            .code
+    }
+
+    var countryAsEmoji: String {
+        countryCodeToEmoji(countryCode: countryCode)
+    }
+
+    var regionName: String {
+        administrativeDivisions
+            .first { $0.type == .region }?
+            .name ?? "Unknown region"
+    }
+
+    var countryName: String {
+        administrativeDivisions
+            .first { $0.type == .country }?
+            .name ?? "Unknown country"
+    }
+}
+
+// MARK: - Helpers
+
+private func countryCodeToEmoji(countryCode: String?) -> String {
+    let baseFlagScalar: UInt32 = 127_397
+
+    guard let countryCode else { return "🏴" }
+
+    return countryCode
+        .uppercased()
+        .unicodeScalars
+        .compactMap { UnicodeScalar(baseFlagScalar + $0.value) }
+        .map { String($0) }
+        .joined()
+}
+
 // MARK: - Adapter
 
 public extension Location {
@@ -90,7 +141,7 @@ public extension Location {
     }
 }
 
-public extension Country {
+public extension LocationCountry {
     init(from dto: GeoNameDTO) {
         id = dto.geonameId
         name = dto.name

@@ -48,9 +48,9 @@ private extension BottlingLocationSelectionView {
                 Text(location.name)
                     .font(.headline)
 
-                Text("\(Text(location.countryAsEmoji)) \(Text(location.region))")
+                Text("\(Text(location.countryAsEmoji)) \(Text(location.regionName))")
                     .font(.subheadline)
-                    .accessibilityLabel("\(location.region), \(location.country)")
+                    .accessibilityLabel("\(location.regionName), \(location.countryName)")
 
                 ForEach(location.administrativeDivisions, id: \.code) { division in
                     Text("\(division.name) (\(division.code))")
@@ -61,41 +61,5 @@ private extension BottlingLocationSelectionView {
             .accessibilityElement(children: .combine)
             .accessibilityHint("Select \(location.name) as bottling location")
         }
-    }
-}
-
-// TODO: refactor into Location
-private extension Location {
-    var countryCode: String? {
-        administrativeDivisions
-            .first { $0.type == .country }?
-            .code
-    }
-
-    var countryAsEmoji: String {
-        let baseFlagScalar: UInt32 = 127_397
-
-        guard let countryCode else { return "🏴" }
-
-        return countryCode
-            .uppercased()
-            .unicodeScalars
-            .compactMap { scalar in
-                return UnicodeScalar(baseFlagScalar + scalar.value)
-            }
-            .map { String($0) }
-            .joined()
-    }
-
-    var region: String {
-        administrativeDivisions
-            .first { $0.type == .region }?
-            .name ?? "Unknown region"
-    }
-
-    var country: String {
-        administrativeDivisions
-            .first { $0.type == .country }?
-            .name ?? "Unknown region"
     }
 }
