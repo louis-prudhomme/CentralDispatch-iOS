@@ -14,8 +14,6 @@ public struct AppellationCreation {
         public var newAppellationName = ""
 
         public var availableCountries = [Country]()
-        public var availableVineyards = [Vineyard]()
-        public var availableRegions = [Region]()
 
         public var isLoading = false
 
@@ -27,8 +25,8 @@ public struct AppellationCreation {
 
     @Reducer
     public enum Destination {
-        case vineyardSelection
-        case regionSelection
+        case selectVineyard(SelectAppellationPart<Vineyard, WineInteractorError>)
+        case selectRegion(SelectAppellationPart<Region, WineInteractorError>)
         case appellationName
         case addCountry(AddAppellationCountry)
         case addVineyard(AddAppellationPart<Vineyard, WineInteractorError>)
@@ -37,22 +35,10 @@ public struct AppellationCreation {
 
     public enum Action: BindableAction {
         case onAppear
-        case goBackButtonTapped
 
         case countriesLoaded(Result<[Country], WineInteractorError>)
         case createCountryButtonTapped
-        case createCountryFinished(Result<Country, WineInteractorError>)
         case countrySelected(Country)
-
-        case vineyardsLoaded(Result<[Vineyard], WineInteractorError>)
-        case createVineyardButtonTapped
-        case createVineyardFinished(Result<Vineyard, WineInteractorError>)
-        case vineyardSelected(Vineyard)
-
-        case regionsLoaded(Result<[Region], WineInteractorError>)
-        case createRegionButtonTapped
-        case createRegionFinished(Result<Region, WineInteractorError>)
-        case regionSelected(Region)
 
         case submitAppellationButtonTapped
         case appellationCreated(Result<Appellation, WineInteractorError>)
@@ -83,10 +69,6 @@ public struct AppellationCreation {
                         await send(.countriesLoaded(result))
                     }
 
-                case .goBackButtonTapped:
-                    state.destination = nil
-                    return .none
-
                 // MARK: Country
 
                 case let .countriesLoaded(.success(countries)):
@@ -113,28 +95,24 @@ public struct AppellationCreation {
                     state.selectedCountry = country
                     state.selectedVineyard = nil
                     state.selectedRegion = nil
-                    state.isLoading = true
-                    return .run { [fetchVineyards = appellationInteractor.fetchAllVineyards, countryId = country.id] send in
-                        let result = await fetchVineyards(countryId)
-                        await send(.vineyardsLoaded(result))
+
+                    let fetchHandler: SelectAppellationPart<Vineyard, WineInteractorError>.FetchPartsHandler = { [fetchVineyards = appellationInteractor.fetchAllVineyards, countryId = country.id] in
+                        await fetchVineyards(countryId)
                     }
+                    state.destination = .selectVineyard(SelectAppellationPart.State(
+                        partType: "Vineyard",
+                        hierarchy: [Hierarchy(label: "Country", value: country.name)],
+                        fetchPartsHandler: fetchHandler
+                    ))
+                    return .none
 
                 // MARK: Vineyard
 
-                case let .vineyardsLoaded(.success(vineyards)):
-                    state.isLoading = false
-                    state.availableVineyards = vineyards
-                    state.destination = .vineyardSelection
+                case .destination(.presented(.selectVineyard(.delegate(.goBack)))):
+                    state.destination = nil
                     return .none
 
-                case let .vineyardsLoaded(.failure(error)):
-                    state.isLoading = false
-                    state.alert = AlertState {
-                        TextState(error.localizedDescription)
-                    }
-                    return .none
-
-                case .createVineyardButtonTapped:
+                case .destination(.presented(.selectVineyard(.delegate(.createPartRequested)))):
                     guard let country = state.selectedCountry else { return .none }
 
                     let createHandler: AddAppellationPart<Vineyard, WineInteractorError>.CreatePartHandler = { [upsertVineyard = appellationInteractor.upsertVineyard, country] name in
@@ -147,34 +125,53 @@ public struct AppellationCreation {
                     return .none
 
                 case let .destination(.presented(.addVineyard(.delegate(.partCreated(vineyard))))):
-                    state.destination = nil
-                    return .send(.vineyardSelected(vineyard))
+                    guard let country = state.selectedCountry else { return .none }
 
-                case let .vineyardSelected(vineyard):
+                    let fetchHandler: SelectAppellationPart<Vineyard, WineInteractorError>.FetchPartsHandler = { [fetchVineyards = appellationInteractor.fetchAllVineyards, countryId = country.id] in
+                        await fetchVineyards(countryId)
+                    }
+                    state.destination = .selectVineyard(SelectAppellationPart.State(
+                        partType: "Vineyard",
+                        hierarchy: [Hierarchy(label: "Country", value: country.name)],
+                        selectedPart: vineyard,
+                        fetchPartsHandler: fetchHandler
+                    ))
+                    return .none
+
+                case let .destination(.presented(.selectVineyard(.delegate(.partSelected(vineyard))))):
                     state.selectedVineyard = vineyard
                     state.selectedRegion = nil
-                    state.isLoading = true
-                    return .run { [fetchRegions = appellationInteractor.fetchAllRegions, vineyardId = vineyard.id] send in
-                        let result = await fetchRegions(vineyardId)
-                        await send(.regionsLoaded(result))
+
+                    let fetchHandler: SelectAppellationPart<Region, WineInteractorError>.FetchPartsHandler = { [fetchRegions = appellationInteractor.fetchAllRegions, vineyardId = vineyard.id] in
+                        await fetchRegions(vineyardId)
                     }
+                    state.destination = .selectRegion(SelectAppellationPart.State(
+                        partType: "Region",
+                        hierarchy: [
+                            Hierarchy(label: "Country", value: vineyard.country.name),
+                            Hierarchy(label: "Vineyard", value: vineyard.name)
+                        ],
+                        fetchPartsHandler: fetchHandler
+                    ))
+                    return .none
 
                 // MARK: Region
 
-                case let .regionsLoaded(.success(regions)):
-                    state.isLoading = false
-                    state.availableRegions = regions
-                    state.destination = .regionSelection
-                    return .none
+                case .destination(.presented(.selectRegion(.delegate(.goBack)))):
+                    guard let country = state.selectedCountry else { return .none }
 
-                case let .regionsLoaded(.failure(error)):
-                    state.isLoading = false
-                    state.alert = AlertState {
-                        TextState(error.localizedDescription)
+                    let fetchHandler: SelectAppellationPart<Vineyard, WineInteractorError>.FetchPartsHandler = { [fetchVineyards = appellationInteractor.fetchAllVineyards, countryId = country.id] in
+                        await fetchVineyards(countryId)
                     }
+                    state.destination = .selectVineyard(SelectAppellationPart.State(
+                        partType: "Vineyard",
+                        hierarchy: [Hierarchy(label: "Country", value: country.name)],
+                        selectedPart: state.selectedVineyard,
+                        fetchPartsHandler: fetchHandler
+                    ))
                     return .none
 
-                case .createRegionButtonTapped:
+                case .destination(.presented(.selectRegion(.delegate(.createPartRequested)))):
                     guard let vineyard = state.selectedVineyard else { return .none }
 
                     let createHandler: AddAppellationPart<Region, WineInteractorError>.CreatePartHandler = { [upsertRegion = appellationInteractor.upsertRegion, vineyard] name in
@@ -187,10 +184,23 @@ public struct AppellationCreation {
                     return .none
 
                 case let .destination(.presented(.addRegion(.delegate(.partCreated(region))))):
-                    state.destination = nil
-                    return .send(.regionSelected(region))
+                    guard let vineyard = state.selectedVineyard else { return .none }
 
-                case let .regionSelected(region):
+                    let fetchHandler: SelectAppellationPart<Region, WineInteractorError>.FetchPartsHandler = { [fetchRegions = appellationInteractor.fetchAllRegions, vineyardId = vineyard.id] in
+                        await fetchRegions(vineyardId)
+                    }
+                    state.destination = .selectRegion(SelectAppellationPart.State(
+                        partType: "Region",
+                        hierarchy: [
+                            Hierarchy(label: "Country", value: vineyard.country.name),
+                            Hierarchy(label: "Vineyard", value: vineyard.name)
+                        ],
+                        selectedPart: region,
+                        fetchPartsHandler: fetchHandler
+                    ))
+                    return .none
+
+                case let .destination(.presented(.selectRegion(.delegate(.partSelected(region))))):
                     state.selectedRegion = region
                     state.destination = .appellationName
                     return .none
@@ -224,9 +234,6 @@ public struct AppellationCreation {
                     return .none
 
                 // MARK: Other
-
-                case .createCountryFinished, .createRegionFinished, .createVineyardFinished:
-                    return .none
 
                 case .alert, .binding:
                     return .none

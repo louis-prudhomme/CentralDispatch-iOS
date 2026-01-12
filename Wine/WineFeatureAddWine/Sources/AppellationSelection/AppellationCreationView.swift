@@ -16,11 +16,11 @@ public struct AppellationCreationView: View {
                 item: $store.scope(state: \.destination, action: \.destination)
             ) { destinationStore in
                 switch destinationStore.case {
-                    case .vineyardSelection:
-                        vineyardSelectionScreen
+                    case let .selectVineyard(vineyardStore):
+                        SelectAppellationPartView(store: vineyardStore)
 
-                    case .regionSelection:
-                        regionSelectionScreen
+                    case let .selectRegion(regionStore):
+                        SelectAppellationPartView(store: regionStore)
 
                     case .appellationName:
                         appellationNameScreen
@@ -55,9 +55,6 @@ public struct AppellationCreationView: View {
                     Label("No countries available", systemImage: "exclamationmark.triangle")
                 } description: {
                     Text("There are no countries available to select, that's unexpected.")
-                } actions: {
-                    Button("Go Back") { store.send(.goBackButtonTapped) }
-                        .buttonStyle(.borderedProminent)
                 }
             }
         }
@@ -69,83 +66,6 @@ public struct AppellationCreationView: View {
             }
         }
         .navigationTitle("Select Country")
-        .navigationBarTitleDisplayMode(.inline)
-    }
-
-    // MARK: - Vineyard Selection Screen
-
-    @ViewBuilder private var vineyardSelectionScreen: some View {
-        List {
-            HierarchyDisplaySection(
-                items: [
-                    ("Country", store.selectedCountry?.name)
-                ]
-            )
-
-            SelectionListSection(
-                title: "Available Vineyards",
-                items: store.availableVineyards,
-                selectedItem: store.selectedVineyard,
-                onSelect: { store.send(.vineyardSelected($0)) }
-            )
-            .emptyable(store.availableVineyards, isLoading: store.isLoading) {
-                ContentUnavailableView {
-                    Label("No vineyards available", systemImage: "exclamationmark.triangle")
-                } description: {
-                    Text("There are no vineyards available for the selected country.")
-                } actions: {
-                    Button("Go Back") { store.send(.goBackButtonTapped) }
-                        .buttonStyle(.borderedProminent)
-                }
-            }
-        }
-        .toolbar {
-            ToolbarItem(placement: .topBarTrailing) {
-                Button("Add a vineyard", systemImage: "plus") {
-                    store.send(.createVineyardButtonTapped)
-                }
-            }
-        }
-        .navigationTitle("Select Vineyard")
-        .navigationBarTitleDisplayMode(.inline)
-    }
-
-    // MARK: - Region Selection Screen
-
-    @ViewBuilder private var regionSelectionScreen: some View {
-        List {
-            HierarchyDisplaySection(
-                items: [
-                    ("Country", store.selectedCountry?.name),
-                    ("Vineyard", store.selectedVineyard?.name)
-                ]
-            )
-
-            SelectionListSection(
-                title: "Available Regions",
-                items: store.availableRegions,
-                selectedItem: store.selectedRegion,
-                onSelect: { store.send(.regionSelected($0)) }
-            )
-            .emptyable(store.availableRegions, isLoading: store.isLoading) {
-                ContentUnavailableView {
-                    Label("No regions available", systemImage: "exclamationmark.triangle")
-                } description: {
-                    Text("There are no regions available for the selected vineyard.")
-                } actions: {
-                    Button("Go Back") { store.send(.goBackButtonTapped) }
-                        .buttonStyle(.borderedProminent)
-                }
-            }
-        }
-        .toolbar {
-            ToolbarItem(placement: .topBarTrailing) {
-                Button("Add a region", systemImage: "plus") {
-                    store.send(.createRegionButtonTapped)
-                }
-            }
-        }
-        .navigationTitle("Select Region")
         .navigationBarTitleDisplayMode(.inline)
     }
 
@@ -201,27 +121,7 @@ private struct HierarchyDisplaySection: View {
     }
 }
 
-private struct SelectionContentUnavailableView: View {
-    let title: String
-    let message: String
-    let actionTitle: String
-    let action: () -> Void
-
-    var body: some View {
-        ContentUnavailableView {
-            Label(title, systemImage: "exclamationmark.triangle")
-        } description: {
-            Text(message)
-        } actions: {
-            Button(actionTitle) {
-                action()
-            }
-            .buttonStyle(.borderedProminent)
-        }
-    }
-}
-
-private struct SelectionListSection<Item: Identifiable & Equatable>: View where Item.ID == UUID {
+private struct SelectionListSection<Item: AppellationPart>: View {
     let title: String
     let items: [Item]
     let selectedItem: Item?
@@ -235,7 +135,7 @@ private struct SelectionListSection<Item: Identifiable & Equatable>: View where 
                     onSelect(item)
                 } label: {
                     HStack {
-                        Text(itemName(for: item))
+                        Text(item.name)
                             .foregroundStyle(.primary)
                         Spacer()
                         if isSelected {
@@ -245,21 +145,10 @@ private struct SelectionListSection<Item: Identifiable & Equatable>: View where 
                         }
                     }
                     .accessibilityAddTraits(isSelected ? [.isSelected] : [])
-                    .accessibilityHint("Tap to select \(itemName(for: item))")
+                    .accessibilityHint("Tap to select \(item.name)")
                 }
             }
         }
-    }
-
-    private func itemName(for item: Item) -> String {
-        if let country = item as? Country {
-            return country.name
-        } else if let vineyard = item as? Vineyard {
-            return vineyard.name
-        } else if let region = item as? Region {
-            return region.name
-        }
-        return ""
     }
 }
 
