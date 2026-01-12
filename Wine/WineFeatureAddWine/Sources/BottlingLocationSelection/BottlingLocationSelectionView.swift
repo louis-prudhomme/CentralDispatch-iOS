@@ -12,20 +12,22 @@ struct BottlingLocationSelectionView: View {
     }
 
     var body: some View {
-        List(store.suggestedLocations, id: \.id) { location in
-            Button {
-                store.send(.locationSelected(location))
-            } label: {
-                LocationView(location: location)
+        NavigationStack {
+            List(store.suggestedLocations, id: \.id) { location in
+                Button {
+                    store.send(.locationSelected(location))
+                } label: {
+                    LocationView(location: location)
+                }
             }
+            .emptyable(store.suggestedLocations, searchText: store.searchText, isLoading: store.isLoading)
+            .loadable(isLoading: store.isLoading)
+            .searchable(text: $store.searchText)
+            .navigationTitle(navigationTitle)
+            .navigationBarTitleDisplayMode(.inline)
+            .alert($store.scope(state: \.alert, action: \.alert))
+            .onAppear { store.send(.onAppear) }
         }
-        .emptyable(store.suggestedLocations, searchText: store.searchText, isLoading: store.isLoading)
-        .loadable(isLoading: store.isLoading)
-        .searchable(text: $store.searchText)
-        .navigationTitle(navigationTitle)
-        .navigationBarTitleDisplayMode(.inline)
-        .alert($store.scope(state: \.alert, action: \.alert))
-        .onAppear { store.send(.onAppear) }
     }
 
     private var navigationTitle: String {

@@ -59,24 +59,22 @@ public struct WineFeatureAddWineView: View {
         }
         .alert($store.scope(state: \.alert, action: \.alert))
         .sheet(item: $store.scope(state: \.destination, action: \.destination)) { store in
-            NavigationStack {
-                switch store.case {
-                    case let .winemaker(store):
-                        MultipleChoiceSelectionView(store: store)
-                            .presentationDetents([.medium, .large])
+            switch store.case {
+                case let .winemaker(store):
+                    MultipleChoiceSelectionView(store: store)
+                        .presentationDetents([.medium, .large])
 
-                    case let .grapeVarieties(store):
-                        MultipleChoiceSelectionView(store: store)
-                            .presentationDetents([.medium, .large])
+                case let .grapeVarieties(store):
+                    MultipleChoiceSelectionView(store: store)
+                        .presentationDetents([.medium, .large])
 
-                    case let .appellation(store):
-                        AppellationSelectionView(store: store)
-                            .presentationDetents([.medium, .large])
+                case let .appellation(store):
+                    AppellationSelectionView(store: store)
+                        .presentationDetents([.medium, .large])
 
-                    case let .bottlingLocation(store):
-                        BottlingLocationSelectionView(store: store)
-                            .presentationDetents([.medium, .large])
-                }
+                case let .bottlingLocation(store):
+                    BottlingLocationSelectionView(store: store)
+                        .presentationDetents([.medium, .large])
             }
         }
         .navigationTitle("Add a wine")

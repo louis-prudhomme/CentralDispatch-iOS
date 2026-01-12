@@ -11,43 +11,61 @@ struct MultipleChoiceSelectionView<Choice: Choosable, IError: ClientError>: View
     }
 
     var body: some View {
-        VStack {
+        NavigationStack {
             List {
                 ForEach(store.choices) { choice in
                     let isSelected = store.selectedChoices.contains(choice)
                     ChoiceView(choice: choice, isSelected: isSelected, store: store)
                 }
             }
+            .loadable(isLoading: store.isLoading)
+            .emptyable(store.choices, searchText: store.searchText, isLoading: store.isLoading) { emptyCta }
+            .searchable(text: $store.searchText)
+            .toolbar { toolBarContent }
+            .navigationTitle(store.isMultiSelect ? "Select one or more" : "Pick a \(store.title)")
+            .navigationBarTitleDisplayMode(.inline)
+            .navigationDestination(item: $store.scope(state: \.destination?.addChoice, action: \.destination.addChoice)) { store in
+                AddChoiceView(store: store)
+            }
+            .alert($store.scope(state: \.alert, action: \.alert))
+            .onAppear { store.send(.onAppear) }
+        }
+    }
 
-            if store.isMultiSelect {
-                submitButton
-            }
-        }
-        .loadable(isLoading: store.isLoading)
-        .emptyable(store.choices, searchText: store.searchText, isLoading: store.isLoading) { emptyCta }
-        .searchable(text: $store.searchText)
-        .toolbar {
-            ToolbarItem(placement: .primaryAction) {
-                Button("Add a \(store.title)", systemImage: "plus") {
-                    store.send(.addChoiceButtonTapped)
+    var submitButtonLabel: String {
+        switch store.selectedChoices.count {
+            case 0: "0 selected"
+            case 1:
+                if case let .some(choice) = store.selectedChoices.first {
+                    "Select \(choice)"
+                } else {
+                    "Select 1"
                 }
-            }
+            default: "Select all \(store.selectedChoices.count)"
         }
-        .navigationTitle(store.isMultiSelect ? "Select one or more" : "Pick a \(store.title)")
-        .navigationBarTitleDisplayMode(.inline)
-        .navigationDestination(item: $store.scope(state: \.destination?.addChoice, action: \.destination.addChoice)) { store in
-            AddChoiceView(store: store)
-        }
-        .alert($store.scope(state: \.alert, action: \.alert))
-        .onAppear { store.send(.onAppear) }
     }
 
     var submitButton: some View {
         CellarButton("Select \(store.selectedChoices.count)", isDisabled: store.isLoading) {
             store.send(.submitSelectedChoicesButtonTapped)
         }
+        .disabled(store.selectedChoices.isEmpty)
         .buttonStyle(.borderedProminent)
-        .padding()
+    }
+
+    @ToolbarContentBuilder
+    var toolBarContent: some ToolbarContent {
+            ToolbarItem(placement: .primaryAction) {
+                Button("Add a \(store.title)", systemImage: "plus") {
+                    store.send(.addChoiceButtonTapped)
+                }
+            }
+
+            if store.isMultiSelect {
+                ToolbarItem(placement: .bottomBar) {
+                    submitButton
+                }
+            }
     }
 
     var emptyCta: some View {
