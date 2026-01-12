@@ -26,7 +26,7 @@ public struct AppellationCreationView: View {
                         appellationNameScreen
 
                     case let .addCountry(addCountryStore):
-                        AddAppellationPartView(store: addCountryStore)
+                        AddAppellationCountryView(store: addCountryStore)
 
                     case let .addVineyard(addVineyardStore):
                         AddAppellationPartView(store: addVineyardStore)

@@ -30,7 +30,7 @@ public struct AppellationCreation {
         case vineyardSelection
         case regionSelection
         case appellationName
-        case addCountry(AddAppellationPart<Country, WineInteractorError>)
+        case addCountry(AddAppellationCountry)
         case addVineyard(AddAppellationPart<Vineyard, WineInteractorError>)
         case addRegion(AddAppellationPart<Region, WineInteractorError>)
     }
@@ -102,16 +102,10 @@ public struct AppellationCreation {
                     return .none
 
                 case .createCountryButtonTapped:
-                    let createHandler: AddAppellationPart<Country, WineInteractorError>.CreatePartHandler = { [upsertCountry = appellationInteractor.upsertCountry] name in
-                        await upsertCountry(Country(name: name, code: name)) // FIXME: ugly as hell + buggy
-                    }
-                    state.destination = .addCountry(AddAppellationPart.State(
-                        partType: "Country",
-                        createPartHandler: createHandler
-                    ))
+                    state.destination = .addCountry(AddAppellationCountry.State(existing: state.selectedCountry))
                     return .none
 
-                case let .destination(.presented(.addCountry(.delegate(.partCreated(country))))):
+                case let .destination(.presented(.addCountry(.delegate(.countryCreated(country))))):
                     state.destination = nil
                     return .send(.countrySelected(country))
 
