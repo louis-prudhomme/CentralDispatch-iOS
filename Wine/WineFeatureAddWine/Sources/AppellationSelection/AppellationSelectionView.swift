@@ -15,10 +15,11 @@ public struct AppellationSelectionView: View {
         NavigationStack(path: $store.scope(state: \.destination, action: \.destination)) {
             List {
                 ForEach(store.suggestedAppellations) { appellation in
+                    let isSelected = appellation.id == store.existing?.id
                     Button {
                         store.send(.appellationSelected(appellation))
                     } label: {
-                        AppellationView(appellation: appellation)
+                        AppellationView(appellation: appellation, isSelected: isSelected)
                     }
                 }
             }
@@ -61,6 +62,7 @@ public struct AppellationSelectionView: View {
 
 private struct AppellationView: View {
     let appellation: Appellation
+    let isSelected: Bool
 
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
@@ -70,7 +72,16 @@ private struct AppellationView: View {
             Text("\(appellation.region.vineyard.country.asEmoji) \(appellation.region.vineyard.name), \(appellation.region.name)")
                 .font(.caption)
                 .foregroundStyle(.secondary)
+
+            Spacer()
+
+            if isSelected {
+                Image(systemName: "checkmark")
+                    .accessibilityHidden(true)
+                    .foregroundStyle(.primary)
+            }
         }
+        .accessibilityAddTraits(isSelected ? .isSelected : .isButton)
     }
 }
 
