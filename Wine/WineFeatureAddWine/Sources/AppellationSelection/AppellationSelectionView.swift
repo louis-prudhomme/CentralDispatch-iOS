@@ -27,11 +27,11 @@ public struct AppellationSelectionView: View {
             .loadable(isLoading: store.isLoading)
             .emptyable(store.suggestedAppellations, searchText: store.searchText, isLoading: store.isLoading) { emptyCta }
             .alert($store.scope(state: \.alert, action: \.alert))
-            .navigationTitle("Appellation")
+            .navigationTitle("Select an Appellation")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
-                ToolbarItem(placement: .secondaryAction) {
-                    Button("Create Appellation") {
+                ToolbarItem(placement: .primaryAction) {
+                    Button("Create Appellation", systemImage: "plus") {
                         store.send(.createNewAppellationButtonTapped)
                     }
                 }
