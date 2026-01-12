@@ -36,6 +36,7 @@ public struct AppellationSelectionView: View {
                     }
                 }
             }
+            .onAppear { store.send(.onAppear) }
         } destination: { store in
             switch store.case {
                 case let .creation(store):

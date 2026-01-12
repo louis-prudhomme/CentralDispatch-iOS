@@ -27,6 +27,7 @@ public struct AppellationSelection {
     }
 
     public enum Action: BindableAction {
+        case onAppear
         case appellationsLoaded(Result<[Appellation], WineInteractorError>)
         case appellationSelected(Appellation)
         case createNewAppellationButtonTapped
@@ -50,6 +51,14 @@ public struct AppellationSelection {
 
         Reduce { state, action in
             switch action {
+                case .onAppear:
+                    state.isLoading = true
+
+                    return .run { [search = appellationInteractor.search] send in
+                        let result = await search("")
+                        await send(.appellationsLoaded(result))
+                    }
+
                 case .binding(\.searchText):
                     guard !state.searchText.isEmpty else {
                         state.suggestedAppellations = []
