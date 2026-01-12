@@ -13,7 +13,7 @@ struct SelectAppellationPartView<Part: AppellationPart, IError: ClientError>: Vi
     var body: some View {
         List {
             if !store.hierarchy.isEmpty {
-                HierarchyDisplaySection(items: store.hierarchy)
+                HierarchyDisplaySection(hierarchy: store.hierarchy)
             }
 
             SelectionListSection(
@@ -49,24 +49,6 @@ struct SelectAppellationPartView<Part: AppellationPart, IError: ClientError>: Vi
 }
 
 // MARK: - Reusable Components
-
-private struct HierarchyDisplaySection: View {
-    let items: [Hierarchy]
-
-    var body: some View {
-        ForEach(items) { item in
-            Section {
-                HStack {
-                    Text("\(item.label):")
-                        .foregroundStyle(.secondary)
-                    Spacer()
-                    Text(item.value)
-                        .fontWeight(.medium)
-                }
-            }
-        }
-    }
-}
 
 private struct SelectionListSection<Item: AppellationPart>: View {
     let title: String

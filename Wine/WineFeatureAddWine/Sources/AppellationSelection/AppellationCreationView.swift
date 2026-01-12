@@ -72,26 +72,6 @@ public struct AppellationCreationView: View {
 
 // MARK: - Reusable Components
 
-private struct HierarchyDisplaySection: View {
-    let items: [(String, String?)]
-
-    var body: some View {
-        ForEach(items.filter { $0.1 != nil }, id: \.0) { label, value in
-            if let value {
-                Section {
-                    HStack {
-                        Text("\(label):")
-                            .foregroundStyle(.secondary)
-                        Spacer()
-                        Text(value)
-                            .fontWeight(.medium)
-                    }
-                }
-            }
-        }
-    }
-}
-
 private struct SelectionListSection<Item: AppellationPart>: View {
     let title: String
     let items: [Item]
