@@ -11,7 +11,7 @@ public final class CountryEntity: IdentifiableEntity {
     @Attribute public var code: String
     @Attribute public var createdAt: Date
 
-    @Relationship(deleteRule: .nullify, inverse: \VineyardEntity.country) public var vineyards: [VineyardEntity]?
+    @Relationship(deleteRule: .cascade, inverse: \VineyardEntity.country) public var vineyards: [VineyardEntity]?
 
     public init(id: UUID, name: String, code: String, createdAt: Date) {
         self.id = id
