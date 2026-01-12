@@ -154,10 +154,7 @@ public struct AppellationCreation {
 
                 case let .destination(.presented(.addVineyard(.delegate(.partCreated(vineyard))))):
                     state.destination = nil
-                    state.isLoading = true
-                    return .run { [vineyard] send in
-                        await send(.vineyardSelected(vineyard))
-                    }
+                    return .send(.vineyardSelected(vineyard))
 
                 case let .vineyardSelected(vineyard):
                     state.selectedVineyard = vineyard
@@ -197,10 +194,7 @@ public struct AppellationCreation {
 
                 case let .destination(.presented(.addRegion(.delegate(.partCreated(region))))):
                     state.destination = nil
-                    state.isLoading = true
-                    return .run { [region] send in
-                        await send(.regionSelected(region))
-                    }
+                    return .send(.regionSelected(region))
 
                 case let .regionSelected(region):
                     state.selectedRegion = region
