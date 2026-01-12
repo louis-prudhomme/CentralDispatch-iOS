@@ -2,6 +2,8 @@ import Foundation
 import SharedCommonDependencies
 import URLQueryItemCoder
 
+@MainActor private var _countries: [LocationCountry]?
+
 extension LocationClient {
     static let live = LocationClient(
         search: { name in
@@ -23,6 +25,10 @@ extension LocationClient {
             }
         },
         fetchAllCountries: {
+            if let countries = await MainActor.run(body: { _countries }) {
+                return .success(countries)
+            }
+
             let queryParams = GeoNamesQueryParameters(
                 placename: "",
                 maxRows: 300,
@@ -33,7 +39,7 @@ extension LocationClient {
                 featureCode: []
             )
 
-            return await performGeoNamesRequest(
+            let result = await performGeoNamesRequest(
                 queryParameters: queryParams
             ) { data in
                 let result = try JSONDecoder().decode(GeoNamesSearchDTO.self, from: data)
@@ -45,8 +51,13 @@ extension LocationClient {
                     throw LocationClientError.noData
                 }
 
-                return geonames.map(Country.init(from:))
+                return geonames.map(LocationCountry.init(from:))
             }
+
+            if case let .success(countries) = result {
+                await MainActor.run { _countries = countries }
+            }
+            return result
         }
     )
 }
