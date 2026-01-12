@@ -14,16 +14,10 @@ public struct AppellationSelection {
         public var isLoading = false
 
         @Presents var alert: AlertState<Never>?
-        public var destination = StackState<Destination.State>()
 
         public init(existing: Appellation?) {
             self.existing = existing
         }
-    }
-
-    @Reducer
-    public enum Destination {
-        case creation(AppellationCreation)
     }
 
     public enum Action: BindableAction {
@@ -32,13 +26,13 @@ public struct AppellationSelection {
         case appellationSelected(Appellation)
         case createNewAppellationButtonTapped
 
-        case destination(StackActionOf<Destination>)
         case alert(PresentationAction<Never>)
         case binding(BindingAction<State>)
         case delegate(Delegate)
 
         public enum Delegate: Equatable, Sendable {
             case appellationSelected(Appellation)
+            case createNewAppellationRequested
         }
     }
 
@@ -88,15 +82,7 @@ public struct AppellationSelection {
                     return .send(.delegate(.appellationSelected(appellation)))
 
                 case .createNewAppellationButtonTapped:
-                    state.destination.append(.creation(AppellationCreation.State()))
-                    return .none
-
-                case let .destination(.element(id: _, action: .creation(.delegate(.appellationCreated(appellation))))):
-                    state.destination.removeAll()
-                    return .send(.delegate(.appellationSelected(appellation)))
-
-                case .destination:
-                    return .none
+                    return .send(.delegate(.createNewAppellationRequested))
 
                 case .alert, .binding:
                     return .none
@@ -105,10 +91,5 @@ public struct AppellationSelection {
                     return .none
             }
         }
-        .forEach(\.destination, action: \.destination)
     }
 }
-
-// MARK: - Conformances
-
-extension AppellationSelection.Destination.State: Equatable {}

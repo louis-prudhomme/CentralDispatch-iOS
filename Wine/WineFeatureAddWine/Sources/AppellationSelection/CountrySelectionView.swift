@@ -3,46 +3,14 @@ import SharedCommonDesignSystem
 import SwiftUI
 import WineDomain
 
-public struct AppellationCreationView: View {
-    @Bindable var store: StoreOf<AppellationCreation>
+struct CountrySelectionView: View {
+    @Bindable var store: StoreOf<CountrySelection>
 
-    public init(store: StoreOf<AppellationCreation>) {
+    init(store: StoreOf<CountrySelection>) {
         self.store = store
     }
 
-    public var body: some View {
-        countrySelectionScreen
-            .navigationDestination(
-                item: $store.scope(state: \.destination, action: \.destination)
-            ) { destinationStore in
-                switch destinationStore.case {
-                    case let .selectVineyard(vineyardStore):
-                        SelectAppellationPartView(store: vineyardStore)
-
-                    case let .selectRegion(regionStore):
-                        SelectAppellationPartView(store: regionStore)
-
-                    case let .addAppellation(appellationStore):
-                        AddAppellationPartView(store: appellationStore)
-
-                    case let .addCountry(addCountryStore):
-                        AddAppellationCountryView(store: addCountryStore)
-
-                    case let .addVineyard(addVineyardStore):
-                        AddAppellationPartView(store: addVineyardStore)
-
-                    case let .addRegion(addRegionStore):
-                        AddAppellationPartView(store: addRegionStore)
-                }
-            }
-            .loadable(isLoading: store.isLoading)
-            .alert($store.scope(state: \.alert, action: \.alert))
-            .onAppear { store.send(.onAppear) }
-    }
-
-    // MARK: - Country Selection Screen
-
-    @ViewBuilder private var countrySelectionScreen: some View {
+    var body: some View {
         List {
             SelectionListSection(
                 title: "Available Countries",
@@ -65,8 +33,11 @@ public struct AppellationCreationView: View {
                 }
             }
         }
+        .loadable(isLoading: store.isLoading)
+        .alert($store.scope(state: \.alert, action: \.alert))
         .navigationTitle("Select Country")
         .navigationBarTitleDisplayMode(.inline)
+        .onAppear { store.send(.onAppear) }
     }
 }
 
@@ -103,12 +74,12 @@ private struct SelectionListSection<Item: AppellationPart>: View {
     }
 }
 
-// MARK: - Previews
-
 #Preview {
-    AppellationCreationView(
-        store: Store(initialState: AppellationCreation.State()) {
-            AppellationCreation()
-        }
-    )
+    NavigationStack {
+        CountrySelectionView(
+            store: Store(initialState: CountrySelection.State(existing: nil)) {
+                CountrySelection()
+            }
+        )
+    }
 }

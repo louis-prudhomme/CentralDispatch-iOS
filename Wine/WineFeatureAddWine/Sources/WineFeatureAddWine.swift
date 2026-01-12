@@ -46,7 +46,7 @@ public struct WineFeatureAddWine {
     public enum Destination {
         case winemaker(MultipleChoiceSelection<Winemaker, WineInteractorError>)
         case grapeVarieties(MultipleChoiceSelection<GrapeVariety, WineInteractorError>)
-        case appellation(AppellationSelection)
+        case appellation(AppellationCoordinator)
         case bottlingLocation(BottlingLocationSelection)
     }
 
@@ -116,7 +116,7 @@ public struct WineFeatureAddWine {
                     return .none
 
                 case .selectAppellationButtonTapped:
-                    state.destination = .appellation(AppellationSelection.State(existing: state.partialWine.appellation))
+                    state.destination = .appellation(AppellationCoordinator.State(existing: state.partialWine.appellation))
                     return .none
 
                 case .selectBottlingLocationButtonTapped:

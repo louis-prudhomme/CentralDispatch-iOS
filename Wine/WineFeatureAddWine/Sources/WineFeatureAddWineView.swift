@@ -69,7 +69,7 @@ public struct WineFeatureAddWineView: View {
                         .presentationDetents([.medium, .large])
 
                 case let .appellation(store):
-                    AppellationSelectionView(store: store)
+                    AppellationCoordinatorView(store: store)
                         .presentationDetents([.medium, .large])
 
                 case let .bottlingLocation(store):

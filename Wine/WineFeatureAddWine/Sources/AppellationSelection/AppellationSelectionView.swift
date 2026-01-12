@@ -3,47 +3,41 @@ import SharedCommonDesignSystem
 import SwiftUI
 import WineDomain
 
-public struct AppellationSelectionView: View {
+struct AppellationSelectionView: View {
     @Bindable var store: StoreOf<AppellationSelection>
-    @Environment(\.dismiss) var dismiss
 
-    public init(store: StoreOf<AppellationSelection>) {
+    init(store: StoreOf<AppellationSelection>) {
         self.store = store
     }
 
-    public var body: some View {
-        NavigationStack(path: $store.scope(state: \.destination, action: \.destination)) {
-            List {
-                ForEach(store.suggestedAppellations) { appellation in
-                    let isSelected = appellation.id == store.existing?.id
-                    Button {
-                        store.send(.appellationSelected(appellation))
-                    } label: {
-                        AppellationView(appellation: appellation, isSelected: isSelected)
-                    }
+    var body: some View {
+        List {
+            ForEach(store.suggestedAppellations) { appellation in
+                let isSelected = appellation.id == store.existing?.id
+                Button {
+                    store.send(.appellationSelected(appellation))
+                } label: {
+                    AppellationView(appellation: appellation, isSelected: isSelected)
                 }
-            }
-            .listStyle(.plain)
-            .searchable(text: $store.searchText)
-            .loadable(isLoading: store.isLoading)
-            .emptyable(store.suggestedAppellations, searchText: store.searchText, isLoading: store.isLoading) { emptyCta }
-            .alert($store.scope(state: \.alert, action: \.alert))
-            .navigationTitle("Select an Appellation")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .primaryAction) {
-                    Button("Create Appellation", systemImage: "plus") {
-                        store.send(.createNewAppellationButtonTapped)
-                    }
-                }
-            }
-            .onAppear { store.send(.onAppear) }
-        } destination: { store in
-            switch store.case {
-                case let .creation(store):
-                    AppellationCreationView(store: store)
             }
         }
+        .listStyle(.plain)
+        .searchable(text: $store.searchText)
+        .loadable(isLoading: store.isLoading)
+        .emptyable(store.suggestedAppellations, searchText: store.searchText, isLoading: store.isLoading) {
+            emptyCta
+        }
+        .alert($store.scope(state: \.alert, action: \.alert))
+        .navigationTitle("Select an Appellation")
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .primaryAction) {
+                Button("Create Appellation", systemImage: "plus") {
+                    store.send(.createNewAppellationButtonTapped)
+                }
+            }
+        }
+        .onAppear { store.send(.onAppear) }
     }
 
     private var emptyCta: some View {
@@ -65,13 +59,15 @@ private struct AppellationView: View {
     let isSelected: Bool
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            Text(appellation.name)
-                .font(.headline)
-
-            Text("\(appellation.region.vineyard.country.asEmoji) \(appellation.region.vineyard.name), \(appellation.region.name)")
-                .font(.caption)
-                .foregroundStyle(.secondary)
+        HStack {
+            VStack(alignment: .leading, spacing: 4) {
+                Text(appellation.name)
+                    .font(.headline)
+                
+                Text("\(appellation.region.vineyard.country.asEmoji) \(appellation.region.vineyard.name), \(appellation.region.name)")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
 
             Spacer()
 
@@ -86,9 +82,11 @@ private struct AppellationView: View {
 }
 
 #Preview {
-    AppellationSelectionView(
-        store: Store(initialState: AppellationSelection.State(existing: nil)) {
-            AppellationSelection()
-        }
-    )
+    NavigationStack {
+        AppellationSelectionView(
+            store: Store(initialState: AppellationSelection.State(existing: nil)) {
+                AppellationSelection()
+            }
+        )
+    }
 }
