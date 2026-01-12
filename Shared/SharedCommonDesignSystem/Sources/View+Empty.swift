@@ -16,6 +16,13 @@ private struct EmptyableViewModifier<SearchResult, Description: View>: ViewModif
                         description: Text("Results will then appear here.")
                     )
                     .symbolVariant(.none)
+                } else if searchText == nil {
+                    ContentUnavailableView(
+                        "Search for something.",
+                        systemImage: "arrow.down",
+                        description: Text("Results will then appear here.")
+                    )
+                    .symbolVariant(.none)
                 } else {
                     description()
                 }
