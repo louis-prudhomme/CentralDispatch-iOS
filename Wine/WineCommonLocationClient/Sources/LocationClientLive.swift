@@ -21,6 +21,32 @@ extension LocationClient {
 
                 return geonames.map(Location.init(from:))
             }
+        },
+        fetchAllCountries: {
+            let queryParams = GeoNamesQueryParameters(
+                placename: "",
+                maxRows: 300,
+                countryBias: [],
+                languageCode: "en",
+                responseStyle: .short,
+                featureClass: [.A],
+                featureCode: []
+            )
+
+            return await performGeoNamesRequest(
+                queryParameters: queryParams
+            ) { data in
+                let result = try JSONDecoder().decode(GeoNamesSearchDTO.self, from: data)
+                if let status = result.status {
+                    throw LocationClientError(from: status)
+                }
+
+                guard let geonames = result.geonames else {
+                    throw LocationClientError.noData
+                }
+
+                return geonames.map(Country.init(from:))
+            }
         }
     )
 }

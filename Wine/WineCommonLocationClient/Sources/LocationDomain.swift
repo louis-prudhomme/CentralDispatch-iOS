@@ -3,6 +3,18 @@ import SharedCommonDependencies
 
 // MARK: - Domain Models
 
+public struct Country: Identifiable, ClientSuccess {
+    public let id: Int
+    public let name: String
+    public let code: String
+    public let coordinates: GeographicalCoordinates
+
+    public struct GeographicalCoordinates: ClientSuccess {
+        public let latitude: Double
+        public let longitude: Double
+    }
+}
+
 public struct Location: Identifiable, ClientSuccess {
     public let id: Int
     public let name: String
@@ -75,5 +87,17 @@ public extension Location {
 
         population = dto.population
         elevation = dto.elevation
+    }
+}
+
+public extension Country {
+    init(from dto: GeoNameDTO) {
+        id = dto.geonameId
+        name = dto.name
+        code = dto.countryCode ?? ""
+        coordinates = GeographicalCoordinates(
+            latitude: Double(dto.lat) ?? 0.0,
+            longitude: Double(dto.lng) ?? 0.0
+        )
     }
 }

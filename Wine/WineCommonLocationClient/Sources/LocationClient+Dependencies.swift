@@ -3,9 +3,14 @@ import SharedCommonDependencies
 
 public struct LocationClient: Sendable {
     public var search: @Sendable (String) async -> Result<[Location], LocationClientError>
+    public var fetchAllCountries: @Sendable () async -> Result<[LocationCountry], LocationClientError>
 
-    public init(search: @escaping @Sendable (String) async -> Result<[Location], LocationClientError>) {
+    public init(
+        search: @escaping @Sendable (String) async -> Result<[Location], LocationClientError>,
+        fetchAllCountries: @escaping @Sendable () async -> Result<[LocationCountry], LocationClientError>
+    ) {
         self.search = search
+        self.fetchAllCountries = fetchAllCountries
     }
 }
 

@@ -5,6 +5,9 @@ extension LocationClient {
     static let mock = LocationClient(
         search: { _ in
             fatalError("LocationClient.search")
+        },
+        fetchAllCountries: {
+            fatalError("LocationClient.fetchAllCountries")
         }
     )
 }
@@ -32,11 +35,45 @@ public extension LocationClient {
                     elevation: nil
                 )
             ])
+        },
+        fetchAllCountries: {
+            return .success([
+                LocationCountry(
+                    id: 3_017_382,
+                    name: "France",
+                    code: "FR",
+                    coordinates: .init(
+                        latitude: 46.0,
+                        longitude: 2.0
+                    )
+                ),
+                LocationCountry(
+                    id: 2_510_769,
+                    name: "Spain",
+                    code: "ES",
+                    coordinates: .init(
+                        latitude: 40.0,
+                        longitude: -4.0
+                    )
+                ),
+                LocationCountry(
+                    id: 3_175_395,
+                    name: "Italy",
+                    code: "IT",
+                    coordinates: .init(
+                        latitude: 42.83333,
+                        longitude: 12.83333
+                    )
+                )
+            ])
         }
     )
 
     static let mockWithError = LocationClient(
         search: { _ in
+            return .failure(.noResultsFound)
+        },
+        fetchAllCountries: {
             return .failure(.noResultsFound)
         }
     )
