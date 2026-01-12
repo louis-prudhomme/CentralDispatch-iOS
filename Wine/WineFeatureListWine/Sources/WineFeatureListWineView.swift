@@ -47,7 +47,7 @@ public struct WineFeatureListWineView: View {
             EmptyView()
         }
 
-        ToolbarItemGroup(placement: .topBarTrailing) {
+        ToolbarItemGroup(placement: .primaryAction) {
             Button("Scan wine label", systemImage: "camera.viewfinder") {
                 store.send(.delegate(.ocrButtonTapped))
             }

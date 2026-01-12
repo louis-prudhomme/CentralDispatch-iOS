@@ -30,7 +30,7 @@ public struct AppellationSelectionView: View {
             .navigationTitle("Appellation")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
-                ToolbarItem(placement: .topBarTrailing) {
+                ToolbarItem(placement: .secondaryAction) {
                     Button("Create Appellation") {
                         store.send(.createNewAppellationButtonTapped)
                     }

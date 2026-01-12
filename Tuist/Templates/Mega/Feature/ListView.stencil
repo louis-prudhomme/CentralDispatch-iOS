@@ -26,13 +26,13 @@ public struct {{ group }}FeatureList{{ group }}View: View {
         .refreshable { store.send(.screenPulled) }
         .navigationTitle("{{ group }}s")
         .toolbar {
-            ToolbarItem(placement: .navigationBarLeading) {
+            ToolbarItem(placement: .navigation) {
                 Button("Return to Root", systemImage: "xmark") {
                     store.send(.delegate(.popToRoot))
                 }
             }
 
-            ToolbarItem(placement: .navigationBarTrailing) {
+            ToolbarItem(placement: .primaryAction) {
                 Button("Add a {{ group | lowerFirstWord }}", systemImage: "plus") {
                     store.send(.delegate(.addButtonTapped))
                 }

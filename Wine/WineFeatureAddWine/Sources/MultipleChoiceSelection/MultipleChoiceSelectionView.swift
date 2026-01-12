@@ -27,7 +27,7 @@ struct MultipleChoiceSelectionView<Choice: Choosable, IError: ClientError>: View
         .emptyable(store.choices, searchText: store.searchText, isLoading: store.isLoading) { emptyCta }
         .searchable(text: $store.searchText)
         .toolbar {
-            ToolbarItem(placement: .navigationBarTrailing) {
+            ToolbarItem(placement: .primaryAction) {
                 Button("Add a \(store.title)", systemImage: "plus") {
                     store.send(.addChoiceButtonTapped)
                 }
