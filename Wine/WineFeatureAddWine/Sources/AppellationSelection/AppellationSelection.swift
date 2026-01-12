@@ -14,7 +14,7 @@ public struct AppellationSelection {
         public var isLoading = false
 
         @Presents var alert: AlertState<Never>?
-        @Presents var destination: Destination.State?
+        public var destination = StackState<Destination.State>()
 
         public init(existing: Appellation?) {
             self.existing = existing
@@ -31,7 +31,7 @@ public struct AppellationSelection {
         case appellationSelected(Appellation)
         case createNewAppellationButtonTapped
 
-        case destination(PresentationAction<Destination.Action>)
+        case destination(StackActionOf<Destination>)
         case alert(PresentationAction<Never>)
         case binding(BindingAction<State>)
         case delegate(Delegate)
@@ -79,11 +79,11 @@ public struct AppellationSelection {
                     return .send(.delegate(.appellationSelected(appellation)))
 
                 case .createNewAppellationButtonTapped:
-                    state.destination = .creation(AppellationCreation.State())
+                    state.destination.append(.creation(AppellationCreation.State()))
                     return .none
 
-                case let .destination(.presented(.creation(.delegate(.appellationCreated(appellation))))):
-                    state.destination = nil
+                case let .destination(.element(id: _, action: .creation(.delegate(.appellationCreated(appellation))))):
+                    state.destination.removeAll()
                     return .send(.delegate(.appellationSelected(appellation)))
 
                 case .destination:
@@ -96,7 +96,7 @@ public struct AppellationSelection {
                     return .none
             }
         }
-        .ifLet(\.$destination, action: \.destination)
+        .forEach(\.destination, action: \.destination)
     }
 }
 

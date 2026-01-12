@@ -20,7 +20,7 @@ public struct AppellationCreation {
         public var isLoading = false
 
         @Presents var alert: AlertState<Never>?
-        public var destination = StackState<Destination.State>()
+        @Presents var currentStep: Destination.State?
 
         public init() {}
     }
@@ -46,7 +46,7 @@ public struct AppellationCreation {
 
         case alert(PresentationAction<Never>)
         case binding(BindingAction<State>)
-        case destination(StackActionOf<Destination>)
+        case currentStep(PresentationAction<Destination.Action>)
         case delegate(Delegate)
 
         public enum Delegate: Equatable {
@@ -71,9 +71,7 @@ public struct AppellationCreation {
                     }
 
                 case .goBackButtonTapped:
-                    if !state.destination.isEmpty {
-                        _ = state.destination.popLast()
-                    }
+                    state.currentStep = nil
                     return .none
 
                 case let .countriesLoaded(.success(countries)):
@@ -91,7 +89,7 @@ public struct AppellationCreation {
                 case let .vineyardsLoaded(.success(vineyards)):
                     state.isLoading = false
                     state.availableVineyards = vineyards
-                    state.destination.append(.vineyardSelection)
+                    state.currentStep = .vineyardSelection
                     return .none
 
                 case let .vineyardsLoaded(.failure(error)):
@@ -104,7 +102,7 @@ public struct AppellationCreation {
                 case let .regionsLoaded(.success(regions)):
                     state.isLoading = false
                     state.availableRegions = regions
-                    state.destination.append(.regionSelection)
+                    state.currentStep = .regionSelection
                     return .none
 
                 case let .regionsLoaded(.failure(error)):
@@ -135,7 +133,7 @@ public struct AppellationCreation {
 
                 case let .regionSelected(region):
                     state.selectedRegion = region
-                    state.destination.append(.appellationName)
+                    state.currentStep = .appellationName
                     return .none
 
                 case .submitAppellationButtonTapped:
@@ -167,14 +165,13 @@ public struct AppellationCreation {
                 case .alert, .binding:
                     return .none
 
-                case .destination:
+                case .currentStep:
                     return .none
 
                 case .delegate:
                     return .none
             }
         }
-        .forEach(\.destination, action: \.destination)
     }
 }
 

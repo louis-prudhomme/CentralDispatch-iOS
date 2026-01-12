@@ -11,21 +11,22 @@ public struct AppellationCreationView: View {
     }
 
     public var body: some View {
-        NavigationStack(path: $store.scope(state: \.destination, action: \.destination)) {
-            countrySelectionScreen
-        } destination: { store in
-            switch store.case {
-                case .vineyardSelection:
-                    vineyardSelectionScreen
-                case .regionSelection:
-                    regionSelectionScreen
-                case .appellationName:
-                    appellationNameScreen
+        countrySelectionScreen
+            .navigationDestination(
+                item: $store.scope(state: \.currentStep, action: \.currentStep)
+            ) { stepStore in
+                switch stepStore.case {
+                    case .vineyardSelection:
+                        vineyardSelectionScreen
+                    case .regionSelection:
+                        regionSelectionScreen
+                    case .appellationName:
+                        appellationNameScreen
+                }
             }
-        }
-        .loadable(isLoading: store.isLoading)
-        .alert($store.scope(state: \.alert, action: \.alert))
-        .onAppear { store.send(.onAppear) }
+            .loadable(isLoading: store.isLoading)
+            .alert($store.scope(state: \.alert, action: \.alert))
+            .onAppear { store.send(.onAppear) }
     }
 
     // MARK: - Country Selection Screen

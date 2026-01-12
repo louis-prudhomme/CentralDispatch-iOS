@@ -12,31 +12,35 @@ public struct AppellationSelectionView: View {
     }
 
     public var body: some View {
-        List {
-            ForEach(store.suggestedAppellations) { appellation in
-                Button {
-                    store.send(.appellationSelected(appellation))
-                } label: {
-                    AppellationView(appellation: appellation)
+        NavigationStack(path: $store.scope(state: \.destination, action: \.destination)) {
+            List {
+                ForEach(store.suggestedAppellations) { appellation in
+                    Button {
+                        store.send(.appellationSelected(appellation))
+                    } label: {
+                        AppellationView(appellation: appellation)
+                    }
                 }
             }
-        }
-        .listStyle(.plain)
-        .searchable(text: $store.searchText)
-        .loadable(isLoading: store.isLoading)
-        .emptyable(store.suggestedAppellations, searchText: store.searchText, isLoading: store.isLoading) { emptyCta }
-        .alert($store.scope(state: \.alert, action: \.alert))
-        .navigationTitle("Appellation")
-        .navigationBarTitleDisplayMode(.inline)
-        .toolbar {
-            ToolbarItem(placement: .topBarTrailing) {
-                Button("Create Appellation") {
-                    store.send(.createNewAppellationButtonTapped)
+            .listStyle(.plain)
+            .searchable(text: $store.searchText)
+            .loadable(isLoading: store.isLoading)
+            .emptyable(store.suggestedAppellations, searchText: store.searchText, isLoading: store.isLoading) { emptyCta }
+            .alert($store.scope(state: \.alert, action: \.alert))
+            .navigationTitle("Appellation")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button("Create Appellation") {
+                        store.send(.createNewAppellationButtonTapped)
+                    }
                 }
             }
-        }
-        .navigationDestination(item: $store.scope(state: \.destination?.creation, action: \.destination.creation)) { store in
-            AppellationCreationView(store: store)
+        } destination: { store in
+            switch store.case {
+                case let .creation(store):
+                    AppellationCreationView(store: store)
+            }
         }
     }
 
@@ -70,11 +74,9 @@ private struct AppellationView: View {
 }
 
 #Preview {
-    NavigationStack {
-        AppellationSelectionView(
-            store: Store(initialState: AppellationSelection.State(existing: nil)) {
-                AppellationSelection()
-            }
-        )
-    }
+    AppellationSelectionView(
+        store: Store(initialState: AppellationSelection.State(existing: nil)) {
+            AppellationSelection()
+        }
+    )
 }
