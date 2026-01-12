@@ -7,6 +7,7 @@ public struct AddAppellationPart<Part: AppellationPart, IError: ClientError> {
     @ObservableState
     public struct State: Equatable {
         public let partType: String
+        public let hierarchy: [Hierarchy]
         public let createPartHandler: CreatePartHandler
 
         @Presents var alert: AlertState<Never>?
@@ -14,13 +15,19 @@ public struct AddAppellationPart<Part: AppellationPart, IError: ClientError> {
         public var partName = ""
         public var isLoading = false
 
-        public init(partType: String, createPartHandler: @escaping CreatePartHandler) {
+        public init(
+            partType: String,
+            hierarchy: [Hierarchy] = [],
+            createPartHandler: @escaping CreatePartHandler
+        ) {
             self.partType = partType
+            self.hierarchy = hierarchy
             self.createPartHandler = createPartHandler
         }
 
         public static func == (lhs: AddAppellationPart<Part, IError>.State, rhs: AddAppellationPart<Part, IError>.State) -> Bool {
             lhs.partType == rhs.partType
+                && lhs.hierarchy == rhs.hierarchy
                 && lhs.partName == rhs.partName
                 && lhs.isLoading == rhs.isLoading
         }

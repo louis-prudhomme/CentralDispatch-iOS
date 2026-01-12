@@ -12,6 +12,10 @@ struct AddAppellationPartView<Part: AppellationPart, IError: ClientError>: View 
 
     var body: some View {
         Form {
+            if !store.hierarchy.isEmpty {
+                HierarchyDisplaySection(hierarchy: store.hierarchy)
+            }
+
             HStack(spacing: 16) {
                 Text("Name")
 
@@ -32,6 +36,26 @@ struct AddAppellationPartView<Part: AppellationPart, IError: ClientError>: View 
         .alert($store.scope(state: \.alert, action: \.alert))
         .navigationTitle("Create \(store.partType)")
         .navigationBarTitleDisplayMode(.inline)
+    }
+}
+
+// MARK: - Reusable Components
+
+private struct HierarchyDisplaySection: View {
+    let hierarchy: [Hierarchy]
+
+    var body: some View {
+        ForEach(hierarchy) { item in
+            Section {
+                HStack {
+                    Text("\(item.label):")
+                        .foregroundStyle(.secondary)
+                    Spacer()
+                    Text(item.value)
+                        .fontWeight(.medium)
+                }
+            }
+        }
     }
 }
 

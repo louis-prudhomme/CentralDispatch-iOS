@@ -22,8 +22,8 @@ public struct AppellationCreationView: View {
                     case let .selectRegion(regionStore):
                         SelectAppellationPartView(store: regionStore)
 
-                    case .appellationName:
-                        appellationNameScreen
+                    case let .addAppellation(appellationStore):
+                        AddAppellationPartView(store: appellationStore)
 
                     case let .addCountry(addCountryStore):
                         AddAppellationCountryView(store: addCountryStore)
@@ -66,35 +66,6 @@ public struct AppellationCreationView: View {
             }
         }
         .navigationTitle("Select Country")
-        .navigationBarTitleDisplayMode(.inline)
-    }
-
-    // MARK: - Appellation Name Screen
-
-    @ViewBuilder private var appellationNameScreen: some View {
-        List {
-            HierarchyDisplaySection(
-                items: [
-                    ("Country", store.selectedCountry?.name),
-                    ("Vineyard", store.selectedVineyard?.name),
-                    ("Region", store.selectedRegion?.name)
-                ]
-            )
-
-            Section("Appellation Name") {
-                TextField("Enter appellation name", text: $store.newAppellationName)
-            }
-        }
-        .toolbar {
-            ToolbarItem(placement: .bottomBar) {
-                CellarButton("Create \(store.newAppellationName)", systemImage: "plus", isLoading: store.isLoading) {
-                    store.send(.submitAppellationButtonTapped)
-                }
-                .buttonStyle(.borderedProminent)
-                .disabled(store.newAppellationName.isEmpty)
-            }
-        }
-        .navigationTitle("Appellation Name")
         .navigationBarTitleDisplayMode(.inline)
     }
 }

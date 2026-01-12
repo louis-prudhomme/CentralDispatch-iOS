@@ -11,7 +11,6 @@ public struct AppellationCreation {
         public var selectedCountry: Country?
         public var selectedVineyard: Vineyard?
         public var selectedRegion: Region?
-        public var newAppellationName = ""
 
         public var availableCountries = [Country]()
 
@@ -27,7 +26,7 @@ public struct AppellationCreation {
     public enum Destination {
         case selectVineyard(SelectAppellationPart<Vineyard, WineInteractorError>)
         case selectRegion(SelectAppellationPart<Region, WineInteractorError>)
-        case appellationName
+        case addAppellation(AddAppellationPart<Appellation, WineInteractorError>)
         case addCountry(AddAppellationCountry)
         case addVineyard(AddAppellationPart<Vineyard, WineInteractorError>)
         case addRegion(AddAppellationPart<Region, WineInteractorError>)
@@ -39,9 +38,6 @@ public struct AppellationCreation {
         case countriesLoaded(Result<[Country], WineInteractorError>)
         case createCountryButtonTapped
         case countrySelected(Country)
-
-        case submitAppellationButtonTapped
-        case appellationCreated(Result<Appellation, WineInteractorError>)
 
         case alert(PresentationAction<Never>)
         case binding(BindingAction<State>)
@@ -202,36 +198,25 @@ public struct AppellationCreation {
 
                 case let .destination(.presented(.selectRegion(.delegate(.partSelected(region))))):
                     state.selectedRegion = region
-                    state.destination = .appellationName
+
+                    let createHandler: AddAppellationPart<Appellation, WineInteractorError>.CreatePartHandler = { [upsert = appellationInteractor.upsert, region] name in
+                        await upsert(Appellation(name: name, region: region))
+                    }
+                    state.destination = .addAppellation(AddAppellationPart.State(
+                        partType: "Appellation",
+                        hierarchy: [
+                            Hierarchy(label: "Country", value: region.vineyard.country.name),
+                            Hierarchy(label: "Vineyard", value: region.vineyard.name),
+                            Hierarchy(label: "Region", value: region.name)
+                        ],
+                        createPartHandler: createHandler
+                    ))
                     return .none
 
                 // MARK: Appellation
 
-                case .submitAppellationButtonTapped:
-                    guard let region = state.selectedRegion,
-                          !state.newAppellationName.isEmpty
-                    else {
-                        return .none
-                    }
-
-                    state.isLoading = true
-                    let newAppellation = Appellation(name: state.newAppellationName, region: region)
-
-                    return .run { [upsert = appellationInteractor.upsert, newAppellation] send in
-                        let result = await upsert(newAppellation)
-                        await send(.appellationCreated(result))
-                    }
-
-                case let .appellationCreated(.success(appellation)):
-                    state.isLoading = false
+                case let .destination(.presented(.addAppellation(.delegate(.partCreated(appellation))))):
                     return .send(.delegate(.appellationCreated(appellation)))
-
-                case let .appellationCreated(.failure(error)):
-                    state.isLoading = false
-                    state.alert = AlertState {
-                        TextState(error.localizedDescription)
-                    }
-                    return .none
 
                 // MARK: Other
 
