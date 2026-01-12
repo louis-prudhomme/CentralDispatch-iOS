@@ -20,11 +20,14 @@ struct AddChoiceView<Choice: Choosable, IError: ClientError>: View {
                     .multilineTextAlignment(.trailing)
             }
         }
-        .overlay(alignment: .bottom) {
-            CellarButton("Create \(store.choiceName)", systemImage: "plus", isLoading: store.isLoading) {
-                store.send(.submitChoiceButtonTapped)
+        .toolbar {
+            ToolbarItem(placement: .bottomBar) {
+                CellarButton("Create \(store.choiceName)", systemImage: "plus", isLoading: store.isLoading) {
+                    store.send(.submitChoiceButtonTapped)
+                }
+                .buttonStyle(.borderedProminent)
+                .disabled(store.choiceName.isEmpty)
             }
-            .buttonStyle(.borderedProminent)
         }
         .alert($store.scope(state: \.alert, action: \.alert))
         .navigationTitle("Create \(store.title)")

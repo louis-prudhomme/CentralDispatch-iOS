@@ -48,12 +48,14 @@ public struct WineFeatureAddWineView: View {
                 grapeVarietiesSelectionButton
             }
         }
-        .overlay(alignment: .bottom) {
-            CellarButton("Create \(store.partialWine.name)", systemImage: "plus", isLoading: store.isLoading) {
-                store.send(.submitButtonTapped)
+        .toolbar {
+            ToolbarItem(placement: .bottomBar) {
+                CellarButton("Create \(store.partialWine.name)", systemImage: "plus", isLoading: store.isLoading) {
+                    store.send(.submitButtonTapped)
+                }
+                .buttonStyle(.borderedProminent)
+                .controlSize(.large)
             }
-            .buttonStyle(.borderedProminent)
-            .controlSize(.large)
         }
         .alert($store.scope(state: \.alert, action: \.alert))
         .sheet(item: $store.scope(state: \.destination, action: \.destination)) { store in

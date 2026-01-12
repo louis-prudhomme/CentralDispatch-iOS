@@ -113,10 +113,7 @@ public struct AppellationCreation {
 
                 case let .destination(.presented(.addCountry(.delegate(.partCreated(country))))):
                     state.destination = nil
-                    state.isLoading = true
-                    return .run { [country] send in
-                        await send(.countrySelected(country))
-                    }
+                    return .send(.countrySelected(country))
 
                 case let .countrySelected(country):
                     state.selectedCountry = country

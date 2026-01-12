@@ -165,11 +165,14 @@ public struct AppellationCreationView: View {
                 TextField("Enter appellation name", text: $store.newAppellationName)
             }
         }
-        .overlay(alignment: .bottom) {
-            CellarButton("Create \(store.newAppellationName)", systemImage: "plus", isLoading: store.isLoading) {
-                store.send(.submitAppellationButtonTapped)
+        .toolbar {
+            ToolbarItem(placement: .bottomBar) {
+                CellarButton("Create \(store.newAppellationName)", systemImage: "plus", isLoading: store.isLoading) {
+                    store.send(.submitAppellationButtonTapped)
+                }
+                .buttonStyle(.borderedProminent)
+                .disabled(store.newAppellationName.isEmpty)
             }
-            .buttonStyle(.borderedProminent)
         }
         .navigationTitle("Appellation Name")
         .navigationBarTitleDisplayMode(.inline)

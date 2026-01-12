@@ -20,12 +20,14 @@ struct AddAppellationPartView<Part: AppellationPart, IError: ClientError>: View 
                     .multilineTextAlignment(.trailing)
             }
         }
-        .overlay(alignment: .bottom) {
-            CellarButton("Create \(store.partName)", systemImage: "plus", isLoading: store.isLoading) {
-                store.send(.submitPartButtonTapped)
+        .toolbar {
+            ToolbarItem(placement: .bottomBar) {
+                CellarButton("Create \(store.partName)", systemImage: "plus", isLoading: store.isLoading) {
+                    store.send(.submitPartButtonTapped)
+                }
+                .buttonStyle(.borderedProminent)
+                .disabled(store.partName.isEmpty)
             }
-            .buttonStyle(.borderedProminent)
-            .disabled(store.partName.isEmpty)
         }
         .alert($store.scope(state: \.alert, action: \.alert))
         .navigationTitle("Create \(store.partType)")
