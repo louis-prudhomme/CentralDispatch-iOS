@@ -13,15 +13,26 @@ public struct AppellationCreationView: View {
     public var body: some View {
         countrySelectionScreen
             .navigationDestination(
-                item: $store.scope(state: \.currentStep, action: \.currentStep)
-            ) { stepStore in
-                switch stepStore.case {
+                item: $store.scope(state: \.destination, action: \.destination)
+            ) { destinationStore in
+                switch destinationStore.case {
                     case .vineyardSelection:
                         vineyardSelectionScreen
+
                     case .regionSelection:
                         regionSelectionScreen
+
                     case .appellationName:
                         appellationNameScreen
+
+                    case let .addCountry(addCountryStore):
+                        AddAppellationPartView(store: addCountryStore)
+
+                    case let .addVineyard(addVineyardStore):
+                        AddAppellationPartView(store: addVineyardStore)
+
+                    case let .addRegion(addRegionStore):
+                        AddAppellationPartView(store: addRegionStore)
                 }
             }
             .loadable(isLoading: store.isLoading)
@@ -33,8 +44,6 @@ public struct AppellationCreationView: View {
 
     @ViewBuilder private var countrySelectionScreen: some View {
         List {
-            DescriptionSection(text: "Select the country for this appellation")
-
             SelectionListSection(
                 title: "Available Countries",
                 items: store.availableCountries,
@@ -52,6 +61,13 @@ public struct AppellationCreationView: View {
                 }
             }
         }
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                Button("Add a country", systemImage: "plus") {
+                    store.send(.createCountryButtonTapped)
+                }
+            }
+        }
         .navigationTitle("Select Country")
         .navigationBarTitleDisplayMode(.inline)
     }
@@ -65,8 +81,6 @@ public struct AppellationCreationView: View {
                     ("Country", store.selectedCountry?.name)
                 ]
             )
-
-            DescriptionSection(text: "Select the vineyard for this appellation")
 
             SelectionListSection(
                 title: "Available Vineyards",
@@ -85,6 +99,13 @@ public struct AppellationCreationView: View {
                 }
             }
         }
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                Button("Add a vineyard", systemImage: "plus") {
+                    store.send(.createVineyardButtonTapped)
+                }
+            }
+        }
         .navigationTitle("Select Vineyard")
         .navigationBarTitleDisplayMode(.inline)
     }
@@ -100,8 +121,6 @@ public struct AppellationCreationView: View {
                 ]
             )
 
-            DescriptionSection(text: "Select the region for this appellation")
-
             SelectionListSection(
                 title: "Available Regions",
                 items: store.availableRegions,
@@ -116,6 +135,13 @@ public struct AppellationCreationView: View {
                 } actions: {
                     Button("Go Back") { store.send(.goBackButtonTapped) }
                         .buttonStyle(.borderedProminent)
+                }
+            }
+        }
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                Button("Add a region", systemImage: "plus") {
+                    store.send(.createRegionButtonTapped)
                 }
             }
         }
@@ -135,8 +161,6 @@ public struct AppellationCreationView: View {
                 ]
             )
 
-            DescriptionSection(text: "Enter the name for this appellation")
-
             Section("Appellation Name") {
                 TextField("Enter appellation name", text: $store.newAppellationName)
             }
@@ -153,18 +177,6 @@ public struct AppellationCreationView: View {
 }
 
 // MARK: - Reusable Components
-
-private struct DescriptionSection: View {
-    let text: String
-
-    var body: some View {
-        Section {
-            Text(text)
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
-        }
-    }
-}
 
 private struct HierarchyDisplaySection: View {
     let items: [(String, String?)]

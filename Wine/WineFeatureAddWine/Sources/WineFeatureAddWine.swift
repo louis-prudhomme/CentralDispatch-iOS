@@ -201,3 +201,10 @@ public struct WineFeatureAddWine {
 extension Winemaker: Choosable {}
 extension GrapeVariety: Choosable {}
 extension WineFeatureAddWine.Destination.State: Equatable {}
+
+// MARK: AppellationPart Conformances
+
+extension Country: AppellationPart {}
+extension Vineyard: AppellationPart {}
+extension Region: AppellationPart {}
+extension Appellation: AppellationPart {}

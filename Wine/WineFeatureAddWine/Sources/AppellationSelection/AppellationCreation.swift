@@ -20,7 +20,7 @@ public struct AppellationCreation {
         public var isLoading = false
 
         @Presents var alert: AlertState<Never>?
-        @Presents var currentStep: Destination.State?
+        @Presents var destination: Destination.State?
 
         public init() {}
     }
@@ -30,23 +30,36 @@ public struct AppellationCreation {
         case vineyardSelection
         case regionSelection
         case appellationName
+        case addCountry(AddAppellationPart<Country, WineInteractorError>)
+        case addVineyard(AddAppellationPart<Vineyard, WineInteractorError>)
+        case addRegion(AddAppellationPart<Region, WineInteractorError>)
     }
 
     public enum Action: BindableAction {
         case onAppear
         case goBackButtonTapped
+
         case countriesLoaded(Result<[Country], WineInteractorError>)
-        case vineyardsLoaded(Result<[Vineyard], WineInteractorError>)
-        case regionsLoaded(Result<[Region], WineInteractorError>)
+        case createCountryButtonTapped
+        case createCountryFinished(Result<Country, WineInteractorError>)
         case countrySelected(Country)
+
+        case vineyardsLoaded(Result<[Vineyard], WineInteractorError>)
+        case createVineyardButtonTapped
+        case createVineyardFinished(Result<Vineyard, WineInteractorError>)
         case vineyardSelected(Vineyard)
+
+        case regionsLoaded(Result<[Region], WineInteractorError>)
+        case createRegionButtonTapped
+        case createRegionFinished(Result<Region, WineInteractorError>)
         case regionSelected(Region)
+
         case submitAppellationButtonTapped
         case appellationCreated(Result<Appellation, WineInteractorError>)
 
         case alert(PresentationAction<Never>)
         case binding(BindingAction<State>)
-        case currentStep(PresentationAction<Destination.Action>)
+        case destination(PresentationAction<Destination.Action>)
         case delegate(Delegate)
 
         public enum Delegate: Equatable {
@@ -71,8 +84,10 @@ public struct AppellationCreation {
                     }
 
                 case .goBackButtonTapped:
-                    state.currentStep = nil
+                    state.destination = nil
                     return .none
+
+                // MARK: Country
 
                 case let .countriesLoaded(.success(countries)):
                     state.isLoading = false
@@ -86,31 +101,22 @@ public struct AppellationCreation {
                     }
                     return .none
 
-                case let .vineyardsLoaded(.success(vineyards)):
-                    state.isLoading = false
-                    state.availableVineyards = vineyards
-                    state.currentStep = .vineyardSelection
-                    return .none
-
-                case let .vineyardsLoaded(.failure(error)):
-                    state.isLoading = false
-                    state.alert = AlertState {
-                        TextState(error.localizedDescription)
+                case .createCountryButtonTapped:
+                    let createHandler: AddAppellationPart<Country, WineInteractorError>.CreatePartHandler = { [upsertCountry = appellationInteractor.upsertCountry] name in
+                        await upsertCountry(Country(name: name, code: name)) // FIXME: ugly as hell + buggy
                     }
+                    state.destination = .addCountry(AddAppellationPart.State(
+                        partType: "Country",
+                        createPartHandler: createHandler
+                    ))
                     return .none
 
-                case let .regionsLoaded(.success(regions)):
-                    state.isLoading = false
-                    state.availableRegions = regions
-                    state.currentStep = .regionSelection
-                    return .none
-
-                case let .regionsLoaded(.failure(error)):
-                    state.isLoading = false
-                    state.alert = AlertState {
-                        TextState(error.localizedDescription)
+                case let .destination(.presented(.addCountry(.delegate(.partCreated(country))))):
+                    state.destination = nil
+                    state.isLoading = true
+                    return .run { [country] send in
+                        await send(.countrySelected(country))
                     }
-                    return .none
 
                 case let .countrySelected(country):
                     state.selectedCountry = country
@@ -122,6 +128,40 @@ public struct AppellationCreation {
                         await send(.vineyardsLoaded(result))
                     }
 
+                // MARK: Vineyard
+
+                case let .vineyardsLoaded(.success(vineyards)):
+                    state.isLoading = false
+                    state.availableVineyards = vineyards
+                    state.destination = .vineyardSelection
+                    return .none
+
+                case let .vineyardsLoaded(.failure(error)):
+                    state.isLoading = false
+                    state.alert = AlertState {
+                        TextState(error.localizedDescription)
+                    }
+                    return .none
+
+                case .createVineyardButtonTapped:
+                    guard let country = state.selectedCountry else { return .none }
+
+                    let createHandler: AddAppellationPart<Vineyard, WineInteractorError>.CreatePartHandler = { [upsertVineyard = appellationInteractor.upsertVineyard, country] name in
+                        await upsertVineyard(Vineyard(name: name, country: country))
+                    }
+                    state.destination = .addVineyard(AddAppellationPart.State(
+                        partType: "Vineyard",
+                        createPartHandler: createHandler
+                    ))
+                    return .none
+
+                case let .destination(.presented(.addVineyard(.delegate(.partCreated(vineyard))))):
+                    state.destination = nil
+                    state.isLoading = true
+                    return .run { [vineyard] send in
+                        await send(.vineyardSelected(vineyard))
+                    }
+
                 case let .vineyardSelected(vineyard):
                     state.selectedVineyard = vineyard
                     state.selectedRegion = nil
@@ -131,10 +171,46 @@ public struct AppellationCreation {
                         await send(.regionsLoaded(result))
                     }
 
+                // MARK: Region
+
+                case let .regionsLoaded(.success(regions)):
+                    state.isLoading = false
+                    state.availableRegions = regions
+                    state.destination = .regionSelection
+                    return .none
+
+                case let .regionsLoaded(.failure(error)):
+                    state.isLoading = false
+                    state.alert = AlertState {
+                        TextState(error.localizedDescription)
+                    }
+                    return .none
+
+                case .createRegionButtonTapped:
+                    guard let vineyard = state.selectedVineyard else { return .none }
+
+                    let createHandler: AddAppellationPart<Region, WineInteractorError>.CreatePartHandler = { [upsertRegion = appellationInteractor.upsertRegion, vineyard] name in
+                        await upsertRegion(Region(name: name, vineyard: vineyard))
+                    }
+                    state.destination = .addRegion(AddAppellationPart.State(
+                        partType: "Region",
+                        createPartHandler: createHandler
+                    ))
+                    return .none
+
+                case let .destination(.presented(.addRegion(.delegate(.partCreated(region))))):
+                    state.destination = nil
+                    state.isLoading = true
+                    return .run { [region] send in
+                        await send(.regionSelected(region))
+                    }
+
                 case let .regionSelected(region):
                     state.selectedRegion = region
-                    state.currentStep = .appellationName
+                    state.destination = .appellationName
                     return .none
+
+                // MARK: Appellation
 
                 case .submitAppellationButtonTapped:
                     guard let region = state.selectedRegion,
@@ -162,16 +238,22 @@ public struct AppellationCreation {
                     }
                     return .none
 
+                // MARK: Other
+
+                case .createCountryFinished, .createRegionFinished, .createVineyardFinished:
+                    return .none
+
                 case .alert, .binding:
                     return .none
 
-                case .currentStep:
+                case .destination:
                     return .none
 
                 case .delegate:
                     return .none
             }
         }
+        .ifLet(\.$destination, action: \.destination)
     }
 }
 
