@@ -200,7 +200,7 @@ public extension Project {
             .target(
                 name: sanitizedName,
                 destinations: .iOS,
-                product: .staticFramework,
+                product: .framework,
                 bundleId: "\(organization).\(sanitizedName)",
                 deploymentTargets: .iOS("17.0"),
                 infoPlist: .default,
