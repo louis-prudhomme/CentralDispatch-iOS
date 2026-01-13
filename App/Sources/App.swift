@@ -2,6 +2,7 @@ import Dependencies
 import SharedCommonArchitecture
 import SharedCommonModelContainer
 import SwiftUI
+import SwiftData
 
 #if WINE
 import WineCoordinator
@@ -18,6 +19,8 @@ struct CentralDispatch: App {
             prepareDependencies {
                 $0.modelContainer = modelContainer
             }
+
+            try ModelContainerConfigurator.seedDatabaseIfNeeded(from: modelContainer)
         } catch {
             print("❌ Failed to initialize ModelContainer: \(error)")
             print("Error details: \(String(describing: error))")

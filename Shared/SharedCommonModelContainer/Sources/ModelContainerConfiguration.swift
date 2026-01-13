@@ -1,4 +1,5 @@
 import Dependencies
+import Foundation
 import SwiftData
 import WineEntity
 
@@ -22,6 +23,25 @@ public struct ModelContainerConfigurator: Sendable {
         let schema = Schema(modelTypes)
         let configuration = ModelConfiguration(isStoredInMemoryOnly: inMemory)
         return try ModelContainer(for: schema, configurations: configuration)
+    }
+
+    /// Seeds the database with default wine-producing countries if the database is empty
+    public static func seedDatabaseIfNeeded(from modelContainer: ModelContainer) throws {
+        let context = ModelContext(modelContainer)
+        let countryDescriptor = FetchDescriptor<CountryEntity>()
+        let existingCountries = try context.fetch(countryDescriptor)
+
+        guard existingCountries.isEmpty else { return }
+
+        for defaultCountry in defaultWineProducingCountries {
+            let country = CountryEntity(
+                name: defaultCountry.name,
+                code: defaultCountry.code
+            )
+            context.insert(country)
+        }
+
+        try context.save()
     }
 }
 
