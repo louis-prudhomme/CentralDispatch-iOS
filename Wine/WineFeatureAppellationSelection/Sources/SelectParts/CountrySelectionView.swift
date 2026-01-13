@@ -43,31 +43,42 @@ struct CountrySelectionView: View {
 
 // MARK: - Reusable Components
 
-private struct SelectionListSection<Item: AppellationPart>: View {
+private struct SelectionListSection: View {
     let title: String
-    let items: [Item]
-    let selectedItem: Item?
-    let onSelect: (Item) -> Void
+    let countries: [Country]
+    let selectedCountry: Country?
+    let onSelect: (Country) -> Void
+
+    init(title: String, items countries: [Country], selectedItem selectedCountry: Country?, onSelect: @escaping (Country) -> Void) {
+        self.title = title
+        self.countries = countries
+        self.selectedCountry = selectedCountry
+        self.onSelect = onSelect
+    }
 
     var body: some View {
         Section(title) {
-            ForEach(items) { item in
-                let isSelected = selectedItem?.id == item.id
+            ForEach(countries) { country in
+                let isSelected = selectedCountry?.id == country.id
                 Button {
-                    onSelect(item)
+                    onSelect(country)
                 } label: {
                     HStack {
-                        Text(item.name)
-                            .foregroundStyle(.primary)
+                        Text(country.asEmoji)
+
+                        Text(country.name)
+
                         Spacer()
+
                         if isSelected {
                             Image(systemName: "checkmark")
                                 .foregroundStyle(.tint)
                                 .accessibilityHidden(true)
                         }
                     }
+                    .foregroundStyle(.primary)
                     .accessibilityAddTraits(isSelected ? [.isSelected] : [])
-                    .accessibilityHint("Tap to select \(item.name)")
+                    .accessibilityHint("Tap to select \(country.name)")
                 }
             }
         }
