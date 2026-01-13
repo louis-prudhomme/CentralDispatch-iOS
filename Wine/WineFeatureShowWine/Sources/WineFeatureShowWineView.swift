@@ -45,6 +45,17 @@ public struct WineFeatureShowWineView: View {
                 Row(header: "AbV") {
                     Text("\(bottle.abv, specifier: "%.1f")%")
                 }
+
+                Row(header: "Wine Color", text: bottle.wineColor.rawValue.capitalized)
+
+                Row(header: "Sparkling Level", text: bottle.sparklingLevel.displayName)
+            }
+
+            Section(header: Text("Appellation")) {
+                Row(header: "Appellation", text: bottle.appellation.name)
+                Row(header: "Region", text: bottle.appellation.region.name)
+                Row(header: "Vineyard", text: bottle.appellation.region.vineyard.name)
+                Row(header: "Country", text: bottle.appellation.region.vineyard.country.name)
             }
 
             Section(header: Text("Grape Varieties")) {
