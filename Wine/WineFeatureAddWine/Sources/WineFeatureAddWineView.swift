@@ -1,6 +1,7 @@
 import SharedCommonArchitecture
 import SharedCommonDesignSystem
 import SwiftUI
+import WineFeatureAppellationSelection
 
 public struct WineFeatureAddWineView: View {
     @Bindable var store: StoreOf<WineFeatureAddWine>
