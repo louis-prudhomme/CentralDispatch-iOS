@@ -3,9 +3,21 @@ import WineCommonLocationClientShared
 
 @main
 enum LocationClientGenerator {
-    static let sharedCommonModelContainerPath = "../../Shared/SharedCommonModelContainer/Sources/DefaultWineCountries.generated.swift"
+    static let sharedCommonModelContainerPath = "Shared/SharedCommonModelContainer/Sources/DefaultWineCountries.generated.swift"
 
     static func main() async {
+        let arguments = CommandLine.arguments
+
+        // Try to get workspace path from command line argument first, then environment variable
+        let workspacePath: String
+        if arguments.count > 1 {
+            workspacePath = arguments[1]
+        } else {
+            print("❌ Usage: WineCommonLocationClientGenerator <workspace-path>")
+            print("   Example: WineCommonLocationClientGenerator /Users/username/Documents/CentralDispatch")
+            exit(1)
+        }
+
         print("🚀 Fetching wine-producing countries from GeoNames API...")
 
         let result = await fetchAllCountriesFromAPI(countryBias: Array(wineProducerCountryCodes))
@@ -23,7 +35,9 @@ enum LocationClientGenerator {
 
                 let swiftCode = generateSwiftFile(from: wineCountries)
 
-                let url = URL(fileURLWithPath: sharedCommonModelContainerPath)
+                print("   Workspace path: \(workspacePath)")
+                let url = URL(fileURLWithPath: workspacePath).appendingPathComponent(sharedCommonModelContainerPath)
+                print("   Writing to: \(url.path)")
                 let directory = url.deletingLastPathComponent()
 
                 do {
@@ -79,7 +93,7 @@ enum LocationClientGenerator {
 
         return """
         // This file is auto-generated. Do not edit manually.
-        // Run `cd Wine/WineCommonLocationClient && tuist run WineCommonLocationClientGenerator` to regenerate
+        // Run `cd Wine/WineCommonLocationClient && tuist run WineCommonLocationClientGenerator <workspace-path>` to regenerate
         // Generated on: \(timestamp)
 
         import Foundation
@@ -104,7 +118,7 @@ enum LocationClientGenerator {
     }
 }
 
-prvivate extension Collection {
+private extension Collection {
     func unique<T: Hashable>(by discriminator: @escaping (Element) -> T) -> [Element] {
         var set = Set<T>()
         var arrayOrdered = [Element]()
