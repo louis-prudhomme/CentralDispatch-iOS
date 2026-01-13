@@ -200,7 +200,11 @@ extension WineBottlingLocation.AdministrativeDivision.DivisionType: @retroactive
 
 public extension AppellationEntity {
     func toDomain() throws -> Appellation {
-        try Appellation(
+        guard let region else {
+            throw WineInteractorError.badData
+        }
+
+        return try Appellation(
             id: id,
             name: name,
             region: region.toDomain(),
@@ -222,7 +226,11 @@ public extension Appellation {
 
 public extension RegionEntity {
     func toDomain() throws -> Region {
-        try Region(
+        guard let vineyard else {
+            throw WineInteractorError.badData
+        }
+
+        return try Region(
             id: id,
             name: name,
             vineyard: vineyard.toDomain(),
@@ -244,7 +252,11 @@ public extension Region {
 
 public extension VineyardEntity {
     func toDomain() throws -> Vineyard {
-        Vineyard(
+        guard let country else {
+            throw WineInteractorError.badData
+        }
+
+        return Vineyard(
             id: id,
             name: name,
             country: country.toDomain(),

@@ -10,7 +10,7 @@ public final class RegionEntity: IdentifiableEntity {
     @Attribute public var name: String
     @Attribute public var createdAt: Date
 
-    @Relationship(deleteRule: .nullify) public var vineyard: VineyardEntity
+    @Relationship(deleteRule: .nullify) public var vineyard: VineyardEntity?
     @Relationship(deleteRule: .cascade, inverse: \AppellationEntity.region) public var appellations: [AppellationEntity]?
 
     public init(id: UUID, name: String, vineyard: VineyardEntity, createdAt: Date) {
