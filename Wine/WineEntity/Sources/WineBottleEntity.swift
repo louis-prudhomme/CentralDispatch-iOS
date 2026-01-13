@@ -11,6 +11,8 @@ public final class WineBottleEntity: IdentifiableEntity {
     @Attribute public var millesime: Int
     @Attribute public var abv: Double
     @Attribute public var picture: Data
+    @Attribute public var wineColor: String
+    @Attribute public var sparklingLevel: Int
 
     @Attribute public var createdAt: Date
 
@@ -19,7 +21,20 @@ public final class WineBottleEntity: IdentifiableEntity {
     @Relationship(deleteRule: .nullify) public var bottlingLocation: WineBottlingLocationEntity
     @Relationship(deleteRule: .nullify) public var appellation: AppellationEntity
 
-    public init(id: UUID, name: String, millesime: Int, abv: Double, picture: Data, bottlingLocation: WineBottlingLocationEntity, grapeVarieties: [GrapeVarietyEntity], createdAt: Date, winemaker: WinemakerEntity?, appellation: AppellationEntity) {
+    public init(
+        id: UUID,
+        name: String,
+        millesime: Int,
+        abv: Double,
+        picture: Data,
+        bottlingLocation: WineBottlingLocationEntity,
+        grapeVarieties: [GrapeVarietyEntity],
+        createdAt: Date,
+        winemaker: WinemakerEntity?,
+        appellation: AppellationEntity,
+        wineColor: String,
+        sparklingLevel: Int
+    ) {
         self.id = id
         self.name = name
         self.millesime = millesime
@@ -30,6 +45,8 @@ public final class WineBottleEntity: IdentifiableEntity {
         self.winemaker = winemaker
         self.grapeVarieties = grapeVarieties
         self.appellation = appellation
+        self.wineColor = wineColor
+        self.sparklingLevel = sparklingLevel
     }
 
     public static func idPredicate(for id: UUID) -> Predicate<WineBottleEntity> {
@@ -49,5 +66,7 @@ public extension WineBottleEntity {
         winemaker = entity.winemaker
         grapeVarieties = entity.grapeVarieties
         appellation = entity.appellation
+        wineColor = entity.wineColor
+        sparklingLevel = entity.sparklingLevel
     }
 }

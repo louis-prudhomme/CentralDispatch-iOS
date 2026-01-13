@@ -1,5 +1,6 @@
 import SharedCommonArchitecture
 import SharedCommonDesignSystem
+import WineDomain
 import SwiftUI
 import WineFeatureAppellationSelection
 
@@ -47,6 +48,18 @@ public struct WineFeatureAddWineView: View {
                 appellationSelectionButton
 
                 grapeVarietiesSelectionButton
+
+                Picker("Wine Color", selection: $store.partialWine.wineColor) {
+                    ForEach(WineColor.allCases, id: \.self) { color in
+                        Text(color.rawValue.capitalized).tag(color)
+                    }
+                }
+
+                Picker("Sparkling Level", selection: $store.partialWine.sparklingLevel) {
+                    ForEach(SparklingLevel.allCases, id: \.self) { level in
+                        Text(level.displayName).tag(level)
+                    }
+                }
             }
         }
         .toolbar {

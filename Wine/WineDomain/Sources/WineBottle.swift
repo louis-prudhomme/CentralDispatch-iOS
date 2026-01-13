@@ -13,8 +13,23 @@ public struct WineBottle: Interactable {
     public let winemaker: Winemaker? // TODO: a wine can probably have several winemakers
     public let grapeVarieties: [GrapeVariety]
     public let appellation: Appellation
+    public let wineColor: WineColor
+    public let sparklingLevel: SparklingLevel
 
-    public init(id: UUID, name: String, millesime: Int, abv: Double, picture: Data, bottlingLocation: WineBottlingLocation, grapeVarieties: [GrapeVariety], winemaker: Winemaker?, appellation: Appellation, createdAt: Date) {
+    public init(
+        id: UUID,
+        name: String,
+        millesime: Int,
+        abv: Double,
+        picture: Data,
+        bottlingLocation: WineBottlingLocation,
+        grapeVarieties: [GrapeVariety],
+        winemaker: Winemaker?,
+        appellation: Appellation,
+        wineColor: WineColor,
+        sparklingLevel: SparklingLevel,
+        createdAt: Date
+    ) {
         self.id = id
         self.name = name
         self.millesime = millesime
@@ -24,12 +39,14 @@ public struct WineBottle: Interactable {
         self.winemaker = winemaker
         self.grapeVarieties = grapeVarieties
         self.appellation = appellation
+        self.wineColor = wineColor
+        self.sparklingLevel = sparklingLevel
         self.createdAt = createdAt
     }
 }
 
 public extension WineBottle {
-    init(name: String, millesime: Int, abv: Double, picture: Data, bottlingLocation: WineBottlingLocation, grapeVarieties: [GrapeVariety], winemaker: Winemaker?, appellation: Appellation) {
+    init(name: String, millesime: Int, abv: Double, picture: Data, bottlingLocation: WineBottlingLocation, grapeVarieties: [GrapeVariety], winemaker: Winemaker?, appellation: Appellation, wineColor: WineColor, sparklingLevel: SparklingLevel) {
         @Dependency(\.uuid) var uuid
         @Dependency(\.date) var date
 
@@ -43,6 +60,8 @@ public extension WineBottle {
             grapeVarieties: grapeVarieties,
             winemaker: winemaker,
             appellation: appellation,
+            wineColor: wineColor,
+            sparklingLevel: sparklingLevel,
             createdAt: date()
         )
     }

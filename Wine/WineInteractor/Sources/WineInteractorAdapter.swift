@@ -11,8 +11,14 @@ public extension WineBottleEntity {
         guard let decodedLocation = try? bottlingLocation.toDomain() else {
             throw WineInteractorError.badData
         }
+        guard let wineColor = WineColor(rawValue: wineColor) else {
+            throw WineInteractorError.badData
+        }
+        guard let sparklingLevel = SparklingLevel(rawValue: sparklingLevel) else {
+            throw WineInteractorError.badData
+        }
 
-        return WineBottle(
+        return try WineBottle(
             id: id,
             name: name,
             millesime: millesime,
@@ -21,7 +27,9 @@ public extension WineBottleEntity {
             bottlingLocation: decodedLocation,
             grapeVarieties: grapeVarieties.map { $0.toDomain() },
             winemaker: winemaker?.toDomain(),
-            appellation: try appellation.toDomain(),
+            appellation: appellation.toDomain(),
+            wineColor: wineColor,
+            sparklingLevel: sparklingLevel,
             createdAt: createdAt
         )
     }
@@ -74,7 +82,7 @@ public extension WineBottle {
             throw WineInteractorError.badData
         }
 
-        return WineBottleEntity(
+        return try WineBottleEntity(
             id: id,
             name: name,
             millesime: millesime,
@@ -84,7 +92,9 @@ public extension WineBottle {
             grapeVarieties: grapeVarieties.map { $0.toEntity() },
             createdAt: createdAt,
             winemaker: winemaker?.toEntity(),
-            appellation: try appellation.toEntity()
+            appellation: appellation.toEntity(),
+            wineColor: wineColor.rawValue,
+            sparklingLevel: sparklingLevel.rawValue
         )
     }
 }

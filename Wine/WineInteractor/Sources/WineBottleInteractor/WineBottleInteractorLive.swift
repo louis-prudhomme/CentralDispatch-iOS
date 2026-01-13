@@ -72,7 +72,9 @@ extension WineInteractor {
                 bottlingLocation: bottlingLocation,
                 grapeVarieties: partialWine.grapeVarieties,
                 winemaker: partialWine.winemaker,
-                appellation: appellation
+                appellation: appellation,
+                wineColor: partialWine.wineColor,
+                sparklingLevel: partialWine.sparklingLevel
             )
             return await sharedUpsert(wineBottle: completeDomain)
         },
