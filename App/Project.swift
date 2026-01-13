@@ -9,6 +9,7 @@ let project = Project.multiTargetApp(
             compilerFlag: "WINE",
             infoPlistExtensions: [
                 "CFBundleDisplayName": "Cellar Door",
+                "NSCameraUsageDescription": "This app requires access to your camera to take photos of your wine bottles.",
                 "NSPhotoLibraryUsageDescription": "This app requires access to your photo library to select and upload images of your wine bottles."
             ],
             dependencies: [
