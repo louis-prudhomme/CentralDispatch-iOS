@@ -1,17 +1,38 @@
 import ProjectDescription
 import ProjectDescriptionHelpers
 
-let project = Project.project(
+let targets: [Target] = [
+    .target(
+        name: "WineCommonLocationClient",
+        destinations: .iOS,
+        product: .framework,
+        bundleId: "fr.prudhomme.louis.WineCommonLocationClient",
+        deploymentTargets: .iOS("17.0"),
+        infoPlist: .default,
+        sources: ["Sources/**"],
+        dependencies: [
+            .module(at: "Shared/SharedCommonDependencies"),
+            .target(name: "WineCommonLocationClientShared"),
+            .external(name: "URLQueryItemCoder")
+        ]
+    ),
+    .target(
+        name: "WineCommonLocationClientShared",
+        destinations: .iOS.union(Set<Destination>.macOS),
+        product: .framework,
+        bundleId: "fr.prudhomme.louis.WineCommonLocationClientShared",
+        deploymentTargets: .multiplatform(iOS: "17.0", macOS: "14.0"),
+        infoPlist: .default,
+        sources: ["Shared/**"],
+        dependencies: [
+            .external(name: "URLQueryItemCoder")
+        ]
+    )
+]
+
+let project = Project(
     name: "WineCommonLocationClient",
-    hasResources: false,
-    dependencies: [
-        .module(at: "Shared/SharedCommonDependencies"),
-        .external(name: "URLQueryItemCoder")
-        // .project(
-        //     target: "SharedCommonUtilities",
-        //     path: .relativeToRoot("Shared/SharedCommonUtilities")
-        // ),
-    ]
+    targets: targets
 )
 
 /*

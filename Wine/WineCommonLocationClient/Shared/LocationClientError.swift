@@ -1,7 +1,6 @@
 import Foundation
-import SharedCommonDependencies
 
-public enum LocationClientError: ClientError {
+public enum LocationClientError: Error, Equatable, Sendable {
     case authorizationException
     case invalidParameter
     case noResultsFound

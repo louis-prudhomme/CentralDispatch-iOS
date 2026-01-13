@@ -29,30 +29,7 @@ extension LocationClient {
                 return .success(countries)
             }
 
-            let queryParams = GeoNamesQueryParameters(
-                placename: "",
-                maxRows: 300,
-                countryBias: [],
-                languageCode: "en",
-                responseStyle: .short,
-                featureClass: [.A],
-                featureCode: []
-            )
-
-            let result = await performGeoNamesRequest(
-                queryParameters: queryParams
-            ) { data in
-                let result = try JSONDecoder().decode(GeoNamesSearchDTO.self, from: data)
-                if let status = result.status {
-                    throw LocationClientError(from: status)
-                }
-
-                guard let geonames = result.geonames else {
-                    throw LocationClientError.noData
-                }
-
-                return geonames.map(LocationCountry.init(from:))
-            }
+            let result = await fetchAllCountriesFromAPI()
 
             if case let .success(countries) = result {
                 await MainActor.run { _countries = countries }
@@ -60,53 +37,4 @@ extension LocationClient {
             return result
         }
     )
-}
-
-// MARK: - API Configuration
-
-private let geoNamesBaseURL = "https://secure.geonames.org/searchJSON"
-private let username = "LouisPH2" // TODO: extract to config
-
-// MARK: - Network Helper
-
-private func performGeoNamesRequest<T>(
-    queryParameters: GeoNamesQueryParameters,
-    decoder: @escaping (Data) throws -> T
-) async -> Result<T, LocationClientError> {
-    guard var urlComponents = URLComponents(string: geoNamesBaseURL) else {
-        return .failure(.invalidURL)
-    }
-
-    let encoder = URLQueryItemEncoder(unkeyedContainerStrategy: .repeated)
-    guard var queryItems = try? encoder.encode(queryParameters) else {
-        return .failure(.encodingError)
-    }
-
-    queryItems.append(URLQueryItem(name: "username", value: username))
-
-    urlComponents.queryItems = queryItems
-
-    guard let url = urlComponents.url else {
-        return .failure(.invalidURL)
-    }
-
-    @Dependency(\.urlSession) var urlSession
-    do {
-        let (data, response) = try await urlSession.data(from: url)
-
-        guard let httpResponse = response as? HTTPURLResponse else {
-            return .failure(.networkError)
-        }
-        guard 200 ... 299 ~= httpResponse.statusCode else {
-            return .failure(.networkError)
-        }
-
-        let result = try decoder(data)
-        return .success(result)
-
-    } catch is DecodingError {
-        return .failure(.decodingError)
-    } catch {
-        return .failure(.networkError)
-    }
 }

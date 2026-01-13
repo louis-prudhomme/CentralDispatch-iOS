@@ -247,7 +247,8 @@ public extension Project {
 
 public extension TargetDependency {
     static func module(
-        at path: String
+        at path: String,
+        condition: ProjectDescription.PlatformCondition? = nil
     ) -> TargetDependency {
         guard let name = path.components(separatedBy: "/").last else {
             fatalError("Invalid module path: \(path)")
@@ -255,7 +256,8 @@ public extension TargetDependency {
 
         return .project(
             target: name,
-            path: .relativeToRoot("\(path)")
+            path: .relativeToRoot("\(path)"),
+            condition: condition
         )
     }
 }

@@ -1,21 +1,13 @@
 import Foundation
 import SharedCommonDependencies
 
-// MARK: - Domain Models
+// MARK: Error
+
+public extension LocationClientError: ClientError {}
 
 // MARK: Country
 
-public struct LocationCountry: Identifiable, ClientSuccess {
-    public let id: Int
-    public let name: String
-    public let code: String
-    public let coordinates: GeographicalCoordinates
-
-    public struct GeographicalCoordinates: ClientSuccess {
-        public let latitude: Double
-        public let longitude: Double
-    }
-}
+public extension LocationCountry: ClientSuccess {}
 
 public extension LocationCountry {
     var asEmoji: String {
