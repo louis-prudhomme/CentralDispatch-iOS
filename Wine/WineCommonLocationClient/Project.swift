@@ -27,6 +27,18 @@ let targets: [Target] = [
         dependencies: [
             .external(name: "URLQueryItemCoder")
         ]
+    ),
+    .target(
+        name: "WineCommonLocationClientGenerator",
+        destinations: .macOS,
+        product: .commandLineTool,
+        bundleId: "com.example.WineCommonLocationClientGenerator",
+        infoPlist: .default,
+        sources: ["Generator/**"],
+
+        dependencies: [
+            .target(name: "WineCommonLocationClientShared")
+        ]
     )
 ]
 
