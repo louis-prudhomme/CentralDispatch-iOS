@@ -1,7 +1,7 @@
 import SharedCommonArchitecture
 import SharedCommonDesignSystem
-import WineDomain
 import SwiftUI
+import WineDomain
 import WineFeatureAppellationSelection
 
 public struct WineFeatureAddWineView: View {

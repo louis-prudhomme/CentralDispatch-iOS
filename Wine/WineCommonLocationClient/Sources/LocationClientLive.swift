@@ -44,7 +44,7 @@ let _fetchAllCountries: @Sendable () async -> Result<[LocationCountry], Location
 }
 
 extension LocationClient {
-    static let live:LocationClient = LocationClient(
+    static let live = LocationClient(
         search: _search,
         fetchAllCountries: _fetchAllCountries
     )

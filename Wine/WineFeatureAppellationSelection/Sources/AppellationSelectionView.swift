@@ -63,7 +63,7 @@ private struct AppellationView: View {
             VStack(alignment: .leading, spacing: 4) {
                 Text(appellation.name)
                     .font(.headline)
-                
+
                 Text("\(appellation.region.vineyard.country.asEmoji) \(appellation.region.vineyard.name), \(appellation.region.name)")
                     .font(.caption)
                     .foregroundStyle(.secondary)

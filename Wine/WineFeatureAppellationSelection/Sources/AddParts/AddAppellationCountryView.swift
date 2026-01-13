@@ -1,7 +1,7 @@
 import SharedCommonArchitecture
 import SharedCommonDesignSystem
-import WineCommonLocationClient
 import SwiftUI
+import WineCommonLocationClient
 
 struct AddAppellationCountryView: View {
     @Bindable var store: StoreOf<AddAppellationCountry>

@@ -9,9 +9,9 @@ public enum WineColor: String, Sendable, Codable, CaseIterable {
 public extension WineColor {
     var emoji: String {
         switch self {
-        case .white: return "💛"
-        case .red: return "❤️"
-        case .rosé: return "🩷"
+            case .white: return "💛"
+            case .red: return "❤️"
+            case .rosé: return "🩷"
         }
     }
 }

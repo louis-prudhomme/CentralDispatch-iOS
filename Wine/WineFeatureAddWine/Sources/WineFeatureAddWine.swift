@@ -2,8 +2,8 @@ import Foundation
 import SharedCommonArchitecture
 import SharedCommonDependencies
 import SharedCommonPictureClient
-import WineFeatureAppellationSelection
 import WineDomain
+import WineFeatureAppellationSelection
 import WineInteractor
 
 @Reducer

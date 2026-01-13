@@ -1,8 +1,8 @@
 import Dependencies
 import SharedCommonArchitecture
 import SharedCommonModelContainer
-import SwiftUI
 import SwiftData
+import SwiftUI
 
 #if WINE
 import WineCoordinator

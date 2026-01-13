@@ -9,7 +9,7 @@ import Foundation
 public struct DefaultWineCountry: Sendable {
     public let name: String
     public let code: String
-    
+
     public init(name: String, code: String) {
         self.name = name
         self.code = code

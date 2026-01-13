@@ -35,12 +35,14 @@ struct MultipleChoiceSelectionView<Choice: Choosable, IError: ClientError>: View
     var submitButtonLabel: String {
         switch store.selectedChoices.count {
             case 0: "0 selected"
+
             case 1:
                 if case let .some(choice) = store.selectedChoices.first {
                     "Select \(choice)"
                 } else {
                     "Select 1"
                 }
+
             default: "Select all \(store.selectedChoices.count)"
         }
     }
@@ -53,19 +55,18 @@ struct MultipleChoiceSelectionView<Choice: Choosable, IError: ClientError>: View
         .buttonStyle(.borderedProminent)
     }
 
-    @ToolbarContentBuilder
-    var toolBarContent: some ToolbarContent {
-            ToolbarItem(placement: .primaryAction) {
-                Button("Add a \(store.title)", systemImage: "plus") {
-                    store.send(.addChoiceButtonTapped)
-                }
+    @ToolbarContentBuilder var toolBarContent: some ToolbarContent {
+        ToolbarItem(placement: .primaryAction) {
+            Button("Add a \(store.title)", systemImage: "plus") {
+                store.send(.addChoiceButtonTapped)
             }
+        }
 
-            if store.isMultiSelect {
-                ToolbarItem(placement: .bottomBar) {
-                    submitButton
-                }
+        if store.isMultiSelect {
+            ToolbarItem(placement: .bottomBar) {
+                submitButton
             }
+        }
     }
 
     var emptyCta: some View {
