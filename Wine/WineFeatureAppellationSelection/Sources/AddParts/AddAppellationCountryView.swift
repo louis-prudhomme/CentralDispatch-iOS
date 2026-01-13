@@ -1,7 +1,7 @@
 import SharedCommonArchitecture
 import SharedCommonDesignSystem
-import SwiftUI
 import WineCommonLocationClient
+import SwiftUI
 
 struct AddAppellationCountryView: View {
     @Bindable var store: StoreOf<AddAppellationCountry>
@@ -73,6 +73,8 @@ private struct CountryView: View {
         .contentShape(Rectangle())
     }
 }
+
+// MARK: - Previews
 
 #if DEBUG
 import Dependencies

@@ -2,6 +2,7 @@ import Foundation
 import SharedCommonArchitecture
 import SharedCommonDependencies
 import SharedCommonPictureClient
+import WineFeatureAppellationSelection
 import WineDomain
 import WineInteractor
 
@@ -201,10 +202,3 @@ public struct WineFeatureAddWine {
 extension Winemaker: Choosable {}
 extension GrapeVariety: Choosable {}
 extension WineFeatureAddWine.Destination.State: Equatable {}
-
-// MARK: AppellationPart Conformances
-
-extension Country: AppellationPart {}
-extension Vineyard: AppellationPart {}
-extension Region: AppellationPart {}
-extension Appellation: AppellationPart {}

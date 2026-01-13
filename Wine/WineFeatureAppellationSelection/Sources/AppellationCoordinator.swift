@@ -220,3 +220,8 @@ public struct AppellationCoordinator {
 // MARK: - Conformances
 
 extension AppellationCoordinator.Destination.State: Equatable {}
+
+extension Country: AppellationPart {}
+extension Vineyard: AppellationPart {}
+extension Region: AppellationPart {}
+extension Appellation: AppellationPart {}
