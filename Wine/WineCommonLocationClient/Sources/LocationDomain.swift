@@ -1,13 +1,37 @@
 import Foundation
 import SharedCommonDependencies
-
-// MARK: Error
-
-public extension LocationClientError: ClientError {}
+import WineCommonLocationClientShared
 
 // MARK: Country
 
-public extension LocationCountry: ClientSuccess {}
+public struct LocationCountry: ClientSuccess, Identifiable {
+    public let id: Int
+    public let name: String
+    public let code: String
+    public let coordinates: GeographicalCoordinates
+
+    public struct GeographicalCoordinates: ClientSuccess {
+        public let latitude: Double
+        public let longitude: Double
+    }
+
+    init(id: Int, name: String, code: String, coordinates: GeographicalCoordinates) {
+        self.id = id
+        self.name = name
+        self.code = code
+        self.coordinates = coordinates
+    }
+
+    init(from dto: LocationCountryDto) {
+        id = dto.id
+        name = dto.name
+        code = dto.code
+        coordinates = GeographicalCoordinates(
+            latitude: dto.coordinates.latitude,
+            longitude: dto.coordinates.longitude
+        )
+    }
+}
 
 public extension LocationCountry {
     var asEmoji: String {
@@ -130,17 +154,5 @@ public extension Location {
 
         population = dto.population
         elevation = dto.elevation
-    }
-}
-
-public extension LocationCountry {
-    init(from dto: GeoNameDTO) {
-        id = dto.geonameId
-        name = dto.name
-        code = dto.countryCode ?? ""
-        coordinates = GeographicalCoordinates(
-            latitude: Double(dto.lat) ?? 0.0,
-            longitude: Double(dto.lng) ?? 0.0
-        )
     }
 }

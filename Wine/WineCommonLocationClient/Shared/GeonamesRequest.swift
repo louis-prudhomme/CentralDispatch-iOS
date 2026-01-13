@@ -8,10 +8,10 @@ private let username = "LouisPH2" // TODO: extract to config
 
 // MARK: - Network Helper
 
-internal func performGeoNamesRequest<T>(
+public func performGeoNamesRequest<T>(
     queryParameters: GeoNamesQueryParameters,
     decoder: @escaping (Data) throws -> T
-) async -> Result<T, LocationClientError> {
+) async -> Result<T, LocationClientErrorDto> {
     guard var urlComponents = URLComponents(string: geoNamesBaseURL) else {
         return .failure(.invalidURL)
     }

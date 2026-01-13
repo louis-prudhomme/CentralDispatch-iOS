@@ -1,5 +1,6 @@
 import Foundation
 import SharedCommonDependencies
+import WineCommonLocationClientShared
 
 extension LocationClient {
     static let mock = LocationClient(

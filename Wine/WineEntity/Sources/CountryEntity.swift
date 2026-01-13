@@ -33,3 +33,12 @@ public extension CountryEntity {
         createdAt = entity.createdAt
     }
 }
+
+// MARK: Seed extension
+
+extension CountryEntity {
+    public convenience init(name: String, code: String) {
+        // swiftlint:disable:next use_dependency_for_uuid use_dependency_for_date
+        self.init(id: UUID(), name: name, code: code, createdAt: Date())
+    }
+}

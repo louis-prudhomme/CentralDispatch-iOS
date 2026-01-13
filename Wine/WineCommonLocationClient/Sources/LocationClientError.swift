@@ -1,6 +1,8 @@
 import Foundation
+import SharedCommonDependencies
+import WineCommonLocationClientShared
 
-public enum LocationClientError: Error, Equatable, Sendable {
+public enum LocationClientError: ClientError {
     case authorizationException
     case invalidParameter
     case noResultsFound
@@ -22,8 +24,29 @@ public enum LocationClientError: Error, Equatable, Sendable {
         self = .other(reason: error.localizedDescription)
     }
 
-    init(from status: GeoNamesStatusDto) {
+    public init(with status: GeoNamesStatusDto) {
         self = Self.from(status: status)
+    }
+
+    public init(from other: LocationClientErrorDto) {
+        switch other {
+            case .authorizationException: self = .authorizationException
+            case .invalidParameter: self = .invalidParameter
+            case .noResultsFound: self = .noResultsFound
+            case .dailyCreditLimitExceeded: self = .dailyCreditLimitExceeded
+            case .hourlyCreditLimitExceeded: self = .hourlyCreditLimitExceeded
+            case .weeklyCreditLimitExceeded: self = .weeklyCreditLimitExceeded
+            case .invalidInput: self = .invalidInput
+            case .serverOverload: self = .serverOverload
+            case .serviceNotImplemented: self = .serviceNotImplemented
+            case .networkError: self = .networkError
+            case .encodingError: self = .encodingError
+            case .decodingError: self = .decodingError
+            case .noData: self = .noData
+            case .invalidURL: self = .invalidURL
+            case let .unknown(message): self = .unknown(message: message)
+            case let .other(reason): self = .other(reason: reason)
+        }
     }
 
     public var errorDescription: String? {

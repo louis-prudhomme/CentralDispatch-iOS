@@ -92,22 +92,22 @@ public struct Timezone: Codable {
 
 // MARK: - Search Result
 
-struct GeoNamesSearchDTO: Codable {
-    let geonames: [GeoNameDTO]?
-    let status: GeoNamesStatusDto?
-    let totalResultsCount: Int?
+public struct GeoNamesSearchDTO: Codable {
+    public let geonames: [GeoNameDTO]?
+    public let status: GeoNamesStatusDto?
+    public let totalResultsCount: Int?
 }
 
-struct GeoNamesStatusDto: Codable {
-    let message: String
-    let value: Int
+public struct GeoNamesStatusDto: Codable {
+    public let message: String
+    public let value: Int
 }
 
 // MARK: - Query Parameters
 
 public struct GeoNamesQueryParameters: Codable {
     // one of `query` / `placename` is required, but placename is better suited for our use case
-    let placename: String
+    public let placename: String
     let maxRows: Int
     let countryBias: [String]
     let languageCode: String // 2-letter ISO code
@@ -150,7 +150,7 @@ public extension GeoNamesQueryParameters {
     }
 }
 
-extension GeoNamesQueryParameters {
+public extension GeoNamesQueryParameters {
     static func defaultWith(name: String, maxRows: Int = 20, languageCode: String = "en") -> GeoNamesQueryParameters {
         return GeoNamesQueryParameters(
             placename: name,

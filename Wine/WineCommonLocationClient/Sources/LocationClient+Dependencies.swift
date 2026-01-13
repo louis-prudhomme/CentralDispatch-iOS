@@ -1,5 +1,6 @@
 import Foundation
 import SharedCommonDependencies
+import WineCommonLocationClientShared
 
 public struct LocationClient: Sendable {
     public var search: @Sendable (String) async -> Result<[Location], LocationClientError>

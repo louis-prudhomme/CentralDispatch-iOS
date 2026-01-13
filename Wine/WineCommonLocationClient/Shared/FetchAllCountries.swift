@@ -1,6 +1,6 @@
 import Foundation
 
-public func fetchAllCountriesFromAPI(countryBias: [String] = []) async -> Result<[LocationCountry], LocationClientError> {
+public func fetchAllCountriesFromAPI(countryBias: [String] = []) async -> Result<[LocationCountryDto], LocationClientErrorDto> {
     let queryParams = GeoNamesQueryParameters(
         placename: "",
         maxRows: 300,
@@ -16,13 +16,13 @@ public func fetchAllCountriesFromAPI(countryBias: [String] = []) async -> Result
     ) { data in
         let result = try JSONDecoder().decode(GeoNamesSearchDTO.self, from: data)
         if let status = result.status {
-            throw LocationClientError(from: status)
+            throw LocationClientErrorDto(with: status)
         }
 
         guard let geonames = result.geonames else {
-            throw LocationClientError.noData
+            throw LocationClientErrorDto.noData
         }
 
-        return geonames.compactMap(LocationCountry.init(from:))
+        return geonames.compactMap(LocationCountryDto.init(from:))
     }
 }
