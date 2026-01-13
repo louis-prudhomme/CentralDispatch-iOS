@@ -46,7 +46,12 @@ public struct WineFeatureShowWineView: View {
                     Text("\(bottle.abv, specifier: "%.1f")%")
                 }
 
-                Row(header: "Wine Color", text: bottle.wineColor.rawValue.capitalized)
+                Row(header: "Wine Color") {
+                    HStack(spacing: 4) {
+                        Text(bottle.wineColor.rawValue.capitalized)
+                        Text(bottle.wineColor.emoji)
+                    }
+                }
 
                 Row(header: "Sparkling Level", text: bottle.sparklingLevel.displayName)
             }
@@ -77,7 +82,7 @@ public struct WineFeatureShowWineView: View {
                         .multilineTextAlignment(.trailing)
                 }
 
-                Button("Show on Map") {
+                Button("Show on Map", systemImage: "mappin.and.ellipse") {
                     store.send(.showMapButtonTapped)
                 }
             }
