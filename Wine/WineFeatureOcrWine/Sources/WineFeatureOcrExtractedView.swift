@@ -11,9 +11,10 @@ public struct WineFeatureOcrExtractedView: View {
 
     public var body: some View {
         NavigationStack {
-            extractionResultView(store.extractedData)
+            extractionResultView
                 .navigationTitle("Extracted Data")
                 .navigationBarTitleDisplayMode(.inline)
+                .alert($store.scope(state: \.alert, action: \.alert))
                 .toolbar {
                     ToolbarItem(placement: .cancellationAction) {
                         Button("Cancel") {
@@ -24,100 +25,101 @@ public struct WineFeatureOcrExtractedView: View {
         }
     }
 
-    @ViewBuilder
-    private func extractionResultView(_ extractedData: WineExtractedData) -> some View {
-        ScrollView {
-            VStack(spacing: 20) {
-                capturedImageView
-                extractedDataSummary(extractedData)
-                actionButtons
-            }
-            .padding()
+    @ViewBuilder private var extractionResultView: some View {
+        List {
+            capturedImageView
+
+            likelyCorrectInformation
+
+            editableInformation
+
         }
+        .toolbar { actionButtons }
     }
 
     @ViewBuilder private var capturedImageView: some View {
-        if let image = Image(data: store.capturedImage, label: "Captured wine bottle image") {
-            image
-                .resizable()
-                .scaledToFit()
-                .frame(maxHeight: 200)
-                .clipShape(RoundedRectangle(cornerRadius: 12))
-        } else {
-            Image(systemName: "photo.badge.exclamationmark")
-                .font(.system(size: 80))
-                .foregroundStyle(.secondary)
-                .frame(height: 120)
-                .accessibilityHidden(true)
+        Section {
+            if let image = Image(data: store.capturedImage, label: "Captured wine bottle image") {
+                image
+                    .resizable()
+                    .scaledToFit()
+                    .frame(maxHeight: 200)
+                    .clipShape(RoundedRectangle(cornerRadius: 12))
+            } else {
+                Image(systemName: "photo.badge.exclamationmark")
+                    .font(.system(size: 80))
+                    .foregroundStyle(.secondary)
+                    .frame(height: 120)
+                    .accessibilityHidden(true)
+            }
         }
     }
 
-    @ViewBuilder private var actionButtons: some View {
-        VStack(spacing: 12) {
-            CellarButton("Continue", systemImage: "arrow.right") {
-                store.send(.confirmExtractionButtonTapped)
-            }
-            .buttonStyle(.borderedProminent)
-            .controlSize(.large)
-
-            Button { store.send(.delegate(.retakeButtonTapped)) } label: {
-                Label("Retake Photo", systemImage: "arrow.counterclockwise")
-            }
-            .buttonStyle(.bordered)
-            .controlSize(.large)
-        }
-    }
-
-    @ViewBuilder
-    private func extractedDataSummary(_ extractedData: WineExtractedData) -> some View {
-        VStack(alignment: .leading, spacing: 16) {
-            Text("Extracted Information")
-                .font(.headline)
-
+    @ViewBuilder private var likelyCorrectInformation: some View {
+        Section("Likely correct information") {
             extractedDataRow(
                 label: "Vintage Year",
-                value: extractedData.millesime.map { String($0) },
+                value: store.millesime.map { String($0) },
                 icon: "calendar"
             )
 
             extractedDataRow(
                 label: "Alcohol (AbV)",
-                value: extractedData.abv.map { String(format: "%.1f%%", $0) },
+                value: store.abv.map { String(format: "%.1f%%", $0) },
                 icon: "drop.fill"
             )
-
-            if let suggestedName = extractedData.suggestedName {
-                extractedDataRow(
-                    label: "Possible Name",
-                    value: suggestedName,
-                    icon: "textformat"
-                )
-            }
-
-            extractedTextDisclosure(extractedData.extractedStrings)
         }
-        .padding()
-        .background(Color(.secondarySystemBackground))
-        .clipShape(RoundedRectangle(cornerRadius: 12))
     }
 
-    @ViewBuilder
-    private func extractedTextDisclosure(_ strings: [String]) -> some View {
-        if !strings.isEmpty {
-            Divider()
+    @ViewBuilder private var editableInformation: some View {
+        Section("Editable information") {
+            ForEach(Array(store.extractedData.enumerated()), id: \.offset) { index, _ in
+                VStack {
+                    HStack(alignment: .center, spacing: 8) {
+                        Text("Extracted text")
 
-            DisclosureGroup {
-                VStack(alignment: .leading, spacing: 4) {
-                    ForEach(strings, id: \.self) { text in
-                        Text("• \(text)")
+                        TextField("Extracted text", text: $store.extractedData[index])
+                            .textFieldStyle(.roundedBorder)
                             .font(.caption)
-                            .foregroundStyle(.secondary)
-                            .frame(maxWidth: .infinity, alignment: .leading)
+                    }
+
+                    HStack(alignment: .center, spacing: 8) {
+                        Text(emoji(for: store.extractedStringTypes[index]))
+                            .font(.title3)
+                            .frame(width: 32, alignment: .center)
+
+                        Picker("Type", selection: $store.extractedStringTypes[index]) {
+                            ForEach(ExtractedStringType.allCases) { type in
+                                Text(type.rawValue).tag(type)
+                            }
+                        }
+                        .pickerStyle(.menu)
                     }
                 }
-            } label: {
-                Label("All Extracted Text", systemImage: "doc.text")
-                    .font(.subheadline)
+            }
+        }
+    }
+
+    private func emoji(for type: ExtractedStringType) -> String {
+        switch type {
+            case .grapeVariety: return "🍇"
+            case .appellation: return "📍"
+            case .winemaker: return "👨‍🌾"
+            case .name: return "🏷️"
+            case .notKept: return "✖️"
+        }
+    }
+
+    @ToolbarContentBuilder private var actionButtons: some ToolbarContent {
+        ToolbarItemGroup(placement: .bottomBar) {
+            CellarButton("Continue", systemImage: "arrow.right") {
+                store.send(.confirmExtractionButtonTapped)
+            }
+            .buttonStyle(.borderedProminent)
+            .controlSize(.large)
+            
+            Button { store.send(.delegate(.retakeButtonTapped)) } label: {
+                Label("Retake Photo", systemImage: "arrow.counterclockwise")
             }
         }
     }

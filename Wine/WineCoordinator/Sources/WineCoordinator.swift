@@ -69,13 +69,8 @@ public struct WineCoordinator {
                     return .none
 
                 case let .destination(.element(id: _, action: .ocrWine(.delegate(.extractedDataConfirmed(extractedData))))):
-                    state.destination.append(.addWine(WineFeatureAddWine.State(
-                        name: extractedData.suggestedName ?? "",
-                        millesime: extractedData.millesime,
-                        abv: extractedData.abv,
-                        picture: extractedData.pictureData,
-                        extractedStrings: extractedData.extractedStrings
-                    )))
+                    let suggested = SuggestedData(from: extractedData)
+                    state.destination.append(.addWine(WineFeatureAddWine.State(suggested: suggested)))
                     return .none
 
                 default:
@@ -86,5 +81,25 @@ public struct WineCoordinator {
     }
 }
 
-/// Necessary to make StackState work
+// MARK: Conformances
+
 extension WineCoordinator.Destination.State: Equatable {}
+
+// MARK: - Helpers
+
+extension SuggestedData {
+    init(from confirmed: WineConfirmedExtractedData) {
+        self.init(
+            millesime: confirmed.millesime,
+            abv: confirmed.abv,
+            appellationName: confirmed.appellationName,
+            grapeVarietyNames: confirmed.grapeVarietyNames,
+            winemakerName: confirmed.winemakerName,
+            appellation: confirmed.appellation,
+            grapeVarieties: confirmed.grapeVarieties,
+            winemaker: confirmed.winemaker,
+            name: confirmed.name,
+            picture: confirmed.picture
+        )
+    }
+}

@@ -17,12 +17,4 @@ public struct OcrExtractedData: Equatable, Sendable {
         self.extractedStrings = extractedStrings
         self.pictureData = pictureData
     }
-
-    public var suggestedName: String? {
-        extractedStrings
-            .first { string in
-                !string.allSatisfy { $0.isNumber || $0 == "." || $0 == "%" }
-                    && string.count > 2
-            }
-    }
 }

@@ -30,7 +30,7 @@ public struct WineFeatureOcrWine {
 
         /// Handled by the Coordinator
         public enum Delegate: Equatable {
-            case extractedDataConfirmed(WineExtractedData)
+            case extractedDataConfirmed(WineConfirmedExtractedData)
         }
     }
 
@@ -142,8 +142,7 @@ private extension OcrExtractedData {
         WineExtractedData(
             millesime: millesime,
             abv: abv,
-            extractedStrings: extractedStrings,
-            pictureData: nil
+            extractedStrings: extractedStrings
         )
     }
 }
