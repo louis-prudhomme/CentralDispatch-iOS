@@ -6,9 +6,6 @@ extension PictureClient {
     static let mock = PictureClient(
         selectPicture: { _ in
             fatalError("PictureClient.selectPicture")
-        },
-        compressPicture: { _, _ in
-            fatalError("PictureClient.compressPicture")
         }
     )
 }
@@ -31,24 +28,12 @@ public extension PictureClient {
             }
 
             return .success(data)
-        },
-        compressPicture: { data, quality in
-            guard let image = UIImage(data: data),
-                  let compressedData = image.jpegData(compressionQuality: quality)
-            else {
-                return .failure(.compressionFailed)
-            }
-
-            return .success(compressedData)
         }
     )
 
     static let mockWithError = PictureClient(
         selectPicture: { _ in
             return .failure(.cancelled)
-        },
-        compressPicture: { _, _ in
-            return .failure(.compressionFailed)
         }
     )
 }

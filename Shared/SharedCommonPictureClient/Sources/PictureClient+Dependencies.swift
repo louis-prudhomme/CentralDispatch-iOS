@@ -8,14 +8,11 @@ public enum PictureSource: Sendable {
 
 public struct PictureClient: Sendable {
     public var selectPicture: @Sendable (PictureSource) async -> Result<Data, PictureClientError>
-    public var compressPicture: @Sendable (Data, Double) async -> Result<Data, PictureClientError>
 
     public init(
-        selectPicture: @escaping @Sendable (PictureSource) async -> Result<Data, PictureClientError>,
-        compressPicture: @escaping @Sendable (Data, Double) async -> Result<Data, PictureClientError>
+        selectPicture: @escaping @Sendable (PictureSource) async -> Result<Data, PictureClientError>
     ) {
         self.selectPicture = selectPicture
-        self.compressPicture = compressPicture
     }
 }
 

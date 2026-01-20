@@ -31,7 +31,7 @@ extension PictureClient {
                         rootViewController.present(picker, animated: true)
                     } else {
                         var configuration = PHPickerConfiguration()
-                        configuration.selectionLimit = 1
+                        configuration.selectionLimit = 3
                         configuration.filter = .images
 
                         let picker = PHPickerViewController(configuration: configuration)
@@ -41,15 +41,6 @@ extension PictureClient {
                     }
                 }
             }
-        },
-        compressPicture: { data, quality in
-            guard let image = UIImage(data: data),
-                  let compressedData = image.jpegData(compressionQuality: quality)
-            else {
-                return .failure(.compressionFailed)
-            }
-
-            return .success(compressedData)
         }
     )
 }
