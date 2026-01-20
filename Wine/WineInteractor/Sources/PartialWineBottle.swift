@@ -9,7 +9,7 @@ public struct PartialWineBottle: Equatable, Sendable {
     public var grapeVarieties: [GrapeVariety]
     public var appellation: Appellation?
     public var bottlingLocation: WineBottlingLocation?
-    public var picture: Data?
+    public var picture: [Data]
     public var wineColor: WineColor
     public var sparklingLevel: SparklingLevel
 
@@ -21,7 +21,7 @@ public struct PartialWineBottle: Equatable, Sendable {
         grapeVarieties: [GrapeVariety] = [],
         appellation: Appellation? = nil,
         bottlingLocation: WineBottlingLocation? = nil,
-        picture: Data? = nil,
+        picture: [Data] = [],
         wineColor: WineColor = .red,
         sparklingLevel: SparklingLevel = .tranquille
     ) {

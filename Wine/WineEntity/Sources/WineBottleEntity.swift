@@ -10,7 +10,7 @@ public final class WineBottleEntity: IdentifiableEntity {
     @Attribute public var name: String
     @Attribute public var millesime: Int
     @Attribute public var abv: Double
-    @Attribute public var picture: Data
+    @Attribute public var pictures: [Data]
     @Attribute public var wineColor: String
     @Attribute public var sparklingLevel: Int
 
@@ -26,7 +26,7 @@ public final class WineBottleEntity: IdentifiableEntity {
         name: String,
         millesime: Int,
         abv: Double,
-        picture: Data,
+        pictures: [Data],
         bottlingLocation: WineBottlingLocationEntity,
         grapeVarieties: [GrapeVarietyEntity],
         createdAt: Date,
@@ -39,7 +39,7 @@ public final class WineBottleEntity: IdentifiableEntity {
         self.name = name
         self.millesime = millesime
         self.abv = abv
-        self.picture = picture
+        self.pictures = pictures
         self.bottlingLocation = bottlingLocation
         self.createdAt = createdAt
         self.winemaker = winemaker
@@ -60,7 +60,7 @@ public extension WineBottleEntity {
         name = entity.name
         millesime = entity.millesime
         abv = entity.abv
-        picture = entity.picture
+        pictures = entity.pictures
         bottlingLocation = entity.bottlingLocation
         createdAt = entity.createdAt
         winemaker = entity.winemaker

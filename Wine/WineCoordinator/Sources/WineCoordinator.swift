@@ -99,7 +99,7 @@ extension SuggestedData {
             grapeVarieties: confirmed.grapeVarieties,
             winemaker: confirmed.winemaker,
             name: confirmed.name,
-            picture: confirmed.picture
+            pictures: confirmed.pictures
         )
     }
 }

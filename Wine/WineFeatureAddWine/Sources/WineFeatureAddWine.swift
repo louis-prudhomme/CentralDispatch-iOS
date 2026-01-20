@@ -30,7 +30,7 @@ public struct WineFeatureAddWine {
                 name: "",
                 millesime: suggested.millesime ?? currentYear,
                 abv: suggested.abv ?? 12.5,
-                picture: suggested.picture
+                picture: suggested.pictures
             )
             self.suggested = suggested
         }

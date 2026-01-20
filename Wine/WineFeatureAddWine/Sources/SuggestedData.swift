@@ -11,9 +11,9 @@ public struct SuggestedData: Equatable {
     public var grapeVarieties: [GrapeVariety]
     public var winemaker: Winemaker?
     public var name: String?
-    public var picture: Data?
+    public var pictures: [Data]?
 
-    public init(millesime: Int?, abv: Double?, appellationName: String?, grapeVarietyNames: [String], winemakerName: String?, appellation: Appellation?, grapeVarieties: [GrapeVariety], winemaker: Winemaker?, name: String?, picture: Data?) {
+    public init(millesime: Int?, abv: Double?, appellationName: String?, grapeVarietyNames: [String], winemakerName: String?, appellation: Appellation?, grapeVarieties: [GrapeVariety], winemaker: Winemaker?, name: String?, pictures: [Data]?) {
         self.millesime = millesime
         self.abv = abv
         self.appellationName = appellationName
@@ -23,6 +23,6 @@ public struct SuggestedData: Equatable {
         self.grapeVarieties = grapeVarieties
         self.winemaker = winemaker
         self.name = name
-        self.picture = picture
+        self.pictures = pictures
     }
 }

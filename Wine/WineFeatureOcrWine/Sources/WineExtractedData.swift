@@ -31,7 +31,7 @@ public struct WineConfirmedExtractedData: Equatable, Sendable {
     public var grapeVarieties: [GrapeVariety]
     public var winemaker: Winemaker?
     public var name: String?
-    public var picture: Data?
+    public var pictures: [Data]
 
     public init(
         millesime: Int? = nil,
@@ -43,7 +43,7 @@ public struct WineConfirmedExtractedData: Equatable, Sendable {
         grapeVarieties: [GrapeVariety] = [],
         winemaker: Winemaker? = nil,
         name: String? = nil,
-        picture: Data? = nil
+        pictures: [Data] = []
     ) {
         self.millesime = millesime
         self.abv = abv
@@ -54,6 +54,6 @@ public struct WineConfirmedExtractedData: Equatable, Sendable {
         self.grapeVarieties = grapeVarieties
         self.winemaker = winemaker
         self.name = name
-        self.picture = picture
+        self.pictures = pictures
     }
 }

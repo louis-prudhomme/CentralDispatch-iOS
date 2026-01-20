@@ -123,7 +123,7 @@ public struct WineFeatureOcrExtracted {
                     return .send(.delegate(.extractedDataConfirmed(extractedData)))
 
                 case let .extractedDataPrefetchFinished(.failure(error)):
-                let errorMessage = "Une erreur s'est produite, veuillez réessayer."
+                    let errorMessage = "Une erreur s'est produite, veuillez réessayer."
                     state.alert = AlertState {
                         TextState([errorMessage, error.localizedDescription].joined(separator: "\n"))
                     }
@@ -198,7 +198,7 @@ private extension WineConfirmedExtractedData {
             grapeVarieties: prefetchedData.grapeVarieties,
             winemaker: prefetchedData.winemaker,
             name: name,
-            picture: state.capturedImage
+            pictures: [state.capturedImage]
         )
     }
 }

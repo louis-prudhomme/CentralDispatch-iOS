@@ -13,6 +13,10 @@ extension WineInteractor {
             return .failure(WineInteractorError.nameEmpty)
         }
 
+        if let pictures = domain.pictures, pictures.isEmpty {
+            return .failure(WineInteractorError.imageEmpty)
+        }
+
         let currentYear = calendar.component(.year, from: date())
         guard domain.millesime <= currentYear else {
             return .failure(WineInteractorError.millesimeInvalid)
