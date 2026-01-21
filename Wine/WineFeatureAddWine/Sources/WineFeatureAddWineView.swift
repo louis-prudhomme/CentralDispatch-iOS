@@ -170,19 +170,17 @@ public struct WineFeatureAddWineView: View {
 
     @ViewBuilder var pictureSelection: some View {
         VStack(spacing: 12) {
-            if let pictureData = store.partialWine.picture, let image = Image(data: pictureData, label: pictureAccessibilityLabel) {
-                image
-                    .resizable()
-                    .scaledToFit()
-                    .frame(maxHeight: 200)
-                    .clipShape(RoundedRectangle(cornerRadius: 12))
-                    .accessibilityLabel(pictureAccessibilityLabel)
-            } else {
-                Image(systemName: "photo")
-                    .font(.system(size: 60))
-                    .foregroundStyle(.secondary)
-                    .frame(height: 120)
-                    .accessibilityHidden(true)
+            HStack {
+                ForEach(store.partialWine.pictures.indices, id: \.self) { index in
+                    if let image = Image(data: store.partialWine.pictures[index], label: pictureAccessibilityLabel(index: index)) {
+                        image
+                            .resizable()
+                            .scaledToFit()
+                            .frame(maxHeight: 200)
+                            .clipShape(RoundedRectangle(cornerRadius: 12))
+                            .accessibilityLabel(pictureAccessibilityLabel(index: index))
+                    }
+                }
             }
 
             HStack(spacing: 12) {
@@ -202,11 +200,11 @@ public struct WineFeatureAddWineView: View {
         .padding(.vertical, 8)
     }
 
-    private var pictureAccessibilityLabel: String {
+    private func pictureAccessibilityLabel(index: Int) -> String {
         if !store.partialWine.name.isEmpty {
-            "Picture of \(store.partialWine.name)"
+            "Picture \(index + 1) of \(store.partialWine.name)"
         } else {
-            "Picture of the wine bottle"
+            "Picture \(index + 1) of the wine bottle"
         }
     }
 }

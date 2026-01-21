@@ -109,11 +109,6 @@ public struct WineFeatureOcrWine {
                     state.destination = nil
                     return .send(.delegate(.extractedDataConfirmed(extracted)))
 
-                case .destination(.presented(.extracted(.delegate(.retakeButtonTapped)))):
-                    state.destination = nil
-                    state.capturedImage = nil
-                    return .none
-
                 case .destination:
                     return .none
 

@@ -30,7 +30,7 @@ public struct WineFeatureAddWine {
                 name: "",
                 millesime: suggested.millesime ?? currentYear,
                 abv: suggested.abv ?? 12.5,
-                picture: suggested.pictures
+                pictures: suggested.pictures
             )
             self.suggested = suggested
         }
@@ -130,7 +130,7 @@ public struct WineFeatureAddWine {
                     }
 
                 case let .pictureSelected(.success(data)):
-                    state.partialWine.picture = data
+                    state.partialWine.pictures.append(data)
                     return .none
 
                 case .pictureSelected(.failure(.cancelled)):

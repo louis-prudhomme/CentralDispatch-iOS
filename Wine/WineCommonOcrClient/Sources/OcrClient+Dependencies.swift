@@ -3,11 +3,14 @@ import SharedCommonDependencies
 
 public struct OcrClient: Sendable {
     public var performOcr: @Sendable (Data) async -> Result<OcrExtractedData, OcrClientError>
+    public var performMultipleOcr: @Sendable ([Data]) async -> Result<OcrExtractedData, OcrClientError>
 
     public init(
-        performOcr: @escaping @Sendable (Data) async -> Result<OcrExtractedData, OcrClientError>
+        performOcr: @escaping @Sendable (Data) async -> Result<OcrExtractedData, OcrClientError>,
+        performMultipleOcr: @escaping @Sendable ([Data]) async -> Result<OcrExtractedData, OcrClientError>
     ) {
         self.performOcr = performOcr
+        self.performMultipleOcr = performMultipleOcr
     }
 }
 

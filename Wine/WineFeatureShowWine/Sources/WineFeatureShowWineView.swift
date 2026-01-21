@@ -17,21 +17,24 @@ public struct WineFeatureShowWineView: View {
     public var body: some View {
         Form {
             Section {
-                if let image = Image(data: bottle.picture, label: "Photo of \(bottle.name)") {
-                    image
-                        .resizable()
-                        .scaledToFit()
-                        .frame(maxHeight: 200)
-                        .clipShape(RoundedRectangle(cornerRadius: 12))
-                        .frame(maxWidth: .infinity)
-                        .accessibilityLabel("Photo of \(bottle.name)")
-                } else {
-                    ContentUnavailableView(
-                        "No photo",
-                        systemImage: "photo",
-                        description: Text("This wine has no photo")
-                    )
-                    .frame(height: 120)
+                HStack {
+                    ForEach(bottle.pictures.indices, id: \.self) { index in
+                        if let image = Image(data: bottle.pictures[index], label: "Photo \(index + 1) of \(bottle.name)") {
+                            image
+                                .resizable()
+                                .scaledToFit()
+                                .frame(maxHeight: 100)
+                                .clipShape(RoundedRectangle(cornerRadius: 12))
+                                .accessibilityLabel("Photo \(index + 1) of \(bottle.name)")
+                        } else {
+                            ContentUnavailableView(
+                                "No photo",
+                                systemImage: "photo",
+                                description: Text("This wine has no photo")
+                            )
+                            .frame(height: 80)
+                        }
+                    }
                 }
             }
 
@@ -150,7 +153,7 @@ private extension WineFeatureShowWineView.Row where Label == Text {
         name: "Château Margaux",
         millesime: 2_015,
         abv: 13.5,
-        picture: Data(),
+        pictures: [Data()],
         bottlingLocation: WineBottlingLocation(id: UUID(),
                                                name: "Moulis-en-Médoc",
                                                coordinates: .init(latitude: 44.8378, longitude: -0.5792),

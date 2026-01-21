@@ -15,13 +15,6 @@ public struct WineFeatureOcrExtractedView: View {
                 .navigationTitle("Extracted Data")
                 .navigationBarTitleDisplayMode(.inline)
                 .alert($store.scope(state: \.alert, action: \.alert))
-                .toolbar {
-                    ToolbarItem(placement: .cancellationAction) {
-                        Button("Cancel") {
-                            store.send(.delegate(.retakeButtonTapped))
-                        }
-                    }
-                }
         }
     }
 
@@ -32,25 +25,42 @@ public struct WineFeatureOcrExtractedView: View {
             likelyCorrectInformation
 
             editableInformation
-
         }
         .toolbar { actionButtons }
     }
 
+    private func pictureAccessibilityLabel(index: Int) -> String {
+        "Picture \(index + 1) of the wine bottle"
+    }
+
     @ViewBuilder private var capturedImageView: some View {
         Section {
-            if let image = Image(data: store.capturedImage, label: "Captured wine bottle image") {
-                image
-                    .resizable()
-                    .scaledToFit()
-                    .frame(maxHeight: 200)
-                    .clipShape(RoundedRectangle(cornerRadius: 12))
-            } else {
-                Image(systemName: "photo.badge.exclamationmark")
-                    .font(.system(size: 80))
-                    .foregroundStyle(.secondary)
-                    .frame(height: 120)
-                    .accessibilityHidden(true)
+            HStack {
+                let picturesArray = Array(store.capturedImages)
+                ForEach(picturesArray.indices, id: \.self) { index in
+                    if let image = Image(data: picturesArray[index], label: pictureAccessibilityLabel(index: index)) {
+                        image
+                            .resizable()
+                            .scaledToFit()
+                            .frame(maxHeight: 200)
+                            .clipShape(RoundedRectangle(cornerRadius: 12))
+                            .accessibilityLabel(pictureAccessibilityLabel(index: index))
+                    }
+                }
+            }
+
+            HStack(spacing: 12) {
+                Button { store.send(.selectPictureFromCameraButtonTapped) } label: {
+                    Label("Camera", systemImage: "camera")
+                        .frame(maxWidth: .infinity)
+                }
+                .buttonStyle(.bordered)
+
+                Button { store.send(.selectPictureFromLibraryButtonTapped) } label: {
+                    Label("Library", systemImage: "photo.on.rectangle")
+                        .frame(maxWidth: .infinity)
+                }
+                .buttonStyle(.bordered)
             }
         }
     }
@@ -117,10 +127,6 @@ public struct WineFeatureOcrExtractedView: View {
             }
             .buttonStyle(.borderedProminent)
             .controlSize(.large)
-            
-            Button { store.send(.delegate(.retakeButtonTapped)) } label: {
-                Label("Retake Photo", systemImage: "arrow.counterclockwise")
-            }
         }
     }
 

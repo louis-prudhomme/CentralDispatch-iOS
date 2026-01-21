@@ -3,6 +3,7 @@ import SharedCommonPictureClient
 import SharedCommonUtilities
 import UIKit
 import Vision
+import WineCommonOcrClient
 import WineInteractor
 
 // TODO: try & parse appellations, winemakers & grape varieties from extracted strings
@@ -15,7 +16,7 @@ import WineInteractor
 public struct WineFeatureOcrExtracted {
     @ObservableState
     public struct State: Equatable {
-        var capturedImage: Data
+        var capturedImages: Set<Data>
         var initialExtractedData: WineExtractedData
         var abv: Double?
         var millesime: Int?
@@ -28,7 +29,7 @@ public struct WineFeatureOcrExtracted {
         @Presents var alert: AlertState<Never>?
 
         public init(capturedImage: Data, extractedData: WineExtractedData) {
-            self.capturedImage = capturedImage
+            self.capturedImages = [capturedImage]
             self.extractedData = extractedData.extractedStrings
             millesime = extractedData.millesime
             abv = extractedData.abv
@@ -39,6 +40,10 @@ public struct WineFeatureOcrExtracted {
 
     public enum Action: BindableAction {
         case confirmExtractionButtonTapped
+        case selectPictureFromLibraryButtonTapped
+        case selectPictureFromCameraButtonTapped
+        case additionalPictureSelected(Result<[Data], PictureClientError>)
+        case additionalOcrPerformed(Result<OcrExtractedData, OcrClientError>)
         case extractedDataPrefetchFinished(Result<PrefetchedData, WineInteractorError>)
 
         case alert(PresentationAction<Never>)
@@ -48,13 +53,15 @@ public struct WineFeatureOcrExtracted {
         /// Handled by the Coordinator
         public enum Delegate: Equatable {
             case extractedDataConfirmed(WineConfirmedExtractedData)
-            case retakeButtonTapped
         }
     }
 
     @Dependency(\.appellationInteractor.search) var searchAppellation
     @Dependency(\.grapeVarietyInteractor.search) var searchGrapeVariety
     @Dependency(\.winemakerInteractor.search) var searchWinemaker
+
+    @Dependency(\.pictureClient.selectMultiplePictures) var selectMultiplePictures
+    @Dependency(\.ocrClient.performMultipleOcr) var performMultipleOcr
 
     public init() {}
 
@@ -116,6 +123,46 @@ public struct WineFeatureOcrExtracted {
                             await send(.extractedDataPrefetchFinished(.success(prefetchedData)))
                         }
                     }
+
+                case .selectPictureFromLibraryButtonTapped:
+                    return .run { [selectMultiplePictures] send in
+                        let result = await selectMultiplePictures(.photoLibrary)
+                        await send(.additionalPictureSelected(result))
+                    }
+
+                case .selectPictureFromCameraButtonTapped:
+                    return .run { [selectMultiplePictures] send in
+                        let result = await selectMultiplePictures(.camera)
+                        await send(.additionalPictureSelected(result))
+                    }
+
+                case let .additionalPictureSelected(.success(imageDatas)):
+                    state.isLoading = true
+                    imageDatas.forEach { state.capturedImages.insert($0) }
+                    return .run { [performMultipleOcr] send in
+                        let result = await performMultipleOcr(imageDatas)
+                        await send(.additionalOcrPerformed(result))
+                    }
+
+                case let .additionalPictureSelected(.failure(error)):
+                    let errorMessage = "Une erreur s'est produite lors de la sélection de l'image."
+                    state.alert = AlertState {
+                        TextState([errorMessage, error.localizedDescription].joined(separator: "\n"))
+                    }
+                    return .none
+
+                case let .additionalOcrPerformed(.success(ocrData)):
+                    state.isLoading = false
+                    state = state.mergeWith(ocrData)
+                    return .none
+
+                case let .additionalOcrPerformed(.failure(error)):
+                    let errorMessage = "Une erreur s'est produite lors de l'analyse de l'image."
+                    state.alert = AlertState {
+                        TextState([errorMessage, error.localizedDescription].joined(separator: "\n"))
+                    }
+                    state.isLoading = false
+                    return .none
 
                 case let .extractedDataPrefetchFinished(.success(result)):
                     state.isLoading = false
@@ -198,7 +245,36 @@ private extension WineConfirmedExtractedData {
             grapeVarieties: prefetchedData.grapeVarieties,
             winemaker: prefetchedData.winemaker,
             name: name,
-            pictures: [state.capturedImage]
+            pictures: Array(state.capturedImages)
         )
+    }
+}
+
+// MARK: Merge additional data
+
+private extension WineExtractedData {
+    func mergeWith(other: OcrExtractedData) -> WineExtractedData {
+        WineExtractedData(
+            millesime: millesime ?? other.millesime,
+            abv: abv ?? other.abv,
+            extractedStrings: extractedStrings + other.extractedStrings
+        )
+    }
+}
+
+private extension WineFeatureOcrExtracted.State {
+    func mergeWith(_ other: OcrExtractedData) -> Self {
+        var newState = self
+        let mergedData = initialExtractedData.mergeWith(other: other)
+        newState.initialExtractedData = mergedData
+        newState.extractedData = mergedData.extractedStrings
+        if let newMillesime = mergedData.millesime {
+            newState.millesime = newMillesime
+        }
+        if let newAbv = mergedData.abv {
+            newState.abv = newAbv
+        }
+        newState.extractedStringTypes += Array(repeating: .notKept, count: other.extractedStrings.count)
+        return newState
     }
 }

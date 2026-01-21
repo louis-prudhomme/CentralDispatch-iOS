@@ -13,8 +13,8 @@ extension WineInteractor {
             return .failure(WineInteractorError.nameEmpty)
         }
 
-        if let pictures = domain.pictures, pictures.isEmpty {
-            return .failure(WineInteractorError.imageEmpty)
+        guard !domain.pictures.isEmpty else {
+            return .failure(WineInteractorError.pictureMissing)
         }
 
         let currentYear = calendar.component(.year, from: date())
@@ -61,7 +61,7 @@ extension WineInteractor {
             guard let bottlingLocation = partialWine.bottlingLocation else {
                 return .failure(WineInteractorError.bottlingLocationMissing)
             }
-            guard let pictureData = partialWine.picture else {
+            guard !partialWine.pictures.isEmpty else {
                 return .failure(WineInteractorError.pictureMissing)
             }
             guard let appellation = partialWine.appellation else {
@@ -72,7 +72,7 @@ extension WineInteractor {
                 name: partialWine.name,
                 millesime: partialWine.millesime,
                 abv: partialWine.abv,
-                picture: pictureData,
+                pictures: partialWine.pictures,
                 bottlingLocation: bottlingLocation,
                 grapeVarieties: partialWine.grapeVarieties,
                 winemaker: partialWine.winemaker,

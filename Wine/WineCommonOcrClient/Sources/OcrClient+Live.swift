@@ -2,41 +2,78 @@ import Foundation
 import UIKit
 import Vision
 
+private func sharedOcrLogic(on imageData: Data) async -> Result<OcrExtractedData, OcrClientError> {
+    guard let cgImage = createCGImage(from: imageData) else {
+        return .failure(.processingFailed("Could not create image from data"))
+    }
+
+    return await withCheckedContinuation { continuation in
+        let request = VNRecognizeTextRequest { request, error in
+            if let error {
+                continuation.resume(returning: .failure(.processingFailed(error.localizedDescription)))
+                return
+            }
+
+            guard let observations = request.results as? [VNRecognizedTextObservation], !observations.isEmpty else {
+                continuation.resume(returning: .failure(.noTextFound))
+                return
+            }
+
+            let extractedData = processOcrObservations(observations, pictureData: imageData)
+            continuation.resume(returning: .success(extractedData))
+        }
+
+        request.recognitionLevel = .accurate
+        request.recognitionLanguages = ["fr-FR", "en-US"]
+        request.usesLanguageCorrection = true
+
+        let handler = VNImageRequestHandler(cgImage: cgImage, options: [:])
+
+        do {
+            try handler.perform([request])
+        } catch {
+            continuation.resume(returning: .failure(.processingFailed(error.localizedDescription)))
+        }
+    }
+}
+
 public extension OcrClient {
     static let live = OcrClient(
-        performOcr: { imageData in
-            guard let cgImage = createCGImage(from: imageData) else {
-                return .failure(.processingFailed("Could not create image from data"))
-            }
+        performOcr: sharedOcrLogic,
+        performMultipleOcr: { imageDatas in
+            var combinedExtractedStrings = [String]()
+            var millesime: Int?
+            var abv: Double?
 
-            return await withCheckedContinuation { continuation in
-                let request = VNRecognizeTextRequest { request, error in
-                    if let error {
-                        continuation.resume(returning: .failure(.processingFailed(error.localizedDescription)))
-                        return
-                    }
+            for imageData in imageDatas {
+                let result = await sharedOcrLogic(on: imageData)
+                switch result {
+                    case let .success(extractedData):
+                        combinedExtractedStrings.append(contentsOf: extractedData.extractedStrings)
 
-                    guard let observations = request.results as? [VNRecognizedTextObservation], !observations.isEmpty else {
-                        continuation.resume(returning: .failure(.noTextFound))
-                        return
-                    }
+                        // Prefer the first found millesime
+                        if millesime == nil {
+                            millesime = extractedData.millesime
+                        }
 
-                    let extractedData = processOcrObservations(observations, pictureData: imageData)
-                    continuation.resume(returning: .success(extractedData))
-                }
+                        // Prefer the first found AbV
+                        if abv == nil {
+                            abv = extractedData.abv
+                        }
 
-                request.recognitionLevel = .accurate
-                request.recognitionLanguages = ["fr-FR", "en-US"]
-                request.usesLanguageCorrection = true
-
-                let handler = VNImageRequestHandler(cgImage: cgImage, options: [:])
-
-                do {
-                    try handler.perform([request])
-                } catch {
-                    continuation.resume(returning: .failure(.processingFailed(error.localizedDescription)))
+                    case let .failure(error):
+                        return .failure(error)
                 }
             }
+
+            let combinedExtractedData = OcrExtractedData(
+                millesime: millesime,
+                abv: abv,
+                extractedStrings: combinedExtractedStrings,
+                pictureData: imageDatas.first ?? Data()
+            )
+
+            return .success(combinedExtractedData)
         }
     )
 }
