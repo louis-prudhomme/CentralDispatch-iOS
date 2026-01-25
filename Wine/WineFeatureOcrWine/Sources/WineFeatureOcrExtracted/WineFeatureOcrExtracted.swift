@@ -251,7 +251,9 @@ public struct PrefetchedData {
     let bottlingLocation: Location?
 }
 
-// MARK: - Helpers
+// MARK: - Helper
+
+// MARK: Extracted strings accessors
 
 private extension WineFeatureOcrExtracted.State {
     func getStrings(for wantedType: ExtractedStringType) -> [String] {
@@ -288,22 +290,23 @@ private extension WineFeatureOcrExtracted.State {
     }
 }
 
-private extension WineConfirmedExtractedData {
-    init(from state: WineFeatureOcrExtracted.State, and prefetchedData: PrefetchedData) {
-        self.init(
-            millesime: state.initialExtractedData.millesime,
-            abv: state.initialExtractedData.abv,
-            appellationName: state.extractedAppellation,
-            grapeVarietyNames: state.extractedGrapeVarieties,
-            winemakerName: state.extractedWinemaker,
-            bottlingLocationName: state.extractedBottlingLocation,
-            appellation: prefetchedData.appellation,
-            grapeVarieties: prefetchedData.grapeVarieties,
-            winemaker: prefetchedData.winemaker,
-            bottlingLocation: prefetchedData.bottlingLocation,
-            name: state.extractedName,
-            pictures: Array(state.capturedImages)
-        )
+// MARK: Wine color extraction
+
+internal extension WineFeatureOcrExtracted.State {
+    var extractedWineColor: WineColor? {
+        for data in extractedData {
+            let lowercased = data.lowercased()
+
+            if lowercased.contains("red") || lowercased.contains("rouge") {
+                return .red
+            } else if lowercased.contains("white") || lowercased.contains("blanc") {
+                return .white
+            } else if lowercased.contains("rosé") || lowercased.contains("rose") {
+                return .rosé
+            }
+        }
+
+        return nil
     }
 }
 
@@ -333,5 +336,27 @@ private extension WineFeatureOcrExtracted.State {
         }
         newState.extractedStringTypes += Array(repeating: .notKept, count: other.extractedStrings.count)
         return newState
+    }
+}
+
+// MARK: - Adapters
+
+private extension WineConfirmedExtractedData {
+    init(from state: WineFeatureOcrExtracted.State, and prefetchedData: PrefetchedData) {
+        self.init(
+            millesime: state.initialExtractedData.millesime,
+            abv: state.initialExtractedData.abv,
+            appellationName: state.extractedAppellation,
+            grapeVarietyNames: state.extractedGrapeVarieties,
+            winemakerName: state.extractedWinemaker,
+            bottlingLocationName: state.extractedBottlingLocation,
+            appellation: prefetchedData.appellation,
+            grapeVarieties: prefetchedData.grapeVarieties,
+            winemaker: prefetchedData.winemaker,
+            bottlingLocation: prefetchedData.bottlingLocation,
+            name: state.extractedName,
+            color: state.extractedWineColor,
+            pictures: Array(state.capturedImages)
+        )
     }
 }

@@ -102,6 +102,7 @@ extension SuggestedData {
             winemaker: confirmed.winemaker,
             bottlingLocation: confirmed.bottlingLocation,
             name: confirmed.name,
+            color: confirmed.color,
             pictures: confirmed.pictures
         )
     }

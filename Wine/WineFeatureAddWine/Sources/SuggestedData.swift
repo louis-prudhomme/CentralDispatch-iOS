@@ -14,6 +14,7 @@ public struct SuggestedData: Equatable {
     public var winemaker: Winemaker?
     public var bottlingLocation: Location?
     public var name: String?
+    public var color: WineColor?
     public var pictures: [Data]
 
     public init(
@@ -28,6 +29,7 @@ public struct SuggestedData: Equatable {
         winemaker: Winemaker?,
         bottlingLocation: Location?,
         name: String?,
+        color: WineColor?,
         pictures: [Data]
     ) {
         self.millesime = millesime
@@ -41,6 +43,7 @@ public struct SuggestedData: Equatable {
         self.winemaker = winemaker
         self.bottlingLocation = bottlingLocation
         self.name = name
+        self.color = color
         self.pictures = pictures
     }
 }

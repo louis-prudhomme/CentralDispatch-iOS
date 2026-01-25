@@ -34,7 +34,8 @@ public struct WineFeatureAddWine {
                 grapeVarieties: suggested.grapeVarieties,
                 appellation: suggested.appellation,
                 bottlingLocation: suggested.bottlingLocation.map(WineBottlingLocation.init(from:)),
-                pictures: suggested.pictures
+                pictures: suggested.pictures,
+                wineColor: suggested.color ?? .red
             )
             self.suggested = suggested
         }
