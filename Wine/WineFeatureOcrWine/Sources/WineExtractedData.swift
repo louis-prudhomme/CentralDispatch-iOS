@@ -1,4 +1,5 @@
 import Foundation
+import WineCommonLocationClient
 import WineDomain
 
 // MARK: - Raw
@@ -30,6 +31,7 @@ public struct WineConfirmedExtractedData: Equatable, Sendable {
     public var appellation: Appellation?
     public var grapeVarieties: [GrapeVariety]
     public var winemaker: Winemaker?
+    public var bottlingLocation: Location?
     public var name: String?
     public var pictures: [Data]
 
@@ -42,6 +44,7 @@ public struct WineConfirmedExtractedData: Equatable, Sendable {
         appellation: Appellation? = nil,
         grapeVarieties: [GrapeVariety] = [],
         winemaker: Winemaker? = nil,
+        bottlingLocation: Location? = nil,
         name: String? = nil,
         pictures: [Data] = []
     ) {
@@ -53,6 +56,7 @@ public struct WineConfirmedExtractedData: Equatable, Sendable {
         self.appellation = appellation
         self.grapeVarieties = grapeVarieties
         self.winemaker = winemaker
+        self.bottlingLocation = bottlingLocation
         self.name = name
         self.pictures = pictures
     }

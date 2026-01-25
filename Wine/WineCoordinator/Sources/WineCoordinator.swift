@@ -1,4 +1,5 @@
 import SharedCommonArchitecture
+import WineCommonLocationClient
 import WineFeatureAddWine
 import WineFeatureListWine
 import WineFeatureOcrWine
@@ -98,6 +99,7 @@ extension SuggestedData {
             appellation: confirmed.appellation,
             grapeVarieties: confirmed.grapeVarieties,
             winemaker: confirmed.winemaker,
+            bottlingLocation: confirmed.bottlingLocation,
             name: confirmed.name,
             pictures: confirmed.pictures
         )

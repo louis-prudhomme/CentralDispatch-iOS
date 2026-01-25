@@ -111,8 +111,9 @@ public struct WineFeatureOcrExtractedView: View {
     private func emoji(for type: ExtractedStringType) -> String {
         switch type {
             case .grapeVariety: return "🍇"
-            case .appellation: return "📍"
+            case .appellation: return "🌱"
             case .winemaker: return "👨‍🌾"
+            case .bottlingLocation: return "📍"
             case .name: return "🏷️"
             case .notKept: return "✖️"
         }

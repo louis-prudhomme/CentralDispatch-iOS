@@ -1,4 +1,5 @@
 import Foundation
+import WineCommonLocationClient
 import WineDomain
 
 public struct SuggestedData: Equatable {
@@ -10,10 +11,23 @@ public struct SuggestedData: Equatable {
     public var appellation: Appellation?
     public var grapeVarieties: [GrapeVariety]
     public var winemaker: Winemaker?
+    public var bottlingLocation: Location?
     public var name: String?
     public var pictures: [Data]
 
-    public init(millesime: Int?, abv: Double?, appellationName: String?, grapeVarietyNames: [String], winemakerName: String?, appellation: Appellation?, grapeVarieties: [GrapeVariety], winemaker: Winemaker?, name: String?, pictures: [Data]) {
+    public init(
+        millesime: Int?,
+        abv: Double?,
+        appellationName: String?,
+        grapeVarietyNames: [String],
+        winemakerName: String?,
+        appellation: Appellation?,
+        grapeVarieties: [GrapeVariety],
+        winemaker: Winemaker?,
+        bottlingLocation: Location?,
+        name: String?,
+        pictures: [Data]
+    ) {
         self.millesime = millesime
         self.abv = abv
         self.appellationName = appellationName
@@ -22,6 +36,7 @@ public struct SuggestedData: Equatable {
         self.appellation = appellation
         self.grapeVarieties = grapeVarieties
         self.winemaker = winemaker
+        self.bottlingLocation = bottlingLocation
         self.name = name
         self.pictures = pictures
     }

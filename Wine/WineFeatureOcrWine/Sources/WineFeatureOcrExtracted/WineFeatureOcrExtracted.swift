@@ -1,9 +1,11 @@
 import SharedCommonArchitecture
 import SharedCommonPictureClient
 import SharedCommonUtilities
+import SharedCommonDependencies
 import UIKit
 import Vision
 import WineCommonOcrClient
+import WineCommonLocationClient
 import WineInteractor
 
 // TODO: try & parse appellations, winemakers & grape varieties from extracted strings
@@ -29,7 +31,7 @@ public struct WineFeatureOcrExtracted {
         @Presents var alert: AlertState<Never>?
 
         public init(capturedImage: Data, extractedData: WineExtractedData) {
-            self.capturedImages = [capturedImage]
+            capturedImages = [capturedImage]
             self.extractedData = extractedData.extractedStrings
             millesime = extractedData.millesime
             abv = extractedData.abv
@@ -62,6 +64,7 @@ public struct WineFeatureOcrExtracted {
 
     @Dependency(\.pictureClient.selectMultiplePictures) var selectMultiplePictures
     @Dependency(\.ocrClient.performMultipleOcr) var performMultipleOcr
+    @Dependency(\.locationClient.search) var searchLocation
 
     public init() {}
 
@@ -77,14 +80,17 @@ public struct WineFeatureOcrExtracted {
                         extractedAppellation = state.extractedAppellation,
                         extractedGrapeVarieties = state.extractedGrapeVarieties,
                         extractedWinemaker = state.extractedWinemaker,
+                        extractedLocation = state.extractedBottlingLocation,
                         searchAppellation,
                         searchWinemaker,
-                        searchGrapeVariety
+                        searchGrapeVariety,
+                        searchLocation
                     ] send in
                         var searchResults = [Result<Any, WineInteractorError>]()
                         var foundAppellation: Appellation?
                         var foundWinemaker: Winemaker?
                         var foundGrapeVarieties = [GrapeVariety]()
+                        var foundLocation: Location?
 
                         if let extractedAppellation {
                             let result = await searchAppellation(extractedAppellation)
@@ -110,15 +116,26 @@ public struct WineFeatureOcrExtracted {
                             }
                         }
 
-                        let allFailed = !searchResults.isEmpty && searchResults.allSatisfy(\.isFailure)
+                        var locationResult: Result<[Location], LocationClientError>?
+                        if let extractedLocation {
+                            locationResult = await searchLocation(extractedLocation)
+                            if case let .success(locations) = locationResult {
+                                foundLocation = locations.first
+                            }
+                        }
 
-                        if allFailed {
+                        let haveAllWineSearchesFailed = !searchResults.isEmpty && searchResults.allSatisfy(\.isFailure)
+                        let hasLocationSearchFailed = locationResult?.isFailure ?? true
+                        let haveAllFailed = haveAllWineSearchesFailed && hasLocationSearchFailed
+
+                        if haveAllFailed {
                             await send(.extractedDataPrefetchFinished(.failure(.unknown)))
                         } else {
                             let prefetchedData = PrefetchedData(
                                 grapeVarieties: foundGrapeVarieties,
                                 appellation: foundAppellation,
-                                winemaker: foundWinemaker
+                                winemaker: foundWinemaker,
+                                bottlingLocation: foundLocation
                             )
                             await send(.extractedDataPrefetchFinished(.success(prefetchedData)))
                         }
@@ -197,6 +214,7 @@ public enum ExtractedStringType: String, CaseIterable, Equatable, Codable, Ident
     case appellation = "Appellation"
     case winemaker = "Winemaker"
     case name = "Name"
+    case bottlingLocation = "Bottling location"
     case notKept = "Not Kept"
 
     public var id: String { rawValue }
@@ -206,6 +224,7 @@ public struct PrefetchedData {
     let grapeVarieties: [GrapeVariety]
     let appellation: Appellation?
     let winemaker: Winemaker?
+    let bottlingLocation: Location?
 }
 
 // MARK: - Helpers
@@ -229,6 +248,10 @@ private extension WineFeatureOcrExtracted.State {
 
     var extractedAppellation: String? {
         getStrings(for: .appellation).first
+    }
+
+    var extractedBottlingLocation: String? {
+        getStrings(for: .bottlingLocation).first
     }
 }
 
