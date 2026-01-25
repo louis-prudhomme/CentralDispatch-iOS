@@ -125,12 +125,30 @@ public struct WineFeatureOcrExtractedView: View {
         }
     }
 
+    var addAnotherPictureLabel: String {
+        switch store.capturedImages.count {
+            case 0: "Add a picture"
+            case 1: "Add a second picture"
+            default: "Add another picture"
+        }
+    }
+
+    var shouldPutForwardTakingAnotherPicture: Bool {
+        store.capturedImages.count < 2
+    }
+
     @ToolbarContentBuilder private var actionButtons: some ToolbarContent {
         ToolbarItemGroup(placement: .bottomBar) {
-            CellarButton("Continue", systemImage: "arrow.right") {
+            Button(addAnotherPictureLabel, systemImage: "photo.badge.plus") {
+                store.send(.selectPictureFromCameraButtonTapped)
+            }
+            .modulableButtonStyle(isPrimary: shouldPutForwardTakingAnotherPicture)
+            .controlSize(.large)
+
+            CellarButton("Continue", systemImage: "arrow.right", isLoading: store.isLoading, isDisabled: store.isDisabled) {
                 store.send(.confirmExtractionButtonTapped)
             }
-            .buttonStyle(.borderedProminent)
+            .modulableButtonStyle(isPrimary: !shouldPutForwardTakingAnotherPicture)
             .controlSize(.large)
         }
     }
@@ -156,6 +174,16 @@ public struct WineFeatureOcrExtractedView: View {
                     .foregroundStyle(.tertiary)
                     .italic()
             }
+        }
+    }
+}
+
+private extension View {
+    func modulableButtonStyle(isPrimary: Bool) -> some View {
+        `if`(isPrimary) {
+            $0.buttonStyle(.borderedProminent)
+        } `else`: {
+            $0.buttonStyle(.bordered)
         }
     }
 }
