@@ -176,12 +176,11 @@ public struct MultipleChoiceInteractorDelegate<Choice: Choosable, IError: Client
 
 extension MultipleChoiceSelection.Destination.State: Equatable {}
 
-
 // MARK: Helpers
 
 extension MultipleChoiceSelection.State {
     var nextSuggestedForCreation: String? {
         let choiceNames = choices.map(delegate.getDisplayName)
-        return suggested.filter { !choiceNames.contains($0) }.first
+        return suggested.first { !choiceNames.contains($0) }
     }
 }
