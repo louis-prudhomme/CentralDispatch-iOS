@@ -43,11 +43,13 @@ public struct WineFeatureOcrExtractedView: View {
                             .frame(maxHeight: 200)
                             .clipShape(RoundedRectangle(cornerRadius: 12))
                             .accessibilityLabel(pictureAccessibilityLabel(index: index))
-                            .overlay {
-                                Button("Remove picture \(index + 1)", systemImage: "xmark.circle.fill") {
-                                    store.send(.removePictureButtonTapped(index: index))
+                            .overlay(alignment: .topTrailing) {
+                                Button("", systemIm_age: "xmark.circle.fill") {
+                                    store.send(.removePictureButtonTapped(picturesArray[index]))
                                 }
-                                .buttonStyle(.borderless)
+                                .accessibilityLabel("Remove picture \(index + 1)")
+                                .buttonStyle(.plain)
+                                .padding(4)
                             }
                     }
                 }
@@ -81,6 +83,12 @@ public struct WineFeatureOcrExtractedView: View {
                 label: "Alcohol (AbV)",
                 value: store.abv.map { String(format: "%.1f%%", $0) },
                 icon: "drop.fill"
+            )
+
+            extractedDataRow(
+                label: "Color",
+                value: store.extractedWineColor.map(\.rawValue.capitalized),
+                icon: "eye.fill"
             )
         }
     }
@@ -142,14 +150,16 @@ public struct WineFeatureOcrExtractedView: View {
             Button(addAnotherPictureLabel, systemImage: "photo.badge.plus") {
                 store.send(.selectPictureFromCameraButtonTapped)
             }
-            .modulableButtonStyle(isPrimary: shouldPutForwardTakingAnotherPicture)
             .controlSize(.large)
+            .modulableButtonStyle(isPrimary: shouldPutForwardTakingAnotherPicture)
+            .modulableLabelStyle(isPrimary: shouldPutForwardTakingAnotherPicture)
 
             CellarButton("Continue", systemImage: "arrow.right", isLoading: store.isLoading, isDisabled: store.isDisabled) {
                 store.send(.confirmExtractionButtonTapped)
             }
-            .modulableButtonStyle(isPrimary: !shouldPutForwardTakingAnotherPicture)
             .controlSize(.large)
+            .modulableButtonStyle(isPrimary: !shouldPutForwardTakingAnotherPicture)
+            .modulableLabelStyle(isPrimary: !shouldPutForwardTakingAnotherPicture)
         }
     }
 
@@ -184,6 +194,16 @@ private extension View {
             $0.buttonStyle(.borderedProminent)
         } `else`: {
             $0.buttonStyle(.bordered)
+        }
+    }
+}
+
+private extension View {
+    func modulableLabelStyle(isPrimary: Bool) -> some View {
+        `if`(isPrimary) {
+            $0.labelStyle(.titleAndIcon)
+        } `else`: {
+            $0.labelStyle(.iconOnly)
         }
     }
 }
