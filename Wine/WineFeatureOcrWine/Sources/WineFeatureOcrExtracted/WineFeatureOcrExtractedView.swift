@@ -10,12 +10,10 @@ public struct WineFeatureOcrExtractedView: View {
     }
 
     public var body: some View {
-        NavigationStack {
-            extractionResultView
-                .navigationTitle("Extracted Data")
-                .navigationBarTitleDisplayMode(.inline)
-                .alert($store.scope(state: \.alert, action: \.alert))
-        }
+        extractionResultView
+            .navigationTitle("Extracted Data")
+            .navigationBarTitleDisplayMode(.inline)
+            .alert($store.scope(state: \.alert, action: \.alert))
     }
 
     @ViewBuilder private var extractionResultView: some View {
