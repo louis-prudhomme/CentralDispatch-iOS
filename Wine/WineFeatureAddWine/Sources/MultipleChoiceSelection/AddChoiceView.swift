@@ -51,6 +51,7 @@ private enum ExampleEmptyError: ClientError {}
     )
     let state = AddChoice.State(
         title: "Winemaker",
+        suggested: nil,
         delegate: delegate
     )
 

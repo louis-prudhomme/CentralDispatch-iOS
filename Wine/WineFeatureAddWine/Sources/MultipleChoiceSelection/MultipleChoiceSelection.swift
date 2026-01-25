@@ -9,6 +9,7 @@ public struct MultipleChoiceSelection<Choice: Choosable, IError: ClientError> {
         public let delegate: MultipleChoiceInteractorDelegate<Choice, IError>
         public let isMultiSelect: Bool
         public let title: String
+        public let suggested: [String]
 
         @Presents var alert: AlertState<Never>?
         @Presents var destination: Destination.State?
@@ -19,10 +20,18 @@ public struct MultipleChoiceSelection<Choice: Choosable, IError: ClientError> {
         public var isLoading = false
         public var isCreatingChoice = false
 
-        public init(title: String, isMultiSelect: Bool, delegate: MultipleChoiceInteractorDelegate<Choice, IError>) {
+        public init(title: String, isMultiSelect: Bool, suggested: [String], delegate: MultipleChoiceInteractorDelegate<Choice, IError>) {
             self.title = title
             self.isMultiSelect = isMultiSelect
             self.delegate = delegate
+            self.suggested = suggested
+        }
+
+        public init(title: String, isMultiSelect: Bool, suggested: String?, delegate: MultipleChoiceInteractorDelegate<Choice, IError>) {
+            self.title = title
+            self.isMultiSelect = isMultiSelect
+            self.delegate = delegate
+            self.suggested = if let suggested { [suggested] } else { [] }
         }
 
         public static func == (lhs: MultipleChoiceSelection<Choice, IError>.State, rhs: MultipleChoiceSelection<Choice, IError>.State) -> Bool {
@@ -30,6 +39,7 @@ public struct MultipleChoiceSelection<Choice: Choosable, IError: ClientError> {
                 && lhs.searchText == rhs.searchText
                 && lhs.choices == rhs.choices
                 && lhs.isLoading == rhs.isLoading
+                && lhs.suggested == rhs.suggested
         }
     }
 
@@ -102,6 +112,7 @@ public struct MultipleChoiceSelection<Choice: Choosable, IError: ClientError> {
                 case .addChoiceButtonTapped:
                     state.destination = .addChoice(AddChoice<Choice, IError>.State(
                         title: state.title,
+                        suggested: state.nextSuggestedForCreation ?? state.searchText,
                         delegate: state.delegate
                     ))
                     return .none
@@ -164,3 +175,13 @@ public struct MultipleChoiceInteractorDelegate<Choice: Choosable, IError: Client
 // MARK: - Conformances
 
 extension MultipleChoiceSelection.Destination.State: Equatable {}
+
+
+// MARK: Helpers
+
+extension MultipleChoiceSelection.State {
+    var nextSuggestedForCreation: String? {
+        let choiceNames = choices.map(delegate.getDisplayName)
+        return suggested.filter { !choiceNames.contains($0) }.first
+    }
+}

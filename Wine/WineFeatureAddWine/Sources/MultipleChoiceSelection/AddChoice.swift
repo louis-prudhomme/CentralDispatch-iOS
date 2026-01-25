@@ -8,21 +8,25 @@ public struct AddChoice<Choice: Choosable, IError: ClientError> {
     public struct State: Equatable {
         public let delegate: MultipleChoiceInteractorDelegate<Choice, IError>
         public let title: String
+        public let suggested: String?
 
         @Presents var alert: AlertState<Never>?
 
-        public var choiceName = ""
+        public var choiceName: String
         public var isLoading = false
 
-        public init(title: String, delegate: MultipleChoiceInteractorDelegate<Choice, IError>) {
+        public init(title: String, suggested: String?, delegate: MultipleChoiceInteractorDelegate<Choice, IError>) {
             self.title = title
             self.delegate = delegate
+            self.suggested = suggested
+            choiceName = suggested ?? ""
         }
 
         public static func == (lhs: AddChoice<Choice, IError>.State, rhs: AddChoice<Choice, IError>.State) -> Bool {
             lhs.title == rhs.title
                 && lhs.choiceName == rhs.choiceName
                 && lhs.isLoading == rhs.isLoading
+                && lhs.suggested == rhs.suggested
         }
     }
 

@@ -136,6 +136,7 @@ private enum ExampleEmptyError: ClientError {}
     let state = MultipleChoiceSelection.State(
         title: "Winemaker",
         isMultiSelect: false,
+        suggested: nil,
         delegate: delegate
     )
 
