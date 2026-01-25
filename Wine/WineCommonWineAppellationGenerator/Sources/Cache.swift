@@ -14,7 +14,13 @@ struct CacheOptions {
 }
 
 enum Cache {
-    private static let cacheDirectory = ".cache"
+    private static let cacheDirectoryName = ".cellar-door-cache"
+    private static var cacheURL: URL {
+        FileManager.default.urls(for: .downloadsDirectory, in: .userDomainMask)
+            // swiftlint:disable:next force_unwrapping
+            .first!
+            .appendingPathComponent(cacheDirectoryName)
+    }
 
     // MARK: - Command-Line Handling
 
@@ -64,9 +70,6 @@ enum Cache {
     // MARK: - Cache Directory Management
 
     static func getCacheDirectory() throws -> URL {
-        let currentDirectory = FileManager.default.currentDirectoryPath
-        let cacheURL = URL(fileURLWithPath: currentDirectory).appendingPathComponent(cacheDirectory)
-
         if !FileManager.default.fileExists(atPath: cacheURL.path) {
             try FileManager.default.createDirectory(at: cacheURL, withIntermediateDirectories: true)
             tell("Created cache directory at: \(cacheURL.path)", level: .debug)
