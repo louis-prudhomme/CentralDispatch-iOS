@@ -27,9 +27,13 @@ public struct WineFeatureAddWine {
             let currentYear = calendar.component(.year, from: date())
 
             partialWine = PartialWineBottle(
-                name: "",
+                name: suggested.name ?? "",
                 millesime: suggested.millesime ?? currentYear,
                 abv: suggested.abv ?? 12.5,
+                winemaker: suggested.winemaker,
+                grapeVarieties: suggested.grapeVarieties,
+                appellation: suggested.appellation,
+                bottlingLocation: suggested.bottlingLocation.map(WineBottlingLocation.init(from:)),
                 pictures: suggested.pictures
             )
             self.suggested = suggested
@@ -75,7 +79,9 @@ public struct WineFeatureAddWine {
     public var body: some ReducerOf<Self> {
         BindingReducer()
 
-        Reduce { state, action in
+        Reduce {
+            state,
+                action in
             switch action {
                 case .submitButtonTapped:
                     return .run { [create = wineInteractor.create, partialWine = state.partialWine] send in
@@ -92,6 +98,7 @@ public struct WineFeatureAddWine {
                     state.destination = .winemaker(MultipleChoiceSelection<Winemaker, WineInteractorError>.State(
                         title: "Winemaker",
                         isMultiSelect: false,
+                        suggested: state.suggested?.winemakerName,
                         delegate: winemakerInteractorDelegate
                     ))
                     return .none
@@ -105,6 +112,7 @@ public struct WineFeatureAddWine {
                     state.destination = .grapeVarieties(MultipleChoiceSelection<GrapeVariety, WineInteractorError>.State(
                         title: "Grape Varieties",
                         isMultiSelect: true,
+                        suggested: state.suggestedGrapeVarietyNames,
                         delegate: grapeVarietyInteractorDelegate
                     ))
                     return .none
@@ -114,7 +122,10 @@ public struct WineFeatureAddWine {
                     return .none
 
                 case .selectBottlingLocationButtonTapped:
-                    state.destination = .bottlingLocation(BottlingLocationSelection.State(existing: state.partialWine.bottlingLocation?.name))
+                    state.destination = .bottlingLocation(BottlingLocationSelection.State(
+                        existing: state.partialWine.bottlingLocation?.name,
+                        suggested: state.suggested?.bottlingLocationName
+                    ))
                     return .none
 
                 case .selectPictureFromCameraButtonTapped:
@@ -195,3 +206,16 @@ public struct WineFeatureAddWine {
 extension Winemaker: Choosable {}
 extension GrapeVariety: Choosable {}
 extension WineFeatureAddWine.Destination.State: Equatable {}
+
+// MARK: Helpers
+
+extension WineFeatureAddWine.State {
+    var suggestedGrapeVarietyNames: [String] {
+        guard let grapeVarietyNames = suggested?.grapeVarietyNames else {
+            return []
+        }
+
+        let selectedGrapeVarietyNames = Set(partialWine.grapeVarieties.map(\.name))
+        return grapeVarietyNames.filter { !selectedGrapeVarietyNames.contains($0) }
+    }
+}

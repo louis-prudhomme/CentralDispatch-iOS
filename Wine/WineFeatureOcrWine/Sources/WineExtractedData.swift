@@ -10,9 +10,9 @@ public struct WineExtractedData: Equatable, Sendable {
     public var extractedStrings: [String]
 
     public init(
-        millesime: Int? = nil,
-        abv: Double? = nil,
-        extractedStrings: [String] = []
+        millesime: Int?,
+        abv: Double?,
+        extractedStrings: [String]
     ) {
         self.millesime = millesime
         self.abv = abv
@@ -28,6 +28,7 @@ public struct WineConfirmedExtractedData: Equatable, Sendable {
     public var appellationName: String?
     public var grapeVarietyNames: [String]
     public var winemakerName: String?
+    public var bottlingLocationName: String?
     public var appellation: Appellation?
     public var grapeVarieties: [GrapeVariety]
     public var winemaker: Winemaker?
@@ -36,23 +37,25 @@ public struct WineConfirmedExtractedData: Equatable, Sendable {
     public var pictures: [Data]
 
     public init(
-        millesime: Int? = nil,
-        abv: Double? = nil,
-        appellationName: String? = nil,
-        grapeVarietyNames: [String] = [],
-        winemakerName: String? = nil,
-        appellation: Appellation? = nil,
-        grapeVarieties: [GrapeVariety] = [],
-        winemaker: Winemaker? = nil,
-        bottlingLocation: Location? = nil,
-        name: String? = nil,
-        pictures: [Data] = []
+        millesime: Int?,
+        abv: Double?,
+        appellationName: String?,
+        grapeVarietyNames: [String],
+        winemakerName: String?,
+        bottlingLocationName: String?,
+        appellation: Appellation?,
+        grapeVarieties: [GrapeVariety],
+        winemaker: Winemaker?,
+        bottlingLocation: Location?,
+        name: String?,
+        pictures: [Data]
     ) {
         self.millesime = millesime
         self.abv = abv
         self.appellationName = appellationName
         self.grapeVarietyNames = grapeVarietyNames
         self.winemakerName = winemakerName
+        self.bottlingLocationName = bottlingLocationName
         self.appellation = appellation
         self.grapeVarieties = grapeVarieties
         self.winemaker = winemaker

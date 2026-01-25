@@ -16,10 +16,12 @@ public struct BottlingLocationSelection {
 
         @Presents var alert: AlertState<Never>?
 
-        public init(existing: String?) {
+        public init(existing: String?, suggested: String?) {
             self.existing = existing
-            if let existing, !existing.isEmpty {
-                searchText = existing
+
+            let prefetch = existing ?? suggested
+            if let prefetch, !prefetch.isEmpty {
+                searchText = prefetch
             }
         }
     }

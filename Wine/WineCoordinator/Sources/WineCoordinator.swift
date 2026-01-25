@@ -96,6 +96,7 @@ extension SuggestedData {
             appellationName: confirmed.appellationName,
             grapeVarietyNames: confirmed.grapeVarietyNames,
             winemakerName: confirmed.winemakerName,
+            bottlingLocationName: confirmed.bottlingLocationName,
             appellation: confirmed.appellation,
             grapeVarieties: confirmed.grapeVarieties,
             winemaker: confirmed.winemaker,
