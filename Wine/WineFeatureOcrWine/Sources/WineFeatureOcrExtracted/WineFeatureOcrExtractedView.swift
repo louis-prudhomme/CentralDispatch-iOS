@@ -43,6 +43,12 @@ public struct WineFeatureOcrExtractedView: View {
                             .frame(maxHeight: 200)
                             .clipShape(RoundedRectangle(cornerRadius: 12))
                             .accessibilityLabel(pictureAccessibilityLabel(index: index))
+                            .overlay {
+                                Button("Remove picture \(index + 1)", systemImage: "xmark.circle.fill") {
+                                    store.send(.removePictureButtonTapped(index: index))
+                                }
+                                .buttonStyle(.borderless)
+                            }
                     }
                 }
             }

@@ -44,6 +44,7 @@ public struct WineFeatureOcrExtracted {
         case confirmExtractionButtonTapped
         case selectPictureFromLibraryButtonTapped
         case selectPictureFromCameraButtonTapped
+        case removePictureButtonTapped(Data)
         case additionalPictureSelected(Result<[Data], PictureClientError>)
         case additionalOcrPerformed(Result<OcrExtractedData, OcrClientError>)
         case extractedDataPrefetchFinished(Result<PrefetchedData, WineInteractorError>)
@@ -152,6 +153,10 @@ public struct WineFeatureOcrExtracted {
                         let result = await selectMultiplePictures(.camera)
                         await send(.additionalPictureSelected(result))
                     }
+
+                case let .removePictureButtonTapped(imageData):
+                    state.capturedImages.remove(imageData)
+                    return .none
 
                 case let .additionalPictureSelected(.success(imageDatas)):
                     state.isLoading = true
