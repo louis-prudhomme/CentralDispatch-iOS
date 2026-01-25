@@ -1,11 +1,11 @@
 import SharedCommonArchitecture
+import SharedCommonDependencies
 import SharedCommonPictureClient
 import SharedCommonUtilities
-import SharedCommonDependencies
 import UIKit
 import Vision
-import WineCommonOcrClient
 import WineCommonLocationClient
+import WineCommonOcrClient
 import WineInteractor
 
 // TODO: try & parse appellations, winemakers & grape varieties from extracted strings
@@ -27,6 +27,7 @@ public struct WineFeatureOcrExtracted {
         var extractedStringTypes: [ExtractedStringType]
 
         var isLoading = false
+        var isDisabled = false
 
         @Presents var alert: AlertState<Never>?
 
@@ -167,7 +168,7 @@ public struct WineFeatureOcrExtracted {
                     }
 
                 case let .additionalPictureSelected(.failure(error)):
-                    let errorMessage = "Une erreur s'est produite lors de la sélection de l'image."
+                    let errorMessage = "An error occured during image selection. Please try again."
                     state.alert = AlertState {
                         TextState([errorMessage, error.localizedDescription].joined(separator: "\n"))
                     }
@@ -179,7 +180,7 @@ public struct WineFeatureOcrExtracted {
                     return .none
 
                 case let .additionalOcrPerformed(.failure(error)):
-                    let errorMessage = "Une erreur s'est produite lors de l'analyse de l'image."
+                    let errorMessage = "An error occured during image analysis. Please try again."
                     state.alert = AlertState {
                         TextState([errorMessage, error.localizedDescription].joined(separator: "\n"))
                     }
@@ -192,7 +193,7 @@ public struct WineFeatureOcrExtracted {
                     return .send(.delegate(.extractedDataConfirmed(extractedData)))
 
                 case let .extractedDataPrefetchFinished(.failure(error)):
-                    let errorMessage = "Une erreur s'est produite, veuillez réessayer."
+                    let errorMessage = "An error occured. Please try again."
                     state.alert = AlertState {
                         TextState([errorMessage, error.localizedDescription].joined(separator: "\n"))
                     }
@@ -200,6 +201,24 @@ public struct WineFeatureOcrExtracted {
                     return .none
 
                 case .alert:
+                    return .none
+
+                case .binding(\.extractedStringTypes):
+                    let uniqueTags: [ExtractedStringType] = [.appellation, .name, .bottlingLocation, .winemaker]
+                    let uniqueTagsCount = state.extractedStringTypes.reduce(into: [ExtractedStringType: Int]()) { counts, type in
+                        if uniqueTags.contains(type) {
+                            counts[type, default: 0] += 1
+                        }
+                    }
+                    for (type, count) in uniqueTagsCount where count > 1 {
+                        state.alert = AlertState {
+                            TextState("Multiple properties tagged '\(type.rawValue)' were detected. Only one is allowed.")
+                        }
+                        state.isDisabled = true
+                        return .none
+                    }
+
+                    state.isDisabled = false
                     return .none
 
                 case .binding:
@@ -235,11 +254,16 @@ public struct PrefetchedData {
 // MARK: - Helpers
 
 private extension WineFeatureOcrExtracted.State {
-    func getStrings(for type: ExtractedStringType) -> [String] {
+    func getStrings(for wantedType: ExtractedStringType) -> [String] {
         extractedStringTypes
             .enumerated()
             .compactMap { index, type in
-                type == .grapeVariety ? extractedData[index] : nil
+                type == wantedType ? extractedData[index] : nil
+            }
+            .map {
+                $0
+                    .trimmingCharacters(in: .whitespacesAndNewlines)
+                    .capitalized
             }
     }
 
@@ -258,21 +282,26 @@ private extension WineFeatureOcrExtracted.State {
     var extractedBottlingLocation: String? {
         getStrings(for: .bottlingLocation).first
     }
+
+    var extractedName: String? {
+        getStrings(for: .name).first
+    }
 }
 
 private extension WineConfirmedExtractedData {
     init(from state: WineFeatureOcrExtracted.State, and prefetchedData: PrefetchedData) {
-        let name = state.extractedStringTypes
-            .firstIndex { $0 == .name }
-            .map { state.extractedData[$0] }
-
         self.init(
             millesime: state.initialExtractedData.millesime,
             abv: state.initialExtractedData.abv,
+            appellationName: state.extractedAppellation,
+            grapeVarietyNames: state.extractedGrapeVarieties,
+            winemakerName: state.extractedWinemaker,
+            bottlingLocationName: state.extractedBottlingLocation,
             appellation: prefetchedData.appellation,
             grapeVarieties: prefetchedData.grapeVarieties,
             winemaker: prefetchedData.winemaker,
-            name: name,
+            bottlingLocation: prefetchedData.bottlingLocation,
+            name: state.extractedName,
             pictures: Array(state.capturedImages)
         )
     }
