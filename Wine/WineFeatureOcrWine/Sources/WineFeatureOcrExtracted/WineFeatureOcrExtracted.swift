@@ -255,7 +255,7 @@ public struct PrefetchedData {
 
 // MARK: Extracted strings accessors
 
-private extension WineFeatureOcrExtracted.State {
+internal extension WineFeatureOcrExtracted.State {
     func getStrings(for wantedType: ExtractedStringType) -> [String] {
         extractedStringTypes
             .enumerated()

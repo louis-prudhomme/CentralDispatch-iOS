@@ -23,34 +23,24 @@ public struct WineFeatureOcrExtractedView: View {
             likelyCorrectInformation
 
             editableInformation
+
+            taggedDataPresentation
         }
         .toolbar { actionButtons }
     }
 
-    private func pictureAccessibilityLabel(index: Int) -> String {
-        "Picture \(index + 1) of the wine bottle"
-    }
-
     @ViewBuilder private var capturedImageView: some View {
         Section {
-            HStack {
-                let picturesArray = Array(store.capturedImages)
-                ForEach(picturesArray.indices, id: \.self) { index in
-                    if let image = Image(data: picturesArray[index], label: pictureAccessibilityLabel(index: index)) {
-                        image
-                            .resizable()
-                            .scaledToFit()
-                            .frame(maxHeight: 200)
-                            .clipShape(RoundedRectangle(cornerRadius: 12))
-                            .accessibilityLabel(pictureAccessibilityLabel(index: index))
-                            .overlay(alignment: .topTrailing) {
-                                Button("", systemIm_age: "xmark.circle.fill") {
-                                    store.send(.removePictureButtonTapped(picturesArray[index]))
-                                }
-                                .accessibilityLabel("Remove picture \(index + 1)")
-                                .buttonStyle(.plain)
-                                .padding(4)
-                            }
+            if store.capturedImages.isEmpty {
+                ContentUnavailableView("No pictures captured yet.", systemImage: "camera", description: Text("Trying taking some!"))
+            } else {
+                HStack {
+                    let picturesArray = Array(store.capturedImages)
+                    ForEach(picturesArray.indices, id: \.self) { index in
+                        Picture(
+                            data: picturesArray[index],
+                            index: index
+                        ) { store.send(.removePictureButtonTapped(picturesArray[index])) }
                     }
                 }
             }
@@ -73,22 +63,22 @@ public struct WineFeatureOcrExtractedView: View {
 
     @ViewBuilder private var likelyCorrectInformation: some View {
         Section("Likely correct information") {
-            extractedDataRow(
+            ExtractedDataRow(
                 label: "Vintage Year",
                 value: store.millesime.map { String($0) },
-                icon: "calendar"
+                systemName: "calendar"
             )
 
-            extractedDataRow(
+            ExtractedDataRow(
                 label: "Alcohol (AbV)",
                 value: store.abv.map { String(format: "%.1f%%", $0) },
-                icon: "drop.fill"
+                systemName: "drop.fill"
             )
 
-            extractedDataRow(
+            ExtractedDataRow(
                 label: "Color",
                 value: store.extractedWineColor.map(\.rawValue.capitalized),
-                icon: "eye.fill"
+                systemName: "eye.fill"
             )
         }
     }
@@ -118,6 +108,21 @@ public struct WineFeatureOcrExtractedView: View {
                         .pickerStyle(.menu)
                     }
                 }
+            }
+        }
+    }
+
+    @ViewBuilder private var taggedDataPresentation: some View {
+        Section("Tagged Data") {
+            ForEach(ExtractedStringType.allCases.filter { $0 != .notKept }, id: \.self) { type in
+                let taggedStrings = store.state.getStrings(for: type)
+                let isEmpty = taggedStrings.isEmpty
+
+                ExtractedDataRow(
+                    label: type.rawValue,
+                    value: isEmpty ? "Nothing yet" : taggedStrings.joined(separator: "\n"),
+                    icon: emoji(for: type)
+                )
             }
         }
     }
@@ -153,6 +158,7 @@ public struct WineFeatureOcrExtractedView: View {
             .controlSize(.large)
             .modulableButtonStyle(isPrimary: shouldPutForwardTakingAnotherPicture)
             .modulableLabelStyle(isPrimary: shouldPutForwardTakingAnotherPicture)
+            .id("addAnotherPictureButton")
 
             CellarButton("Continue", systemImage: "arrow.right", isLoading: store.isLoading, isDisabled: store.isDisabled) {
                 store.send(.confirmExtractionButtonTapped)
@@ -160,13 +166,59 @@ public struct WineFeatureOcrExtractedView: View {
             .controlSize(.large)
             .modulableButtonStyle(isPrimary: !shouldPutForwardTakingAnotherPicture)
             .modulableLabelStyle(isPrimary: !shouldPutForwardTakingAnotherPicture)
+            .id("continueButton \(store.isDisabled) \(store.isLoading)")
+        }
+    }
+}
+
+// MARK: - Components
+
+private struct Picture: View {
+    let data: Data
+    let index: Int
+    let removeAction: () -> Void
+
+    var body: some View {
+        if let image = Image(data: data, label: pictureAccessibilityLabel(index: index)) {
+            image
+                .resizable()
+                .scaledToFill()
+                .frame(width: 100, height: 175)
+                .clipped()
+                .clipShape(RoundedRectangle(cornerRadius: 12))
+                .accessibilityLabel(pictureAccessibilityLabel(index: index))
+                .overlay(alignment: .topTrailing) {
+                    Button("Remove picture \(index + 1)", systemImage: "xmark.circle.fill", role: .destructive) {
+                        removeAction()
+                    }
+                    .labelStyle(.iconOnly)
+                    .buttonStyle(.borderless)
+                    .padding(4)
+                }
+        } else {
+            RoundedRectangle(cornerRadius: 12)
+                .frame(width: 100, height: 175)
+                .foregroundStyle(Material.regular)
+                .overlay {
+                    Label("Couldn't load picture.", systemImage: "photo.trianglebadge.exclamationmark.fill")
+                        .labelStyle(.iconOnly)
+                }
         }
     }
 
-    @ViewBuilder
-    private func extractedDataRow(label: String, value: String?, icon: String) -> some View {
+    private func pictureAccessibilityLabel(index: Int) -> String {
+        "Picture \(index + 1) of the wine bottle"
+    }
+}
+
+private struct ExtractedDataRow<Label: View>: View {
+    let label: String
+    let value: String?
+    let icon: () -> Label
+
+    var body: some View {
         HStack {
-            Image(systemName: icon)
+            icon()
                 .foregroundStyle(.secondary)
                 .frame(width: 24)
                 .accessibilityHidden(true)
@@ -188,6 +240,26 @@ public struct WineFeatureOcrExtractedView: View {
     }
 }
 
+private extension ExtractedDataRow where Label == Text {
+    init(label: String, value: String?, icon: String) {
+        self.label = label
+        self.value = value
+        self.icon = { Text(icon) }
+    }
+}
+
+private extension ExtractedDataRow where Label == Image {
+    init(label: String, value: String?, systemName: String) {
+        self.label = label
+        self.value = value
+        icon = {
+            Image(systemName: systemName)
+        }
+    }
+}
+
+// MARK: - Helpers
+
 private extension View {
     func modulableButtonStyle(isPrimary: Bool) -> some View {
         `if`(isPrimary) {
@@ -207,6 +279,8 @@ private extension View {
         }
     }
 }
+
+// MARK: - Previews
 
 #Preview {
     NavigationStack {
@@ -228,4 +302,12 @@ private extension View {
             }
         )
     }
+}
+
+#Preview {
+    HStack {
+        Picture(data: Data(), index: 2, removeAction: {})
+    }
+    .frame(maxWidth: .infinity, maxHeight: .infinity)
+    .background(.pink)
 }
