@@ -1,4 +1,4 @@
 [tools]
-swiftformat = "latest"
+"asdf:swiftformat" = "0.59.0"
 swiftlint = "latest"
 tuist = "4.118.1"
