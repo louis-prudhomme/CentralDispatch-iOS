@@ -16,7 +16,7 @@ public struct WineFeatureOcrExtractedView: View {
             .alert($store.scope(state: \.alert, action: \.alert))
     }
 
-    @ViewBuilder private var extractionResultView: some View {
+    private var extractionResultView: some View {
         List {
             capturedImageView
 
@@ -29,7 +29,7 @@ public struct WineFeatureOcrExtractedView: View {
         .toolbar { actionButtons }
     }
 
-    @ViewBuilder private var capturedImageView: some View {
+    private var capturedImageView: some View {
         Section {
             if store.capturedImages.isEmpty {
                 ContentUnavailableView("No pictures captured yet.", systemImage: "camera", description: Text("Trying taking some!"))
@@ -61,7 +61,7 @@ public struct WineFeatureOcrExtractedView: View {
         }
     }
 
-    @ViewBuilder private var likelyCorrectInformation: some View {
+    private var likelyCorrectInformation: some View {
         Section("Likely correct information") {
             ExtractedDataRow(
                 label: "Vintage Year",
@@ -83,7 +83,7 @@ public struct WineFeatureOcrExtractedView: View {
         }
     }
 
-    @ViewBuilder private var editableInformation: some View {
+    private var editableInformation: some View {
         Section("Editable information") {
             ForEach(Array(store.extractedData.enumerated()), id: \.offset) { index, _ in
                 VStack {
@@ -112,7 +112,7 @@ public struct WineFeatureOcrExtractedView: View {
         }
     }
 
-    @ViewBuilder private var taggedDataPresentation: some View {
+    private var taggedDataPresentation: some View {
         Section("Tagged Data") {
             ForEach(ExtractedStringType.allCases.filter { $0 != .notKept }, id: \.self) { type in
                 let taggedStrings = store.state.getStrings(for: type)

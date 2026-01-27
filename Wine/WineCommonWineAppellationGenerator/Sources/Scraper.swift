@@ -5,7 +5,9 @@ enum ScrapperError: Error {
     case noData
     case other(any Error)
 
-    init(from other: any Error) { self = .other(other) }
+    init(from other: any Error) {
+        self = .other(other)
+    }
 }
 
 enum Scraper {

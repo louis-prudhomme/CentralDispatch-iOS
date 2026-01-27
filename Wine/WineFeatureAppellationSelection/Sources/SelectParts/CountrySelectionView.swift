@@ -6,10 +6,6 @@ import WineDomain
 struct CountrySelectionView: View {
     @Bindable var store: StoreOf<CountrySelection>
 
-    init(store: StoreOf<CountrySelection>) {
-        self.store = store
-    }
-
     var body: some View {
         List {
             SelectionListSection(

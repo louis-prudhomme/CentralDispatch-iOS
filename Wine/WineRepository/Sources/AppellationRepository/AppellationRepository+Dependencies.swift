@@ -18,10 +18,21 @@ public struct AppellationRepository: Sendable {
 // MARK: - Convenience Accessors
 
 public extension AppellationRepository {
-    var fetchAll: @MainActor @Sendable () async throws -> [AppellationEntity] { base.fetchAll }
-    var fetch: @MainActor @Sendable (UUID) async throws -> AppellationEntity? { base.fetch }
-    var upsert: @MainActor @Sendable (AppellationEntity) async throws -> AppellationEntity { base.upsert }
-    var delete: @MainActor @Sendable (UUID) async throws -> Void { base.delete }
+    var fetchAll: @MainActor @Sendable () async throws -> [AppellationEntity] {
+        base.fetchAll
+    }
+
+    var fetch: @MainActor @Sendable (UUID) async throws -> AppellationEntity? {
+        base.fetch
+    }
+
+    var upsert: @MainActor @Sendable (AppellationEntity) async throws -> AppellationEntity {
+        base.upsert
+    }
+
+    var delete: @MainActor @Sendable (UUID) async throws -> Void {
+        base.delete
+    }
 }
 
 // MARK: - Dependency Registration

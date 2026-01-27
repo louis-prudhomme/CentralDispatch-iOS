@@ -6,10 +6,6 @@ import WineDomain
 struct AppellationSelectionView: View {
     @Bindable var store: StoreOf<AppellationSelection>
 
-    init(store: StoreOf<AppellationSelection>) {
-        self.store = store
-    }
-
     var body: some View {
         List {
             ForEach(store.suggestedAppellations) { appellation in

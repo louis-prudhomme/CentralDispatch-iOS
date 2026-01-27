@@ -11,10 +11,21 @@ public struct WineRepository: Sendable {
 // MARK: - Convenience Accessors
 
 public extension WineRepository {
-    var fetchAll: @MainActor @Sendable () async throws -> [WineBottleEntity] { base.fetchAll }
-    var fetch: @MainActor @Sendable (UUID) async throws -> WineBottleEntity? { base.fetch }
-    var upsert: @MainActor @Sendable (WineBottleEntity) async throws -> WineBottleEntity { base.upsert }
-    var delete: @MainActor @Sendable (UUID) async throws -> Void { base.delete }
+    var fetchAll: @MainActor @Sendable () async throws -> [WineBottleEntity] {
+        base.fetchAll
+    }
+
+    var fetch: @MainActor @Sendable (UUID) async throws -> WineBottleEntity? {
+        base.fetch
+    }
+
+    var upsert: @MainActor @Sendable (WineBottleEntity) async throws -> WineBottleEntity {
+        base.upsert
+    }
+
+    var delete: @MainActor @Sendable (UUID) async throws -> Void {
+        base.delete
+    }
 }
 
 // MARK: - Dependency Registration

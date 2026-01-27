@@ -6,10 +6,6 @@ import SwiftUI
 struct AddChoiceView<Choice: Choosable, IError: ClientError>: View {
     @Bindable var store: StoreOf<AddChoice<Choice, IError>>
 
-    init(store: StoreOf<AddChoice<Choice, IError>>) {
-        self.store = store
-    }
-
     var body: some View {
         Form {
             HStack(spacing: 16) {

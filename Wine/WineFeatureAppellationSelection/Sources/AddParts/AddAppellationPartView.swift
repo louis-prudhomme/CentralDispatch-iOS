@@ -6,10 +6,6 @@ import SwiftUI
 struct AddAppellationPartView<Part: AppellationPart, IError: ClientError>: View {
     @Bindable var store: StoreOf<AddAppellationPart<Part, IError>>
 
-    init(store: StoreOf<AddAppellationPart<Part, IError>>) {
-        self.store = store
-    }
-
     var body: some View {
         Form {
             if !store.hierarchy.isEmpty {

@@ -1,13 +1,5 @@
-//
-//  WineBottlingLocation+Adapter.swift
-//  WineFeatureAddWine
-//
-//  Created by Louis Prud'homme on 25/01/2026.
-//  Copyright © 2026 fr.prudhomme.louis. All rights reserved.
-//
-
-import WineDomain
 import WineCommonLocationClient
+import WineDomain
 
 extension WineBottlingLocation {
     init(from location: Location) {

@@ -6,10 +6,6 @@ import SwiftUI
 struct MultipleChoiceSelectionView<Choice: Choosable, IError: ClientError>: View {
     @Bindable var store: StoreOf<MultipleChoiceSelection<Choice, IError>>
 
-    init(store: StoreOf<MultipleChoiceSelection<Choice, IError>>) {
-        self.store = store
-    }
-
     var body: some View {
         NavigationStack {
             List {

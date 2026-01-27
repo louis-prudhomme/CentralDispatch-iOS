@@ -7,10 +7,6 @@ import WineCommonLocationClient
 struct BottlingLocationSelectionView: View {
     @Bindable var store: StoreOf<BottlingLocationSelection>
 
-    init(store: StoreOf<BottlingLocationSelection>) {
-        self.store = store
-    }
-
     var body: some View {
         NavigationStack {
             List(store.suggestedLocations, id: \.id) { location in

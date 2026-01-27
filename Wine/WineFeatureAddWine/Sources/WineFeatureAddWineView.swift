@@ -94,7 +94,7 @@ public struct WineFeatureAddWineView: View {
         .navigationTitle("Add a wine")
     }
 
-    @ViewBuilder var yearPicker: some View {
+    var yearPicker: some View {
         Picker("Vintage Year", selection: $store.partialWine.millesime) {
             let currentYear: Int = calendar.component(.year, from: date())
             ForEach(1_930 ... currentYear, id: \.self) { year in
@@ -104,7 +104,7 @@ public struct WineFeatureAddWineView: View {
         .pickerStyle(.automatic)
     }
 
-    @ViewBuilder var winemakerSelectionButton: some View {
+    var winemakerSelectionButton: some View {
         Button {
             store.send(.selectWinemakerButtonTapped)
         } label: {
@@ -120,7 +120,7 @@ public struct WineFeatureAddWineView: View {
         }
     }
 
-    @ViewBuilder var grapeVarietiesSelectionButton: some View {
+    var grapeVarietiesSelectionButton: some View {
         Button {
             store.send(.selectGrapeVarietiesButtonTapped)
         } label: {
@@ -136,7 +136,7 @@ public struct WineFeatureAddWineView: View {
         }
     }
 
-    @ViewBuilder var appellationSelectionButton: some View {
+    var appellationSelectionButton: some View {
         Button {
             store.send(.selectAppellationButtonTapped)
         } label: {
@@ -152,7 +152,7 @@ public struct WineFeatureAddWineView: View {
         }
     }
 
-    @ViewBuilder var bottlingLocationSelectionButton: some View {
+    var bottlingLocationSelectionButton: some View {
         Button {
             store.send(.selectBottlingLocationButtonTapped)
         } label: {
@@ -168,7 +168,7 @@ public struct WineFeatureAddWineView: View {
         }
     }
 
-    @ViewBuilder var pictureSelection: some View {
+    var pictureSelection: some View {
         VStack(spacing: 12) {
             HStack {
                 ForEach(store.partialWine.pictures.indices, id: \.self) { index in

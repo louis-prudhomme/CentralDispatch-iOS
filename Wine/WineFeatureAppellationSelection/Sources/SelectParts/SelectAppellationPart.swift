@@ -112,5 +112,7 @@ public struct Hierarchy: Identifiable, Equatable {
     let label: String
     let value: String
 
-    public var id: String { label }
+    public var id: String {
+        label
+    }
 }

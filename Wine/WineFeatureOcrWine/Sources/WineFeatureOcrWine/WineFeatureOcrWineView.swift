@@ -18,7 +18,7 @@ public struct WineFeatureOcrWineView: View {
             .alert($store.scope(state: \.alert, action: \.alert))
     }
 
-    @ViewBuilder private var captureView: some View {
+    private var captureView: some View {
         VStack(spacing: 24) {
             Spacer()
 

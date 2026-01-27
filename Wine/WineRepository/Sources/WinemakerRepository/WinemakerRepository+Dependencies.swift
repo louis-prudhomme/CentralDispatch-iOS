@@ -12,10 +12,21 @@ public struct WinemakerRepository: Sendable {
 // MARK: - Convenience Accessors
 
 public extension WinemakerRepository {
-    var fetchAll: @MainActor @Sendable () async throws -> [WinemakerEntity] { base.fetchAll }
-    var fetch: @MainActor @Sendable (UUID) async throws -> WinemakerEntity? { base.fetch }
-    var upsert: @MainActor @Sendable (WinemakerEntity) async throws -> WinemakerEntity { base.upsert }
-    var delete: @MainActor @Sendable (UUID) async throws -> Void { base.delete }
+    var fetchAll: @MainActor @Sendable () async throws -> [WinemakerEntity] {
+        base.fetchAll
+    }
+
+    var fetch: @MainActor @Sendable (UUID) async throws -> WinemakerEntity? {
+        base.fetch
+    }
+
+    var upsert: @MainActor @Sendable (WinemakerEntity) async throws -> WinemakerEntity {
+        base.upsert
+    }
+
+    var delete: @MainActor @Sendable (UUID) async throws -> Void {
+        base.delete
+    }
 }
 
 // MARK: - Dependency Registration

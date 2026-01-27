@@ -6,10 +6,6 @@ import WineCommonLocationClient
 struct AddAppellationCountryView: View {
     @Bindable var store: StoreOf<AddAppellationCountry>
 
-    init(store: StoreOf<AddAppellationCountry>) {
-        self.store = store
-    }
-
     var body: some View {
         List {
             ForEach(store.filteredCountries) { country in

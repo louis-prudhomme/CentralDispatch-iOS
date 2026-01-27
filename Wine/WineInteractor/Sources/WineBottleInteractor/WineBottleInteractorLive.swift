@@ -12,7 +12,6 @@ extension WineInteractor {
         guard !domain.name.isEmpty else {
             return .failure(WineInteractorError.nameEmpty)
         }
-
         guard !domain.pictures.isEmpty else {
             return .failure(WineInteractorError.pictureMissing)
         }

@@ -241,7 +241,9 @@ public enum ExtractedStringType: String, CaseIterable, Equatable, Codable, Ident
     case bottlingLocation = "Bottling location"
     case notKept = "Not Kept"
 
-    public var id: String { rawValue }
+    public var id: String {
+        rawValue
+    }
 }
 
 public struct PrefetchedData {
@@ -255,7 +257,7 @@ public struct PrefetchedData {
 
 // MARK: Extracted strings accessors
 
-internal extension WineFeatureOcrExtracted.State {
+extension WineFeatureOcrExtracted.State {
     func getStrings(for wantedType: ExtractedStringType) -> [String] {
         extractedStringTypes
             .enumerated()
@@ -292,7 +294,7 @@ internal extension WineFeatureOcrExtracted.State {
 
 // MARK: Wine color extraction
 
-internal extension WineFeatureOcrExtracted.State {
+extension WineFeatureOcrExtracted.State {
     var extractedWineColor: WineColor? {
         for data in extractedData {
             let lowercased = data.lowercased()

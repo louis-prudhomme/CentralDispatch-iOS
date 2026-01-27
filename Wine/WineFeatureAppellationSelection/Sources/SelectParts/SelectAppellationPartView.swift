@@ -6,10 +6,6 @@ import SwiftUI
 struct SelectAppellationPartView<Part: AppellationPart, IError: ClientError>: View {
     @Bindable var store: StoreOf<SelectAppellationPart<Part, IError>>
 
-    init(store: StoreOf<SelectAppellationPart<Part, IError>>) {
-        self.store = store
-    }
-
     var body: some View {
         List {
             if !store.hierarchy.isEmpty {
