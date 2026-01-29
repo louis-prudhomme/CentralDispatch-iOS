@@ -2,7 +2,11 @@ import Foundation
 
 enum ScrapperError: Error {
     case wrongUrl
-    case noData
+    case emptyData
+    case invalidEncoding
+    case cacheMiss
+    case networkFailure
+    case parsingFailure
     case other(any Error)
 
     init(from other: any Error) {
@@ -26,8 +30,11 @@ enum Scraper {
 
         do {
             let (data, _) = try await URLSession.shared.data(from: url)
+            guard !data.isEmpty else {
+                throw ScrapperError.emptyData
+            }
             guard let html = String(data: data, encoding: .utf8) else {
-                throw ScrapperError.noData
+                throw ScrapperError.invalidEncoding
             }
 
             try Cache.cacheHTML(html, for: cacheKey)
@@ -53,8 +60,11 @@ enum Scraper {
 
         do {
             let (data, _) = try await URLSession.shared.data(from: url)
+            guard !data.isEmpty else {
+                throw ScrapperError.emptyData
+            }
             guard let html = String(data: data, encoding: .utf8) else {
-                throw ScrapperError.noData
+                throw ScrapperError.invalidEncoding
             }
 
             try Cache.cacheHTML(html, for: cacheKey)
@@ -65,7 +75,7 @@ enum Scraper {
         }
     }
 
-    static func scrapeAppellation(name: String, slug: String) async throws -> Appellation {
+    static func scrapeAppellation(name: String, slug: String) async throws -> AlmostAppellation {
         let cacheKey = "appellation_\(slug)"
 
         if let cachedHTML = try Cache.getCachedHTML(for: cacheKey) {
@@ -80,8 +90,11 @@ enum Scraper {
 
         do {
             let (data, _) = try await URLSession.shared.data(from: url)
+            guard !data.isEmpty else {
+                throw ScrapperError.emptyData
+            }
             guard let html = String(data: data, encoding: .utf8) else {
-                throw ScrapperError.noData
+                throw ScrapperError.invalidEncoding
             }
 
             try Cache.cacheHTML(html, for: cacheKey)
@@ -107,8 +120,12 @@ enum Scraper {
 
         do {
             let (data, _) = try await URLSession.shared.data(from: url)
+            guard !data.isEmpty else {
+                throw ScrapperError.emptyData
+            }
+            // FIXME: trying to fetch "cliquez pour aller voir la carte" (wrong tab section)
             guard let html = String(data: data, encoding: .utf8) else {
-                throw ScrapperError.noData
+                throw ScrapperError.invalidEncoding
             }
 
             try Cache.cacheHTML(html, for: cacheKey)

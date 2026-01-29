@@ -91,7 +91,8 @@ enum Generator {
             var regions = [Region]()
 
             for partialRegion in partialVineyard.regions {
-                let appellations = try await fetchAppellations(for: partialRegion.appellations)
+                let almostAppellations = try await fetchAppellations(for: partialRegion.appellations)
+                let appellations = try await finalizeAppellations(almostAppellations)
 
                 let region = Region(
                     name: partialRegion.name,
@@ -102,8 +103,9 @@ enum Generator {
 
             let vineyard = Vineyard(
                 name: partialVineyard.name,
-                soilAndClimate: "",
-                history: "",
+                description: partialVineyard.description,
+                soilAndClimate: partialVineyard.soilAndClimate,
+                history: partialVineyard.history,
                 regions: regions
             )
             vineyards.append(vineyard)
@@ -112,11 +114,13 @@ enum Generator {
         return vineyards
     }
 
-    static func fetchAppellations(for partialAppellations: [PartialAppellation]) async throws -> [Appellation] {
-        return try await withThrowingTaskGroup(of: Appellation.self) { group in
-            var appellations = [Appellation]()
+    static let forbiddenAppellationSlugs = ["/tout-sur-le-vin/appellations-vins/9056/roussette-de-bugey"]
 
-            for partialAppellation in partialAppellations {
+    static func fetchAppellations(for partialAppellations: [PartialAppellation]) async throws -> [AlmostAppellation] {
+        return try await withThrowingTaskGroup(of: AlmostAppellation.self) { group in
+            var appellations = [AlmostAppellation]()
+
+            for partialAppellation in partialAppellations where !forbiddenAppellationSlugs.contains(partialAppellation.slug) {
                 group.addTask {
                     try await consolidateAppellation(partialAppellation)
                 }
@@ -130,8 +134,60 @@ enum Generator {
         }
     }
 
-    static func consolidateAppellation(_ partialAppellation: PartialAppellation) async throws -> Appellation {
+    static func consolidateAppellation(_ partialAppellation: PartialAppellation) async throws -> AlmostAppellation {
         tell("Fetching details for appellation: \(partialAppellation.name)", level: .debug)
         return try await Scraper.scrapeAppellation(name: partialAppellation.name, slug: partialAppellation.slug)
+    }
+
+    static func finalizeAppellations(_ almostAppellations: [AlmostAppellation]) async throws -> [Appellation] {
+        return try await withThrowingTaskGroup(of: Appellation.self) { group in
+            var appellations = [Appellation]()
+
+            for almostAppellation in almostAppellations {
+                group.addTask {
+                    try await finalizeAppellation(almostAppellation)
+                }
+            }
+
+            for try await appellation in group {
+                appellations.append(appellation)
+            }
+
+            return appellations
+        }
+    }
+
+    static func finalizeAppellation(_ appellation: AlmostAppellation) async throws -> Appellation {
+        let grapeVarieties = try await fetchGrapeVarieties(for: appellation.mainGrapeVarieties)
+
+        return Appellation(
+            name: appellation.name,
+            description: appellation.description,
+            colors: appellation.colors,
+            mainGrapeVarieties: grapeVarieties,
+            rawWindow: appellation.rawWindow
+        )
+    }
+
+    static func fetchGrapeVarieties(for partialGrapeVarieties: [PartialGrapeVariety]) async throws -> [GrapeVariety] {
+        return try await withThrowingTaskGroup(of: GrapeVariety.self) { group in
+            for partialGrapeVariety in partialGrapeVarieties {
+                group.addTask {
+                    try await fetchGrapeVarietyDetails(for: partialGrapeVariety)
+                }
+            }
+
+            var grapeVarieties = [GrapeVariety]()
+            for try await grapeVariety in group {
+                grapeVarieties.append(grapeVariety)
+            }
+            return grapeVarieties
+        }
+    }
+
+    static func fetchGrapeVarietyDetails(for partialGrapeVariety: PartialGrapeVariety) async throws -> GrapeVariety {
+        tell("Fetching details for grape variety: \(partialGrapeVariety.name)", level: .debug)
+
+        return try await Scraper.scrapeGrapeVariety(name: partialGrapeVariety.name, slug: partialGrapeVariety.slug)
     }
 }

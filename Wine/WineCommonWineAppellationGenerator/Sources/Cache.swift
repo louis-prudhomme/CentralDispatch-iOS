@@ -16,7 +16,7 @@ struct CacheOptions {
 enum Cache {
     private static let cacheDirectoryName = ".cellar-door-cache"
     private static var cacheURL: URL {
-        FileManager.default.urls(for: .downloadsDirectory, in: .userDomainMask)
+        FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)
             // swiftlint:disable:next force_unwrapping
             .first!
             .appendingPathComponent(cacheDirectoryName)

@@ -8,6 +8,9 @@ struct BaseVineyard: Codable {
 
 struct PartialVineyard: Codable {
     let name: String
+    let description: String
+    let soilAndClimate: String
+    let history: String
     let regions: [PartialRegion]
 }
 
@@ -21,8 +24,14 @@ struct PartialAppellation: Codable {
     let slug: String
 }
 
+struct PartialGrapeVariety: Codable {
+    let name: String
+    let slug: String
+}
+
 struct Vineyard: Codable {
     let name: String
+    let description: String
     let soilAndClimate: String
     let history: String
     let regions: [Region]
@@ -41,23 +50,32 @@ struct Appellation: Codable {
     let rawWindow: String
 }
 
+struct AlmostAppellation: Codable {
+    let name: String
+    let description: String
+    let colors: [WineColor]
+    let mainGrapeVarieties: [PartialGrapeVariety]
+    let rawWindow: String
+}
+
 struct GrapeVariety: Codable {
     let name: String
     let description: String
+    let color: GrapeVarietyColor?
 }
 
-enum WineColor: Codable {
+enum GrapeVarietyColor: String, Codable {
+    case black
+    case white
+    case pink
+    case grey
+}
+
+enum WineColor: String, Codable {
     case red
     case white
     case rosé
     case whiteSparkling
     case roséSparkling
     case redSparkling
-}
-
-// MARK: - Errors
-
-enum ParserError: Error, Codable {
-    case invalidHTML
-    case parsingFailed(reason: String)
 }

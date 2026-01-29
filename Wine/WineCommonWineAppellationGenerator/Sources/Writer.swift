@@ -21,10 +21,31 @@ enum Writer {
 // MARK: - Code Formatting
 
 private extension Writer {
-    private static func formatAppellationCode(_ appellation: Appellation) -> String {
-        """
-            DefaultWineAppellation(
-                name: \"\(appellation.name)\"
+    private static func formatCountryCode(_ vineyards: [Vineyard]) -> String {
+        let vineyardsCode = vineyards.map { formatVineyardCode($0) }.joined(separator: ",\n")
+        return
+            """
+                DefaultWineCountry(
+                    name: \"France\",
+                    code: \"FR\",
+                    vineyards: [
+                        \(vineyardsCode)
+                    ]
+                )
+            """
+    }
+
+    private static func formatVineyardCode(_ vineyard: Vineyard) -> String {
+        let regionsCode = vineyard.regions.map { formatRegionCode($0) }.joined(separator: ",\n")
+
+        return """
+            DefaultWineVineyard(
+                name: \"\(vineyard.name)\",
+                soilAndClimate: \"\(vineyard.soilAndClimate)\",
+                history: \"\(vineyard.history)\",
+                regions: [
+                    \(regionsCode)
+                ]
             )
         """
     }
@@ -36,37 +57,36 @@ private extension Writer {
             DefaultWineRegion(
                 name: \"\(region.name)\",
                 appellations: [
-            \(appellationsCode)
+                    \(appellationsCode)
                 ]
             )
         """
     }
 
-    private static func formatVineyardCode(_ vineyard: Vineyard) -> String {
-        let regionsCode = vineyard.regions.map { formatRegionCode($0) }.joined(separator: ",\n")
-
-        return """
-            DefaultWineVineyard(
-                name: \"\(vineyard.name)\",
-                regions: [
-            \(regionsCode)
+    private static func formatAppellationCode(_ appellation: Appellation) -> String {
+        """
+            DefaultWineAppellation(
+                name: \"\(appellation.name)\",
+                description: \"\(appellation.description)\",
+                rawWindow: \"\(appellation.rawWindow)\",
+                colors: [\(appellation.colors.map { ".\($0.rawValue)" }.joined(separator: ", "))],
+                mainGrapeVarieties: [
+                    \(appellation.mainGrapeVarieties.map { formatGrapeVarietyCode($0) }.joined(separator: ",\n"))
                 ]
             )
         """
     }
 
-    private static func formatCountryCode(_ vineyards: [Vineyard]) -> String {
-        let vineyardsCode = vineyards.map { formatVineyardCode($0) }.joined(separator: ",\n")
-        return
-            """
-                DefaultWineCountry(
-                    name: \"France\",
-                    code: \"FR\",
-                    vineyards: [
-                \(vineyardsCode)
-                    ]
-                )
-            """
+    private static func formatGrapeVarietyCode(_ grapeVariety: GrapeVariety) -> String {
+        """
+            GrapeVariety(
+                name: \"\(grapeVariety.name)\",
+                description: \"\"\"
+                    \(grapeVariety.description)
+                    \"\"\",
+                color: .\(grapeVariety.color?.rawValue ?? "unknown")
+            )
+        """
     }
 }
 
@@ -82,37 +102,6 @@ private extension Writer {
 
         import Foundation
 
-        /// A default wine region within a vineyard
-        public struct DefaultWineRegion: Sendable {
-            public let name: String
-            public let appellations: [DefaultWineAppellation]
-            
-            public init(name: String, appellations: [DefaultWineAppellation]) {
-                self.name = name
-                self.appellations = appellations
-            }
-        }
-
-        /// A default wine vineyard (e.g., Alsace, Bordeaux, Burgundy)
-        public struct DefaultWineVineyard: Sendable {
-            public let name: String
-            public let regions: [DefaultWineRegion]
-            
-            public init(name: String, regions: [DefaultWineRegion]) {
-                self.name = name
-                self.regions = regions
-            }
-        }
-
-        /// A default wine appellation for database seeding
-        public struct DefaultWineAppellation: Sendable {
-            public let name: String
-            
-            public init(name: String) {
-                self.name = name
-            }
-        }
-
         /// A default wine country with its vineyards
         public struct DefaultWineCountry: Sendable {
             public let name: String
@@ -126,8 +115,83 @@ private extension Writer {
             }
         }
 
+        /// A default wine vineyard (e.g., Alsace, Bordeaux, Burgundy)
+        public struct DefaultWineVineyard: Sendable {
+            public let name: String
+            public let soilAndClimate: String
+            public let history: String
+            public let regions: [DefaultWineRegion]
+            
+            public init(name: String, soilAndClimate: String, history: String, regions: [DefaultWineRegion]) {
+                self.name = name
+                self.soilAndClimate = soilAndClimate
+                self.history = history
+                self.regions = regions
+            }
+        }
+
+        /// A default wine region within a vineyard
+        public struct DefaultWineRegion: Sendable {
+            public let name: String
+            public let appellations: [DefaultWineAppellation]
+            
+            public init(name: String, appellations: [DefaultWineAppellation]) {
+                self.name = name
+                self.appellations = appellations
+            }
+        }
+
+        /// A default wine appellation for database seeding
+        public struct DefaultWineAppellation: Sendable {
+            public let name: String
+            public let description: String
+            public let rawWindow: String
+            public let colors: [WineColor]
+            public let mainGrapeVarieties: [GrapeVariety]
+            
+            public init(name: String, description: String, rawWindow: String, colors: [WineColor], mainGrapeVarieties: [GrapeVariety]) {
+                self.name = name
+                self.description = description
+                self.colors = colors
+                self.mainGrapeVarieties = mainGrapeVarieties
+                self.rawWindow = rawWindow
+            }
+        }
+
+        /// A grape variety used in wine appellations
+        public struct GrapeVariety: Sendable {
+            public let name: String
+            public let description: String
+            public let color: GrapeVarietyColor
+            
+            public init(name: String, description: String, color: GrapeVarietyColor) {
+                self.name = name
+                self.description = description
+                self.color = color
+            }
+        }
+
+        /// The color of the wine
+        enum WineColor: Codable {
+            case red
+            case white
+            case rosé
+            case whiteSparkling
+            case roséSparkling
+            case redSparkling
+        }
+
+        /// A grape variety used in wine appellations
+        enum GrapeVarietyColor: String, Codable {
+            case black
+            case white
+            case pink
+        }
+
+        // swiftlint:disable line_length
         /// Pre-populated list of major French wine vineyards with their regions
         public let defaultWineCountry = \(countryCode)
+        // swiftlint:enable line_length
 
         """
     }

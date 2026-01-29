@@ -2,6 +2,27 @@ import Foundation
 import SwiftHTMLtoMarkdown
 import SwiftSoup
 
+enum ParserError: Error {
+    case missingDescription
+    case missingTabSection
+    case missingTabContent
+    case missingRegionSection
+    case missingRegionItem
+    case missingAppellationProductBlock
+    case missingAppellationMeta
+    case missingAppellationDescription
+    case missingH1
+    case missingGrapeVarietyBlock
+    case missingGrapeVarietyTitle
+    case missingGrapeVarietyColor
+    case missingGrapeVarietyContent
+    case missingGrapeVarietyRegistry
+    case missingGrapeVarietyDescription
+    case missingGrapeVarietyMatch
+    case missingGrapeVarietyColorParse
+    case other(String)
+}
+
 enum Parser {
     // MARK: - Main page to extract vineyards
 
@@ -14,8 +35,7 @@ enum Parser {
 
     private static func extractVineyard(from element: Element) throws -> BaseVineyard? {
         guard let link = try? element.select("a").first(),
-              let slug = try? link.attr("href"),
-              let name = try? link.text()
+              let slug = try? link.attr("href")
         else {
             print("⚠️  Failed to extract vineyard from element: \(element)")
             return nil
@@ -29,26 +49,60 @@ enum Parser {
     static func parseVineyardPage(html: String) throws -> PartialVineyard {
         let doc = try SwiftSoup.parse(html)
 
-        let vineyardNameBlock = try doc.select("h2.block-title")
-        let vineyardName = try vineyardNameBlock.select("strong").text()
+        let cleanedName = try parseH1(from: doc)
 
-        let divs = try doc.select("div#fiche-region-area")
-        let regions = try divs.compactMap { try extractRegion(from: $0) }
+        let descriptionBlock = try doc.select("div.description p").first()
+        guard let description = try descriptionBlock?.text() else {
+            throw ParserError.missingDescription
+        }
+
+        let cleanedDescription = description.cleaned().keepReadable()
+
+        let tabSectionBlock = try doc.select("div.tab-area").first()
+        guard let tabBlock = try tabSectionBlock?.select("div.tab-content") else {
+            throw ParserError.missingTabSection
+        }
+
+        let historyBlock = try tabBlock.select("div.tab-2").first()
+        let markdownifiedHistory = try extractTabContent(from: historyBlock)
+        let soilAndClimateBlock = try tabBlock.select("div.tab-3").first()
+        let markdownifiedSoilAndClimate = try extractTabContent(from: soilAndClimateBlock)
+
+        let regionSectionBlock = try doc.select("div#fiche-region-area").first()
+        guard let regionBlock = try regionSectionBlock?.select("div.item") else {
+            throw ParserError.missingRegionSection
+        }
+
+        let regions = try regionBlock.compactMap { try extractRegion(from: $0) }
 
         return PartialVineyard(
-            name: vineyardName,
+            name: cleanedName,
+            description: cleanedDescription,
+            soilAndClimate: markdownifiedSoilAndClimate,
+            history: markdownifiedHistory,
             regions: regions
         )
     }
 
+    private static func extractTabContent(from tabContent: Element?) throws -> String {
+        let fullBlock = try tabContent?.select("div.full").first()
+        let halfBlock = try tabContent?.select("div.half").first()
+        guard let block = fullBlock ?? halfBlock else {
+            throw ParserError.missingTabContent
+        }
+
+        return try block.text().cleaned().keepReadable()
+    }
+
     private static func extractRegion(from element: Element) throws -> PartialRegion {
         let regionName = try element.select("div.title").text()
+        let cleanedRegionName = regionName.cleaned().capitalizeWineRelatedNames()
         let links = try element.select("a[href*=/tout-sur-le-vin/appellations-vins/]")
 
         let appellations = links.compactMap { try? extractAppellations(from: $0) }
 
         return PartialRegion(
-            name: cleanHTMLEntities(regionName),
+            name: cleanedRegionName,
             appellations: appellations
         )
     }
@@ -58,30 +112,48 @@ enum Parser {
         let slug = try link.attr("href")
 
         return PartialAppellation(
-            name: cleanHTMLEntities(appellationName),
+            name: appellationName.cleaned(),
             slug: slug
         )
     }
 
     // MARK: - Appellation page to extract details
 
-    static func parseAppellationPage(html: String, appellationName: String) throws -> Appellation {
+    static func parseAppellationPage(html: String, appellationName _: String) throws -> AlmostAppellation {
         let doc = try SwiftSoup.parse(html)
 
-        let colorIcons = try doc.select("i.icon")
-        let colors = colorIcons.compactMap { try? parseColor(from: $0) }
+        let cleanedName = try parseH1(from: doc)
 
-        let cepages = try parseCepages(from: doc)
-        let drinkingWindow = try parseDrinkingWindow(from: doc)
+        let colorIcons = try doc.select("i[class*='icon-wine']")
+        let colors = colorIcons.compactMap { try? parseColor(from: $0) }
+        let uniqueColors = Array(Set(colors))
+
+        guard let productBlock = try doc.select("div.product-area.block").first() else {
+            throw ParserError.missingAppellationProductBlock
+        }
+
+        let metaBlocks = try productBlock.select("div.meta")
+        let grapeVarieties = try metaBlocks.first { try $0.text().contains("PRINCIPAUX CÉPAGES") }.map(parseCepages(from:))
+        let drinkingWindow = try metaBlocks.first { try $0.text().contains("POTENTIEL DE GARDE") }.map(parseDrinkingWindow(from:))
         let description = try parseAppellationDescription(from: doc)
 
-        return Appellation(
-            name: appellationName,
+        return AlmostAppellation(
+            name: cleanedName,
             description: description,
-            colors: colors,
-            mainGrapeVarieties: cepages,
-            rawWindow: drinkingWindow
+            colors: uniqueColors,
+            mainGrapeVarieties: grapeVarieties ?? [],
+            rawWindow: drinkingWindow ?? "Not specified."
         )
+    }
+
+    static func parseH1(from doc: Element) throws -> String {
+        let nameBlock = try doc.select("h1.main-title.no-icon").first()
+        try nameBlock?.select("strong").remove()
+        guard let name = try nameBlock?.text() else {
+            throw ParserError.missingH1
+        }
+
+        return name.cleaned().capitalizeWineRelatedNames()
     }
 
     static func parseColor(from htmlIcon: Element) throws -> WineColor? {
@@ -89,111 +161,182 @@ enum Parser {
         return iconClasses.compactMap { WineColor(className: $0) }.first
     }
 
-    static func parseCepages(from element: Element) throws -> [GrapeVariety] {
-        let cepageBlock = try element.select("div.meta.last")
+    static func parseCepages(from cepageBlock: Element) throws -> [PartialGrapeVariety] {
         let cepageLinks = try cepageBlock.select("a")
-        return cepageLinks.compactMap { link in
-            guard let name = try? link.text() else { return nil }
+        return try cepageLinks.compactMap { link in
+            let name = try link.text()
+            let link = try link.attr("href")
 
-            return GrapeVariety(name: cleanHTMLEntities(name), description: "")
+            guard !name.isEmpty else { return nil }
+            guard !link.contains("tourisme") else { return nil }
+
+            let slug = link.replacingOccurrences(of: Scraper.baseUrl, with: "")
+
+            return PartialGrapeVariety(name: name.cleaned(), slug: slug)
         }
     }
 
-    static func parseDrinkingWindow(from element: Element) throws -> String {
-        let descriptionsBlocks = try element.select("div.meta")
-        let drinkingWindowBlock = try descriptionsBlocks.first { try $0.text().contains("POTENTIEL DE GARDE") }
-        let drinkingWindow = try drinkingWindowBlock?.select("div.address").text()
+    static func parseDrinkingWindow(from drinkingWindowBlock: Element) throws -> String {
+        let drinkingWindow = try drinkingWindowBlock.select("div.address").text()
 
-        if let drinkingWindow {
-            return cleanHTMLEntities(drinkingWindow)
+        if !drinkingWindow.isEmpty {
+            return drinkingWindow.cleaned()
         }
         return "Non spécifié"
     }
 
     static func parseAppellationDescription(from element: Element) throws -> String {
-        let descriptionBlock = try element.select("div.description")
-        let rawHtmlDescription = try descriptionBlock.html()
-        var document = BasicHTML(rawHTML: rawHtmlDescription)
+        guard let descriptionBlock = try element.select("div.description").first() else {
+            throw ParserError.missingAppellationDescription
+        }
+
+        for link in try descriptionBlock.select("a") {
+            try link.unwrap()
+        }
+
+        var document = try BasicHTML(rawHTML: descriptionBlock.html())
         try document.parse()
 
-        let markdownifiedDescription = try document.asMarkdown()
-        return cleanHTMLEntities(markdownifiedDescription)
+        return try document
+            .asMarkdown()
+            .cleaned()
+            .densified()
     }
 
     // MARK: - Cepage page to extract details
 
     static func parseGrapeVarietyPage(html: String, grapeVarietyName: String) throws -> GrapeVariety {
         let doc = try SwiftSoup.parse(html)
+        guard let element = try doc.select("h1.main-title.no-icon").first() else {
+            throw ParserError.missingGrapeVarietyTitle
+        }
 
-        let descriptionBlock = try parseGrapeVarietyDescription(from: doc, name: grapeVarietyName)
+        let titleRaw = try element.text()
+        return switch titleRaw {
+            case let title where title.contains("GUIDE DES CÉPAGES"): try parseGrapeVarietyRegistryContent(from: doc, name: grapeVarietyName)
+            default: try parseGrapeVarietyDedicatedPage(from: doc, name: grapeVarietyName)
+        }
+    }
+
+    private static func parseGrapeVarietyColor(from titleRaw: String) throws -> GrapeVarietyColor? {
+        guard let titleRest = titleRaw.components(separatedBy: " - ").last,
+              let grapeVarietyColorRaw = titleRest.components(separatedBy: " : ").first,
+              let rawColor = grapeVarietyColorRaw.components(separatedBy: " ").last
+        else {
+            throw ParserError.missingGrapeVarietyColorParse
+        }
+
+        return switch rawColor.lowercased() {
+            case "noir", "rouge": .black
+            case "blanc": .white
+            case "rose", "rosé": .pink
+            case "gris": .grey
+            default: nil
+        }
+    }
+
+    private static func parseGrapeVarietyDedicatedPageDescription(from contentBlock: Element) throws -> String {
+        try contentBlock.select("div.block.no-border").first()?.remove()
+        try contentBlock.select(":not(h2):not(p)").remove()
+
+        let children = contentBlock.children()
+        var foundEmpty = false
+        for child in children {
+            if foundEmpty {
+                try child.remove()
+                continue
+            }
+            let text = try child.text().trimmingCharacters(in: .whitespacesAndNewlines)
+            if text.isEmpty {
+                foundEmpty = true
+                try child.remove()
+            }
+        }
+
+        for link in try contentBlock.select("a") {
+            try link.unwrap()
+        }
+
+        var document = try BasicHTML(rawHTML: contentBlock.html())
+        try document.parse()
+
+        return try document
+            .asMarkdown()
+            .cleaned()
+            .densified()
+    }
+
+    private static func parseGrapeVarietyDedicatedPage(from dedicatedPage: Element, name _: String) throws -> GrapeVariety {
+        guard let titleRaw = try dedicatedPage.select("h1.main-title.no-icon").first(), let titleRaw = try? titleRaw.text() else {
+            throw ParserError.missingGrapeVarietyTitle
+        }
+        guard let name = titleRaw.components(separatedBy: " - ").first else {
+            throw ParserError.missingGrapeVarietyBlock
+        }
+        guard let contentBlock = try dedicatedPage.select("section.main-area.wrapper div.content").first() else {
+            throw ParserError.missingGrapeVarietyContent
+        }
+
+        let markdownifiedDescription = try parseGrapeVarietyDedicatedPageDescription(from: contentBlock)
+
+        let maybeColor = try parseGrapeVarietyColor(from: titleRaw)
+            ?? GrapeVarietyColor(text: contentBlock.text())
+        guard let color = maybeColor else {
+            throw ParserError.missingGrapeVarietyColor
+        }
 
         return GrapeVariety(
-            name: grapeVarietyName,
-            description: descriptionBlock
+            name: name.cleaned().capitalizeWineRelatedNames(),
+            description: markdownifiedDescription,
+            color: color
         )
     }
 
-    private static func parseGrapeVarietyDescription(from element: Element, name: String) throws -> String {
-        let maybeContent = try element.select("div.content")
-        let markdownifiedDescription = if let content = maybeContent.first() {
-            try parseGrapeVarietyDedicatedPageContent(from: content, name: name)
-        } else {
-            try parseGrapeVarietyRegistryContent(from: element, name: name)
+    static let grapeVarietiesWithoutDescription = ["MUSCAT ROSE À PETITS GRAINS", "MÉRILLE"].map { $0.lowercased() }
+
+    private static func parseGrapeVarietyRegistryContent(from element: Element, name: String) throws -> GrapeVariety {
+        guard let mainBlock = try element.select("div#vins").first() else {
+            throw ParserError.missingGrapeVarietyRegistry
         }
 
-        return cleanHTMLEntities(markdownifiedDescription)
-    }
-
-    private static func parseGrapeVarietyDedicatedPageContent(from element: Element, name: String) throws -> String {
-        let contentElements = try element.select("div.item")
-
-        let matchingContent = try contentElements.first {
-            let title = try $0.select("div.title").text().lowercased()
-            return title.contains(name.lowercased())
+        let allItems = try mainBlock.select("div.item")
+        let matchingItem = try allItems.first { item in
+            let itemName = try item.select("div.title").text()
+            return itemName.cleaned().compare(name, options: .caseInsensitive) == .orderedSame
+        }
+        guard let mainBlock = matchingItem else {
+            throw ParserError.missingGrapeVarietyMatch
         }
 
-        let firstDescriptionParagraph = try matchingContent?.select("div.description").first()
-        guard let contentElements = firstDescriptionParagraph else {
-            throw ScrapperError.noData
+        let isExemptedFromDescription = grapeVarietiesWithoutDescription.contains(name.lowercased())
+        let descriptionBlock = try mainBlock.select("div.description").first()
+        guard descriptionBlock != nil || isExemptedFromDescription else {
+            throw ParserError.missingGrapeVarietyDescription
         }
 
-        let rawHtml = try firstDescriptionParagraph?.html()
-        guard let rawHtml else {
-            throw ScrapperError.noData
+        let description = try descriptionBlock?.text().cleaned().keepReadable()
+        let fallbackColor: GrapeVarietyColor? = switch try mainBlock.select(".icon").first()?.classNames().contains("icon-grape1") {
+            case true: GrapeVarietyColor.black
+            case false: GrapeVarietyColor.white
+            case nil: nil
         }
 
-        var document = BasicHTML(rawHTML: rawHtml)
-        try document.parse()
-        return try document.asMarkdown()
-    }
+        let color = description.map(GrapeVarietyColor.init(text:))
+            ?? GrapeVarietyColor(text: name)
+            ?? fallbackColor
+        guard let color else {
+            throw ParserError.missingGrapeVarietyColor
+        }
 
-    private static func parseGrapeVarietyRegistryContent(from element: Element, name _: String) throws -> String {
-        let allItems = try element.select("div.registry-content")
-        let rawHtml = try allItems.html()
-        var document = BasicHTML(rawHTML: rawHtml)
-        try document.parse()
-        return try document.asMarkdown()
-    }
-
-    // MARK: - Helpers
-
-    static func cleanHTMLEntities(_ text: String) -> String {
-        text.replacingOccurrences(of: "&eacute;", with: "é")
-            .replacingOccurrences(of: "&egrave;", with: "è")
-            .replacingOccurrences(of: "&agrave;", with: "à")
-            .replacingOccurrences(of: "&ocirc;", with: "ô")
-            .replacingOccurrences(of: "&icirc;", with: "î")
-            .replacingOccurrences(of: "&ucirc;", with: "û")
-            .replacingOccurrences(of: "&ccedil;", with: "ç")
-            .replacingOccurrences(of: "&euml;", with: "ë")
-            .replacingOccurrences(of: "&iuml;", with: "ï")
-            .replacingOccurrences(of: "&ouml;", with: "ö")
-            .replacingOccurrences(of: "&uuml;", with: "ü")
-            .replacingOccurrences(of: "&acirc;", with: "â")
-            .replacingOccurrences(of: "&#039;", with: "'")
-            .trimmingCharacters(in: .whitespacesAndNewlines)
+        return GrapeVariety(
+            name: name.cleaned().capitalizeWineRelatedNames(),
+            description: description ?? "No descriptions",
+            color: color
+        )
     }
 }
+
+// MARK: - Helpers
 
 private extension WineColor {
     init?(className: String) {
@@ -206,5 +349,88 @@ private extension WineColor {
             case "icon icon-wine-rouge-effervescent": self = .redSparkling
             default: return nil
         }
+    }
+}
+
+private extension GrapeVarietyColor {
+    init?(text: String) {
+        let text = text.lowercased()
+        switch text {
+            case text where text.contains("noir") || text.contains("rouge"): self = .black
+            case text where text.contains("blanc"): self = .white
+            case text where text.contains("gris"): self = .grey
+            case text where text.contains("rose") || text.contains("rosé"): self = .pink
+            default: return nil
+        }
+    }
+}
+
+private let wordsToLeaveInLowercase = [
+    "de", "du", "la", "le", "les", "des", "et", "à", "au", "aux", "sur", "en", "pour", "par", "avec", "sans", "sous", "chez", "l'", "d'"
+]
+
+private extension String {
+    func capitalize(by separator: Character) -> String {
+        let words = split(separator: separator)
+        let capitalizedWords = words.map { word -> String in
+            let lowercasedWord = word.lowercased()
+            if wordsToLeaveInLowercase.contains(lowercasedWord) {
+                return lowercasedWord
+            } else {
+                return word.prefix(1).uppercased() + word.dropFirst().lowercased()
+            }
+        }
+        return capitalizedWords.joined(separator: String(separator))
+    }
+
+    func capitalizeWineRelatedNames() -> String {
+        return capitalize(by: " ")
+            .capitalize(by: "-")
+            .capitalize(by: "'")
+    }
+
+    func keepReadable() -> String {
+        replacingOccurrences(of: "\n", with: " ")
+            .replacingOccurrences(of: "\t", with: " ")
+            .replacingOccurrences(of: ".", with: ". ")
+            .replacingOccurrences(of: "  ", with: " ")
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
+    func cleaned() -> String {
+        replacingOccurrences(of: "&eacute;", with: "é")
+            .replacingOccurrences(of: "&egrave;", with: "è")
+            .replacingOccurrences(of: "&agrave;", with: "à")
+            .replacingOccurrences(of: "&ocirc;", with: "ô")
+            .replacingOccurrences(of: "&icirc;", with: "î")
+            .replacingOccurrences(of: "&ucirc;", with: "û")
+            .replacingOccurrences(of: "&ccedil;", with: "ç")
+            .replacingOccurrences(of: "&euml;", with: "ë")
+            .replacingOccurrences(of: "&iuml;", with: "ï")
+            .replacingOccurrences(of: "&ouml;", with: "ö")
+            .replacingOccurrences(of: "&uuml;", with: "ü")
+            .replacingOccurrences(of: "&acirc;", with: "â")
+            .replacingOccurrences(of: "&#039;", with: "'")
+            .replacingOccurrences(of: "&rsquo;", with: "'")
+            .replacingOccurrences(of: "&ndash;", with: "–")
+            .replacingOccurrences(of: "&mdash;", with: "—")
+            .replacingOccurrences(of: "&hellip;", with: "…")
+            .replacingOccurrences(of: "&euro;", with: "€")
+            .replacingOccurrences(of: "\"", with: "\\\"")
+            .replacingOccurrences(of: "&quot;", with: "\"")
+            .replacingOccurrences(of: ". . . ", with: "...")
+            .replacingOccurrences(of: "\n", with: "\\n")
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
+    func densified() -> String {
+        let grmbl1 = /\n{2,}/
+        let grmbl2 = /\\n{2,}/
+        let grmbl3 = /\\\n{2,}/
+        let grmbl4 = /\\\\n{2,}/
+        return replacing(grmbl1, with: "\n\n")
+            .replacing(grmbl2, with: "\n\n")
+            .replacing(grmbl3, with: "\n\n")
+            .replacing(grmbl4, with: "\n\n")
     }
 }
