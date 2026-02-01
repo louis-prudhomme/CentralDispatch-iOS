@@ -4,7 +4,9 @@ import Foundation
 enum Generator {
     static let outputPath = "Shared/SharedCommonModelContainer/Sources/DefaultWineAppellations.generated.swift"
 
-    static func main() async {
+    static var grapeVarietyRegistry = [GrapeVariety]()
+
+    static func main() async throws {
         let arguments = CommandLine.arguments
 
         let (cacheOptions, remainingArgs) = Cache.parseArguments(Array(arguments.dropFirst()))
@@ -16,55 +18,120 @@ enum Generator {
             return
         }
 
-        guard let workspacePath, let workspaceUrl = URL(fileURLWithPath: workspacePath) else {
+        guard let workspacePath else {
             CLI.printUsage()
             fatalError("Workspace path is required")
         }
 
-        do {
-            try await fetchAppellations(workspaceUrl: workspaceUrl)
-        } catch {
-            fatalError("Failed to generate appellations: \(error)")
+        try await fetchGrapeVarieties()
+        try await fetchAppellations(workspaceUrl: URL(fileURLWithPath: workspacePath))
+    }
+
+    static func fetchGrapeVarieties() async throws {
+        tell("Fetching grape varieties registry...", level: .info)
+
+        let incomplete = try await Scraper.scrapeGrapeVarietiesRegistry()
+        let consolidated = try await consolidateGrapeVarieties(almostGrapeVarieties: incomplete)
+        grapeVarietyRegistry = finalizeGrapeVariety(finalizeGrapeVariety(consolidated))
+
+        tell("Retrieved \(grapeVarietyRegistry.count) grape varieties in registry", level: .info)
+    }
+
+    static func consolidateGrapeVarieties(almostGrapeVarieties: [AlmostGrapeVariety]) async throws -> [GrapeVariety] {
+        return try await withThrowingTaskGroup(of: GrapeVariety.self) { group in
+            for almostGrapeVariety in almostGrapeVarieties {
+                group.addTask {
+                    if let dedicatedPageSlug = almostGrapeVariety.dedicatedPageSlug {
+                        let details = try await Scraper.scrapeGrapeVarietyDetails(name: almostGrapeVariety.name, slug: dedicatedPageSlug)
+                        return GrapeVariety(
+                            name: almostGrapeVariety.name,
+                            description: details.description,
+                            color: details.color,
+                            synonyms: Set(almostGrapeVariety.synonyms),
+                            dedicatedPageSlug: dedicatedPageSlug
+                        )
+                    } else {
+                        return GrapeVariety(
+                            name: almostGrapeVariety.name,
+                            description: almostGrapeVariety.description,
+                            color: almostGrapeVariety.color,
+                            synonyms: Set(almostGrapeVariety.synonyms),
+                            dedicatedPageSlug: nil
+                        )
+                    }
+                }
+            }
+
+            var grapeVarieties = [GrapeVariety]()
+            for try await grapeVariety in group {
+                grapeVarieties.append(grapeVariety)
+            }
+            return grapeVarieties
         }
+    }
+
+    static func finalizeGrapeVariety(_ consolidated: [GrapeVariety]) -> [GrapeVariety] {
+        var deduplicatedGrapeVarieties = [GrapeVariety]()
+        for current in consolidated {
+            if let existing = deduplicatedGrapeVarieties.first(where: { $0.synonyms.contains(current.name) && $0.color == current.color }) {
+                var updatedSynonyms = existing.synonyms
+                updatedSynonyms.insert(current.name)
+                current.synonyms.forEach { updatedSynonyms.insert($0) }
+                updatedSynonyms.remove(existing.name)
+
+                let descriptionToKeep = existing.description.count >= current.description.count ? existing.description : current.description
+
+                let merged = GrapeVariety(
+                    name: existing.name,
+                    description: descriptionToKeep,
+                    color: existing.color,
+                    synonyms: updatedSynonyms,
+                    dedicatedPageSlug: existing.dedicatedPageSlug ?? current.dedicatedPageSlug
+                )
+
+                if let index = deduplicatedGrapeVarieties.firstIndex(where: { $0.name == existing.name }) {
+                    deduplicatedGrapeVarieties[index] = merged
+                }
+            } else {
+                deduplicatedGrapeVarieties.append(current)
+            }
+        }
+
+        return deduplicatedGrapeVarieties
     }
 
     static func fetchAppellations(workspaceUrl: URL) async throws {
         tell("Fetching French wine appellations from Hachette Vins...", level: .info)
 
+        let baseVineyards = try await Generator.fetchBaseVineyards()
+        guard !baseVineyards.isEmpty else {
+            tell("Failed to retrieve any vineyards from main page", level: .error)
+            fatalError("No vineyards retrieved from main page")
+        }
+
+        let partialVineyards = try await Generator.fetchPartialVineyards(for: baseVineyards)
+        guard !partialVineyards.isEmpty else {
+            tell("Failed to retrieve any vineyards", level: .error)
+            fatalError("No vineyards retrieved")
+        }
+
+        tell("Retrieved \(partialVineyards.count) vineyards", level: .info)
+
+        tell("Consolidating vineyard details...", level: .info)
+        let vineyards = try await consolidateVineyards(from: partialVineyards)
+        tell("Consolidated \(vineyards.count) vineyards with full details", level: .info)
+
+        let swiftCode = Writer.generateSwiftFile(from: vineyards)
+
+        let url = workspaceUrl.appendingPathComponent(outputPath)
+        tell("Writing to: \(url.path)", level: .info)
+
         do {
-            let baseVineyards = try await Generator.fetchBaseVineyards()
-            guard !baseVineyards.isEmpty else {
-                tell("Failed to retrieve any vineyards from main page", level: .error)
-                fatalError("No vineyards retrieved from main page")
-            }
-
-            let partialVineyards = try await Generator.fetchPartialVineyards(for: baseVineyards)
-            guard !partialVineyards.isEmpty else {
-                tell("Failed to retrieve any vineyards", level: .error)
-                fatalError("No vineyards retrieved")
-            }
-
-            tell("Retrieved \(partialVineyards.count) vineyards", level: .info)
-
-            tell("Consolidating vineyard details...", level: .info)
-            let vineyards = try await consolidateVineyards(from: partialVineyards)
-            tell("Consolidated \(vineyards.count) vineyards with full details", level: .info)
-
-            let swiftCode = Writer.generateSwiftFile(from: vineyards)
-
-            let url = workspaceUrl.appendingPathComponent(outputPath)
-            tell("Writing to: \(url.path)", level: .info)
-
-            do {
-                try Writer.writeToFile(content: swiftCode, at: url)
-                tell("Generated file: \(outputPath)", level: .info)
-            } catch {
-                tell("Failed to write file: \(error)", level: .error)
-                throw error
-            }
+            try Writer.writeToFile(content: swiftCode, at: url)
+            tell("Generated file: \(outputPath)", level: .info)
         } catch {
-            tell("Failed to fetch appellations: \(error)", level: .error)
-            fatalError("Failed to fetch appellations: \(error)")
+            tell("Failed to write file: \(error)", level: .error)
+            throw error
         }
     }
 
@@ -100,7 +167,7 @@ enum Generator {
 
             for partialRegion in partialVineyard.regions {
                 let almostAppellations = try await fetchAppellations(for: partialRegion.appellations)
-                let appellations = try await finalizeAppellations(almostAppellations)
+                let appellations = try finalizeAppellations(almostAppellations)
 
                 let region = Region(
                     name: partialRegion.name,
@@ -147,55 +214,37 @@ enum Generator {
         return try await Scraper.scrapeAppellation(name: partialAppellation.name, slug: partialAppellation.slug)
     }
 
-    static func finalizeAppellations(_ almostAppellations: [AlmostAppellation]) async throws -> [Appellation] {
-        return try await withThrowingTaskGroup(of: Appellation.self) { group in
-            var appellations = [Appellation]()
-
-            for almostAppellation in almostAppellations {
-                group.addTask {
-                    try await finalizeAppellation(almostAppellation)
-                }
-            }
-
-            for try await appellation in group {
-                appellations.append(appellation)
-            }
-
-            return appellations
-        }
+    static func finalizeAppellations(_ almostAppellations: [AlmostAppellation]) throws -> [Appellation] {
+        return try almostAppellations.map(finalizeAppellation)
     }
 
-    static func finalizeAppellation(_ appellation: AlmostAppellation) async throws -> Appellation {
-        let grapeVarieties = try await fetchGrapeVarieties(for: appellation.mainGrapeVarieties)
+    static func finalizeAppellation(_ appellation: AlmostAppellation) throws -> Appellation {
+        let grapeVarieties = try fetchGrapeVarieties(for: appellation.mainGrapeVarieties)
 
         return Appellation(
             name: appellation.name,
             description: appellation.description,
             colors: appellation.colors,
-            mainGrapeVarieties: grapeVarieties,
+            mainGrapeVarieties: Set(grapeVarieties),
             rawWindow: appellation.rawWindow
         )
     }
 
-    static func fetchGrapeVarieties(for partialGrapeVarieties: [PartialGrapeVariety]) async throws -> [GrapeVariety] {
-        return try await withThrowingTaskGroup(of: GrapeVariety.self) { group in
-            for partialGrapeVariety in partialGrapeVarieties {
-                group.addTask {
-                    try await fetchGrapeVarietyDetails(for: partialGrapeVariety)
-                }
-            }
+    static func fetchGrapeVarieties(for partialGrapeVarieties: [PartialGrapeVariety]) throws -> [GrapeVariety] {
+        var grapeVarieties = [GrapeVariety]()
 
-            var grapeVarieties = [GrapeVariety]()
-            for try await grapeVariety in group {
-                grapeVarieties.append(grapeVariety)
+        for partial in partialGrapeVarieties {
+            if let matchedBySlug = grapeVarietyRegistry.first(where: { $0.dedicatedPageSlug == partial.slug }) {
+                grapeVarieties.append(matchedBySlug)
+            } else if let matchedByName = grapeVarietyRegistry.first(where: { $0.name.lowercased() == partial.name.lowercased() }) {
+                grapeVarieties.append(matchedByName)
+            } else if let matchedBySynonym = grapeVarietyRegistry.first(where: { $0.synonyms.map { $0.lowercased() }.contains(partial.name.lowercased()) }) {
+                grapeVarieties.append(matchedBySynonym)
+            } else {
+                throw ParserError.unknownGrapeVariety(name: partial.name)
             }
-            return grapeVarieties
         }
-    }
 
-    static func fetchGrapeVarietyDetails(for partialGrapeVariety: PartialGrapeVariety) async throws -> GrapeVariety {
-        tell("Fetching details for grape variety: \(partialGrapeVariety.name)", level: .debug)
-
-        return try await Scraper.scrapeGrapeVariety(name: partialGrapeVariety.name, slug: partialGrapeVariety.slug)
+        return grapeVarieties
     }
 }

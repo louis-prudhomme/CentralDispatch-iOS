@@ -16,6 +16,7 @@ enum ScrapperError: Error {
 
 enum Scraper {
     static let baseUrl = "https://www.hachette-vins.com"
+    static let grapeVarietiesRegistry = "/tout-sur-le-vin/cepages-vins"
 
     static func scrapeMainPage(url mainURL: String) async throws -> String {
         let cacheKey = "main_page"
@@ -105,11 +106,11 @@ enum Scraper {
         }
     }
 
-    static func scrapeGrapeVariety(name: String, slug: String) async throws -> GrapeVariety {
+    static func scrapeGrapeVarietyDetails(name: String, slug: String) async throws -> GrapeVarietyDetails {
         let cacheKey = "grape_\(slug)"
 
         if let cachedHTML = try Cache.getCachedHTML(for: cacheKey) {
-            return try Parser.parseGrapeVarietyPage(html: cachedHTML, grapeVarietyName: name)
+            return try Parser.parseGrapeVarietyDedicatedPage(html: cachedHTML)
         }
 
         let urlString = "\(Scraper.baseUrl)\(slug)"
@@ -128,8 +129,50 @@ enum Scraper {
             }
 
             try Cache.cacheHTML(html, for: cacheKey)
+            return try Parser.parseGrapeVarietyDedicatedPage(html: html)
+        } catch {
+            throw ScrapperError.other(error)
+        }
+    }
 
-            return try Parser.parseGrapeVarietyPage(html: html, grapeVarietyName: name)
+    static func scrapeGrapeVarietiesRegistry() async throws -> [AlmostGrapeVariety] {
+        let letters = "ABCDFGHJLMNOPRSTUV"
+        var allGrapeVarieties = [AlmostGrapeVariety]()
+
+        for letter in letters {
+            let letterStr = String(letter)
+            let grapeVarieties = try await scrapeGrapeVarietiesRegistryLetter(letterStr)
+            allGrapeVarieties.append(contentsOf: grapeVarieties)
+        }
+
+        return allGrapeVarieties
+    }
+
+    static func scrapeGrapeVarietiesRegistryLetter(_ letter: String) async throws -> [AlmostGrapeVariety] {
+        let cacheKey = "grape_varieties_registry_\(letter)"
+
+        if let cachedHTML = try Cache.getCachedHTML(for: cacheKey) {
+            return try Parser.parseGrapeVarietiesRegistry(html: cachedHTML)
+        }
+
+        let urlString = "\(Scraper.baseUrl)\(grapeVarietiesRegistry)/\(letter)/"
+
+        guard let url = URL(string: urlString) else {
+            throw ScrapperError.wrongUrl
+        }
+
+        do {
+            let (data, _) = try await URLSession.shared.data(from: url)
+            guard !data.isEmpty else {
+                throw ScrapperError.emptyData
+            }
+            guard let html = String(data: data, encoding: .utf8) else {
+                throw ScrapperError.invalidEncoding
+            }
+
+            try Cache.cacheHTML(html, for: cacheKey)
+
+            return try Parser.parseGrapeVarietiesRegistry(html: html)
         } catch {
             throw ScrapperError.other(error)
         }
