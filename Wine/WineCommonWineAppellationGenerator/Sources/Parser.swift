@@ -93,6 +93,9 @@ enum Parser {
             throw ParserError.missingTabContent
         }
 
+        for link in try block.select("a") {
+            try link.unwrap()
+        }
         var document = try BasicHTML(rawHTML: block.html())
         try document.parse()
 

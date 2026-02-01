@@ -9,7 +9,7 @@ extension GrapeVarietyInteractor {
             @Dependency(\.grapeVarietyRepository) var repository
 
             return await withResult(parser: WineInteractorError.init) { @MainActor in
-                try await repository.search(searchText).map { $0.toDomain() }
+                try await repository.search(searchText).map { try $0.toDomain() }
             }
         },
         upsert: { grapeVariety in
@@ -21,7 +21,7 @@ extension GrapeVarietyInteractor {
 
             return await withResult(parser: WineInteractorError.init) { @MainActor in
                 let entity = try await repository.upsert(grapeVariety.toEntity())
-                return entity.toDomain()
+                return try entity.toDomain()
             }
         }
     )

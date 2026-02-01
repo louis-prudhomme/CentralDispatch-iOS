@@ -19,51 +19,54 @@ enum Writer {
 // MARK: - Code Formatting
 
 private extension Writer {
-    private static func formatVineyardCode(_ vineyard: Vineyard) -> String {
-        let regionsCode = vineyard.regions.map { formatRegionCode($0) }.joined(separator: ",\n")
+    private static func formatAppellationCode(_ flattener: AppellationFlattener) -> String {
+        let appellation = flattener.appellation
+        let regionCode = formatRegionCode(flattener)
 
         return """
-            DefaultWineVineyard(
-                name: \"\(vineyard.name)\",
-                soilAndClimate: \"\(vineyard.soilAndClimate)\",
-                history: \"\(vineyard.history)\",
-                regions: [
-                    \(regionsCode)
-                ]
-            )
-        """
-    }
-
-    private static func formatRegionCode(_ region: Region) -> String {
-        let appellationsCode = region.appellations.map { formatAppellationCode($0) }.joined(separator: ",\n")
-
-        return """
-            DefaultWineRegion(
-                name: \"\(region.name)\",
-                appellations: [
-                    \(appellationsCode)
-                ]
-            )
-        """
-    }
-
-    private static func formatAppellationCode(_ appellation: Appellation) -> String {
-        """
             DefaultWineAppellation(
+                id: UUID(uuidString: \"\(appellation.id)\")!,
                 name: \"\(appellation.name)\",
                 description: \"\(appellation.description)\",
                 rawWindow: \"\(appellation.rawWindow)\",
                 colors: [\(appellation.colors.map { ".\($0.rawValue)" }.joined(separator: ", "))],
                 mainGrapeVarieties: [
                     \(appellation.mainGrapeVarieties.map { formatGrapeVarietyCode($0) }.joined(separator: ",\n"))
-                ]
+                ],
+                region: \(regionCode)
+            )
+        """
+    }
+
+    private static func formatRegionCode(_ flattener: AppellationFlattener) -> String {
+        let region = flattener.region
+        let vineyardCode = formatVineyardCode(flattener.vineyard)
+
+        return """
+            DefaultWineRegion(
+                id: UUID(uuidString: \"\(region.id)\")!,
+                name: \"\(region.name)\",
+                vineyard: \(vineyardCode)
+            )
+        """
+    }
+
+    private static func formatVineyardCode(_ vineyard: Vineyard) -> String {
+        return """
+            DefaultWineVineyard(
+                id: UUID(uuidString: \"\(vineyard.id)\")!,
+                description: \"\(vineyard.description)\",
+                name: \"\(vineyard.name)\",
+                soilAndClimate: \"\(vineyard.soilAndClimate)\",
+                history: \"\(vineyard.history)\"
             )
         """
     }
 
     private static func formatGrapeVarietyCode(_ grapeVariety: GrapeVariety) -> String {
         """
-            GrapeVariety(
+            DefaultGrapeVariety(
+                id: UUID(uuidString: \"\(grapeVariety.id)\")!,
                 name: \"\(grapeVariety.name)\",
                 description: \"\"\"
                     \(grapeVariety.description)
@@ -79,76 +82,69 @@ private extension Writer {
 
 // MARK: - Template Filling
 
+struct AppellationFlattener {
+    let appellation: Appellation
+    let region: Region
+    let vineyard: Vineyard
+}
+
 private extension Writer {
     // swiftlint:disable:next function_body_length
     private static func fillInTemplate(with vineyards: [Vineyard], timestamp: String) -> String {
-        """
+        var appellations = [AppellationFlattener]()
+        for vineyard in vineyards {
+            for region in vineyard.regions {
+                for appellation in region.appellations {
+                    appellations.append(.init(appellation: appellation, region: region, vineyard: vineyard))
+                }
+            }
+        }
+
+        return """
         // This file is auto-generated. Do not edit manually.
         // Run `cd Wine/WineCommonWineAppellationGenerator && tuist run WineCommonWineAppellationGenerator <workspace-path>` to regenerate
         // Generated on: \(timestamp)
 
         import Foundation
 
-        /// A default wine vineyard (e.g., Alsace, Bordeaux, Burgundy)
-        struct DefaultWineVineyard: Sendable {
+        /// A default wine appellation for database seeding
+        struct DefaultWineAppellation: Sendable {
+            let id: UUID
             let name: String
-            let soilAndClimate: String
-            let history: String
-            let regions: [DefaultWineRegion]
-            
-            init(name: String, soilAndClimate: String, history: String, regions: [DefaultWineRegion]) {
-                self.name = name
-                self.soilAndClimate = soilAndClimate
-                self.history = history
-                self.regions = regions
-            }
+            let description: String
+            let rawWindow: String
+            let colors: [DefaultWineColor]
+            let mainGrapeVarieties: [DefaultGrapeVariety]
+            let region: DefaultWineRegion
         }
 
         /// A default wine region within a vineyard
         struct DefaultWineRegion: Sendable {
+            let id: UUID
             let name: String
-            let appellations: [DefaultWineAppellation]
-            
-            init(name: String, appellations: [DefaultWineAppellation]) {
-                self.name = name
-                self.appellations = appellations
-            }
+            let vineyard: DefaultWineVineyard
         }
 
-        /// A default wine appellation for database seeding
-        struct DefaultWineAppellation: Sendable {
-            let name: String
+        /// A default wine vineyard (e.g., Alsace, Bordeaux, Burgundy)
+        struct DefaultWineVineyard: Sendable {
+            let id: UUID
             let description: String
-            let rawWindow: String
-            let colors: [WineColor]
-            let mainGrapeVarieties: [GrapeVariety]
-            
-            init(name: String, description: String, rawWindow: String, colors: [WineColor], mainGrapeVarieties: [GrapeVariety]) {
-                self.name = name
-                self.description = description
-                self.colors = colors
-                self.mainGrapeVarieties = mainGrapeVarieties
-                self.rawWindow = rawWindow
-            }
+            let name: String
+            let soilAndClimate: String
+            let history: String
         }
 
         /// A grape variety used in wine appellations
-        struct GrapeVariety: Sendable {
+        struct DefaultGrapeVariety: Sendable {
+            let id: UUID
             let name: String
             let description: String
-            let color: GrapeVarietyColor
-            let synonyms: [String]
-            
-            init(name: String, description: String, color: GrapeVarietyColor, synonyms: [String]) {
-                self.name = name
-                self.description = description
-                self.color = color
-                self.synonyms = synonyms
-            }
+            let color: DefaultGrapeVarietyColor
+            let synonyms: Set<String>
         }
 
         /// The color of the wine
-        enum WineColor: Codable {
+        enum DefaultWineColor: String, Codable {
             case red
             case white
             case rosé
@@ -158,19 +154,19 @@ private extension Writer {
         }
 
         /// A grape variety used in wine appellations
-        enum GrapeVarietyColor: String, Codable {
+        enum DefaultGrapeVarietyColor: String, Codable {
             case black
             case white
             case pink
             case grey
         }
 
-        // swiftlint:disable line_length
-        /// Pre-populated list of major French wine vineyards with their regions
-        let defaultFrenchVineyards = [
-            \(vineyards.map { formatVineyardCode($0) }.joined(separator: ",\n"))
+        // swiftlint:disable:next blanket_disable_command
+        // swiftlint:disable line_length file_length
+        /// Pre-populated list of French wine appellations
+        let defaultFrenchAppellations = [
+            \(appellations.map { formatAppellationCode($0) }.joined(separator: ",\n"))
         ]
-        // swiftlint:enable line_length
 
         """
     }

@@ -25,7 +25,7 @@ public extension WineBottleEntity {
             abv: abv,
             pictures: pictures,
             bottlingLocation: decodedLocation,
-            grapeVarieties: grapeVarieties.map { $0.toDomain() },
+            grapeVarieties: grapeVarieties.map { try $0.toDomain() },
             winemaker: winemaker?.toDomain(),
             appellation: appellation.toDomain(),
             wineColor: wineColor,
@@ -36,10 +36,17 @@ public extension WineBottleEntity {
 }
 
 public extension GrapeVarietyEntity {
-    func toDomain() -> GrapeVariety {
-        GrapeVariety(
+    func toDomain() throws -> GrapeVariety {
+        guard let grapeColor = GrapeVarietyColor(rawValue: color) else {
+            throw WineInteractorError.badData
+        }
+
+        return GrapeVariety(
             id: id,
             name: name,
+            description: grapeVarietyDescription,
+            color: grapeColor,
+            synonyms: synonyms,
             createdAt: createdAt
         )
     }
@@ -114,6 +121,9 @@ public extension GrapeVariety {
         GrapeVarietyEntity(
             id: id,
             name: name,
+            description: description,
+            color: color.rawValue,
+            synonyms: synonyms,
             createdAt: createdAt
         )
     }
@@ -204,9 +214,18 @@ public extension AppellationEntity {
             throw WineInteractorError.badData
         }
 
+        let domainColors = colors.compactMap(WineColor.init(rawValue:))
+        guard domainColors.count == colors.count else {
+            throw WineInteractorError.badData
+        }
+
         return try Appellation(
             id: id,
             name: name,
+            description: appellationDescription,
+            colors: domainColors,
+            mainGrapeVarieties: (mainGrapeVarieties ?? []).map { try $0.toDomain() },
+            rawWindow: rawWindow,
             region: region.toDomain(),
             createdAt: createdAt
         )
@@ -218,7 +237,11 @@ public extension Appellation {
         try AppellationEntity(
             id: id,
             name: name,
+            description: description,
+            rawWindow: rawWindow,
+            colors: colors.map { $0.rawValue },
             region: region.toEntity(),
+            mainGrapeVarieties: mainGrapeVarieties.map { $0.toEntity() },
             createdAt: createdAt
         )
     }
@@ -259,6 +282,9 @@ public extension VineyardEntity {
         return Vineyard(
             id: id,
             name: name,
+            description: vineyardDescription,
+            soilAndClimate: soilAndClimate,
+            history: history,
             country: country.toDomain(),
             createdAt: createdAt
         )
@@ -270,6 +296,9 @@ public extension Vineyard {
         VineyardEntity(
             id: id,
             name: name,
+            description: description,
+            soilAndClimate: soilAndClimate,
+            history: history,
             country: country.toEntity(),
             createdAt: createdAt
         )

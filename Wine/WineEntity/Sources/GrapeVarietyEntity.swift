@@ -8,13 +8,19 @@ import SwiftData
 public final class GrapeVarietyEntity: IdentifiableEntity {
     @Attribute(.unique) public var id: UUID
     @Attribute public var name: String
+    @Attribute public var grapeVarietyDescription: String
+    @Attribute public var color: String
+    @Attribute public var synonyms: Set<String>
     @Attribute public var createdAt: Date
 
     @Relationship(deleteRule: .nullify, inverse: \WineBottleEntity.grapeVarieties) public var wines: [WineBottleEntity]?
 
-    public init(id: UUID, name: String, createdAt: Date) {
+    public init(id: UUID, name: String, description: String, color: String, synonyms: Set<String>, createdAt: Date) {
         self.id = id
         self.name = name
+        self.grapeVarietyDescription = description
+        self.color = color
+        self.synonyms = synonyms
         self.createdAt = createdAt
     }
 
@@ -27,6 +33,9 @@ public extension GrapeVarietyEntity {
     func update(from entity: GrapeVarietyEntity) {
         // id is immutable, no update needed
         name = entity.name
+        grapeVarietyDescription = entity.grapeVarietyDescription
+        color = entity.color
+        synonyms = entity.synonyms
         createdAt = entity.createdAt
     }
 }

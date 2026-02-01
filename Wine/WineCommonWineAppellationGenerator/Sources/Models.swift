@@ -2,6 +2,7 @@ import Foundation
 
 // MARK: - Data Models
 
+// swiftlint:disable use_dependency_for_uuid
 struct BaseVineyard: Codable {
     let slug: String
 }
@@ -30,6 +31,7 @@ struct PartialGrapeVariety: Codable {
 }
 
 struct Vineyard: Codable {
+    let id = UUID()
     let name: String
     let description: String
     let soilAndClimate: String
@@ -38,11 +40,13 @@ struct Vineyard: Codable {
 }
 
 struct Region: Codable {
+    let id = UUID()
     let name: String
     let appellations: [Appellation]
 }
 
 struct Appellation: Codable {
+    let id = UUID()
     let name: String
     let description: String
     let colors: [WineColor]
@@ -67,6 +71,7 @@ struct AlmostGrapeVariety: Codable {
 }
 
 struct GrapeVariety: Hashable, Codable {
+    let id = UUID()
     let name: String
     let description: String
     let color: GrapeVarietyColor?
@@ -95,3 +100,5 @@ enum WineColor: String, Codable {
     case roséSparkling
     case redSparkling
 }
+
+// swiftlint:enable type_body_length use_dependency_for_uuid

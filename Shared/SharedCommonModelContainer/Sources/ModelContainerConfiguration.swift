@@ -40,6 +40,23 @@ public struct ModelContainerConfigurator: Sendable {
             )
             context.insert(country)
         }
+        let frenchPredicate = #Predicate<CountryEntity> { $0.code == "FR" }
+        guard let france = context.fetch(frenchPredicate).first else {
+            fatalError("Failed to seed default countries: France not found")
+        }
+
+        for frenchAppellation in defaultFrenchAppellations {
+            let appellationEntity = AppellationEntity(
+                fromDefault: frenchAppellation,
+                countryEntity: france
+            )
+
+            appellationEntity.region.vineyard.country = france
+            context.insert(appellationEntity.region.vineyard.country)
+            context.insert(appellationEntity.region.vineyard)
+            context.insert(appellationEntity.region)
+            context.insert(appellationEntity)
+        }
 
         try context.save()
     }
@@ -61,3 +78,67 @@ public extension DependencyValues {
         set { self[ModelContainerConfigurator.self] = newValue }
     }
 }
+
+// MARK: - adapter functions to convert between Default types (such as DefaultWineCountry or DefaultGrapeVariety) to Entity types - keeping IDs consistent
+
+// MARK: Specialized initializers
+
+// swiftlint:disable use_dependency_for_uuid use_dependency_for_date
+
+extension GrapeVarietyEntity {
+    convenience init(fromDefault defaultGrapeVariety: DefaultGrapeVariety) {
+        self.init(
+            id: defaultGrapeVariety.id,
+            name: defaultGrapeVariety.name,
+            description: defaultGrapeVariety.description,
+            color: defaultGrapeVariety.color.rawValue,
+            synonyms: defaultGrapeVariety.synonyms,
+            createdAt: Date()
+        )
+    }
+}
+
+extension AppellationEntity {
+    convenience init(fromDefault defaultAppellation: DefaultWineAppellation, countryEntity: CountryEntity) {
+        self.init(
+            id: defaultAppellation.id,
+            name: defaultAppellation.name,
+            description: defaultAppellation.description,
+            rawWindow: defaultAppellation.rawWindow,
+            colors: defaultAppellation.colors.map(\.rawValue),
+            region: RegionEntity(fromDefault: defaultAppellation.region, countryEntity: countryEntity),
+            mainGrapeVarieties: defaultAppellation.mainGrapeVarieties.map { GrapeVarietyEntity(fromDefault: $0) },
+            createdAt: Date()
+        )
+    }
+}
+
+extension RegionEntity {
+    convenience init(fromDefault defaultRegion: DefaultWineRegion, countryEntity: CountryEntity) {
+        self.init(
+            id: defaultRegion.id,
+            name: defaultRegion.name,
+            vineyard: VineyardEntity(fromDefault: defaultRegion.vineyard,
+                                     countryEntity: countryEntity),
+            createdAt: Date()
+        )
+    }
+}
+
+extension VineyardEntity {
+    convenience init(fromDefault defaultVineyard: DefaultWineVineyard, countryEntity: CountryEntity) {
+        self.init(
+            id: defaultVineyard.id,
+            name: defaultVineyard.name,
+            description: defaultVineyard.description,
+            soilAndClimate: defaultVineyard.soilAndClimate,
+            history: defaultVineyard.history,
+            country: countryEntity,
+            createdAt: Date()
+        )
+    }
+}
+
+// MARK:
+
+// swiftlint:enable use_dependency_for_uuid use_dependency_for_date

@@ -163,12 +163,16 @@ private extension WineFeatureShowWineView.Row where Label == Text {
                                                ],
                                                providerId: 1,
                                                createdAt: Date()),
-        grapeVarieties: [
-            GrapeVariety(id: UUID(), name: "Cabernet Sauvignon", createdAt: Date()),
-            GrapeVariety(id: UUID(), name: "Merlot", createdAt: Date())
-        ],
+        grapeVarieties: [GrapeVariety(name: "Cabernet Sauvignon", description: "zpdoqzpdok", color: .black, synonyms: [])],
         winemaker: Winemaker(id: UUID(), name: "Château Margaux", createdAt: Date()),
-        appellation: Appellation(name: "Médoc", region: Region(name: "Medoc", vineyard: Vineyard(name: "Bordelais", country: Country(name: "France", code: "FR")))),
+        appellation: Appellation(
+            name: "Médoc",
+            description: "zdzdqdqd",
+            colors: [.red],
+            mainGrapeVarieties: [GrapeVariety(name: "Cabernet Sauvignon", description: "zpdoqzpdok", color: .black, synonyms: [])],
+            rawWindow: "10 ans",
+            region: Region(name: "Medoc", vineyard: Vineyard(name: "Bordelais", description: "qdkqpdoqkdop", soilAndClimate: "qzkdqpzodkqpd", history: "o,qdqzpdoq", country: Country(name: "France", code: "FR")))
+        ),
         wineColor: .red,
         sparklingLevel: .tranquille,
         createdAt: Date()

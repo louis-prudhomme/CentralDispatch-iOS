@@ -107,7 +107,7 @@ public struct WineFeatureAddWine {
                 case .selectGrapeVarietiesButtonTapped:
                     let grapeVarietyInteractorDelegate = MultipleChoiceInteractorDelegate<GrapeVariety, WineInteractorError>(
                         fetchChoices: grapeVarietyInteractor.search,
-                        createChoice: { [upsert = grapeVarietyInteractor.upsert] name in await upsert(GrapeVariety(name: name)) },
+                        createChoice: { [upsert = grapeVarietyInteractor.upsert] name in await upsert(GrapeVariety(name: name, description: "", color: .black, synonyms: [])) },
                         getDisplayName: { $0.name }
                     )
                     state.destination = .grapeVarieties(MultipleChoiceSelection<GrapeVariety, WineInteractorError>.State(
