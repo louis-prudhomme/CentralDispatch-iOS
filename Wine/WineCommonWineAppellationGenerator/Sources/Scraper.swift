@@ -123,7 +123,6 @@ enum Scraper {
             guard !data.isEmpty else {
                 throw ScrapperError.emptyData
             }
-            // FIXME: trying to fetch "cliquez pour aller voir la carte" (wrong tab section)
             guard let html = String(data: data, encoding: .utf8) else {
                 throw ScrapperError.invalidEncoding
             }
