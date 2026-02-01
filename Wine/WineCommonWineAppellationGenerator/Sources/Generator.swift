@@ -16,11 +16,19 @@ enum Generator {
             return
         }
 
-        guard let workspacePath else {
+        guard let workspacePath, let workspaceUrl = URL(fileURLWithPath: workspacePath) else {
             CLI.printUsage()
             fatalError("Workspace path is required")
         }
 
+        do {
+            try await fetchAppellations(workspaceUrl: workspaceUrl)
+        } catch {
+            fatalError("Failed to generate appellations: \(error)")
+        }
+    }
+
+    static func fetchAppellations(workspaceUrl: URL) async throws {
         tell("Fetching French wine appellations from Hachette Vins...", level: .info)
 
         do {
@@ -44,7 +52,7 @@ enum Generator {
 
             let swiftCode = Writer.generateSwiftFile(from: vineyards)
 
-            let url = URL(fileURLWithPath: workspacePath).appendingPathComponent(outputPath)
+            let url = workspaceUrl.appendingPathComponent(outputPath)
             tell("Writing to: \(url.path)", level: .info)
 
             do {
