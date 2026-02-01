@@ -15,6 +15,7 @@ disabled_rules:
   - explicit_top_level_acl # Painful
   - nesting # Does not work well with TCA, limits SwiftUI views organization through extensions
   - todo # Does not warrant a lint warning
+  - raw_value_for_camel_cased_codable_enum # d'ont need
   # Styling - handled by SwiftFormat
   - attributes
   - closing_brace
