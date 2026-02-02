@@ -101,4 +101,4 @@ enum WineColor: String, Codable {
     case redSparkling
 }
 
-// swiftlint:enable type_body_length use_dependency_for_uuid
+// swiftlint:enable use_dependency_for_uuid
