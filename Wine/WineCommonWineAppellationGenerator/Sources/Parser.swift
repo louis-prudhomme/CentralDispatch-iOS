@@ -135,7 +135,12 @@ enum Parser {
 
         let rawName = try parseH1(from: doc)
         let name = rawName.split(separator: "/").last.map(String.init) ?? rawName
-        let cleanedName = name.cleaned().capitalizeWineRelatedNames()
+        let isAppellationIgp = rawName.contains("IGP ")
+        let cleanedName = if isAppellationIgp {
+            name.cleaned().capitalizeWineRelatedNames().replacingOccurrences(of: "IGP ", with: "")
+        } else {
+            name.cleaned().capitalizeWineRelatedNames()
+        }
 
         let colorIcons = try doc.select("i[class*='icon-wine']")
         let colors = colorIcons.compactMap { try? parseColor(from: $0) }
@@ -158,6 +163,7 @@ enum Parser {
             description: description,
             colors: uniqueColors,
             mainGrapeVarieties: grapeVarieties ?? [],
+            type: isAppellationIgp ? .igp : .aoc,
             rawWindow: drinkingWindow ?? ""
         )
     }

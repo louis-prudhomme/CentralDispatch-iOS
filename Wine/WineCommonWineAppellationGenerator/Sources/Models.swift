@@ -51,6 +51,7 @@ struct Appellation: Codable, Hashable {
     let description: String
     let colors: [WineColor]
     let mainGrapeVarieties: Set<GrapeVariety>
+    let type: AppellationType
     let rawWindow: String
 }
 
@@ -59,7 +60,13 @@ struct AlmostAppellation: Codable {
     let description: String
     let colors: [WineColor]
     let mainGrapeVarieties: [PartialGrapeVariety]
+    let type: AppellationType
     let rawWindow: String
+}
+
+enum AppellationType: String, Codable {
+    case aoc
+    case igp
 }
 
 struct AlmostGrapeVariety: Codable {

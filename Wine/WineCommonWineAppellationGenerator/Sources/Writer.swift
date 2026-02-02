@@ -27,6 +27,7 @@ private extension Writer {
                 id: UUID(uuidString: \"\(appellation.id)\")!,
                 name: \"\(appellation.name)\",
                 description: \"\(appellation.description)\",
+                type: .\(appellation.type.rawValue),
                 rawWindow: \"\(appellation.rawWindow)\",
                 colors: [\(appellation.colors.map { ".\($0.rawValue)" }.joined(separator: ", "))],
                 mainGrapeVarieties: [
@@ -149,6 +150,7 @@ private extension Writer {
             let id: UUID
             let name: String
             let description: String
+            let type: AppellationType
             let rawWindow: String
             let colors: [DefaultWineColor]
             let mainGrapeVarieties: [DefaultGrapeVariety]
@@ -196,6 +198,12 @@ private extension Writer {
             case white
             case pink
             case grey
+        }
+
+        /// The type of the appellation
+        enum AppellationType: String, Codable {
+            case aoc
+            case igp
         }
 
         // swiftlint:disable:next blanket_disable_command

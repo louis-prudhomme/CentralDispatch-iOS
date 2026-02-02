@@ -226,6 +226,7 @@ enum Generator {
             description: appellation.description,
             colors: appellation.colors,
             mainGrapeVarieties: Set(grapeVarieties),
+            type: appellation.type,
             rawWindow: appellation.rawWindow
         )
     }
