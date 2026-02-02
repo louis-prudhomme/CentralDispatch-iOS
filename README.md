@@ -2,12 +2,11 @@
 
 ## Setup
 
-- Install [Tuist](https://tuist.io/) (v 4.64.0 was used)
+- Install [mise](https://mise.jdx.dev/getting-started.html)
+- Run `mise install` to install dependencies
 - Run `tuist install` to fetch dependencies
 - Run `tuist generate` to generate the Xcode project (it should open Xcode as well)
 - Run the project
-- [optional] Install [SwiftLint](https://github.com/realm/SwiftLint)
-- [optional] Install [SwiftFormat](https://github.com/nicklockwood/SwiftFormat)
 
 ## Goal
 
