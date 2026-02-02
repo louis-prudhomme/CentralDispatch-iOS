@@ -171,7 +171,8 @@ private extension WineFeatureShowWineView.Row where Label == Text {
             colors: [.red],
             mainGrapeVarieties: [GrapeVariety(name: "Cabernet Sauvignon", description: "zpdoqzpdok", color: .black, synonyms: [])],
             rawWindow: "10 ans",
-            region: Region(name: "Medoc", vineyard: Vineyard(name: "Bordelais", description: "qdkqpdoqkdop", soilAndClimate: "qzkdqpzodkqpd", history: "o,qdqzpdoq", country: Country(name: "France", code: "FR")))
+            region: Region(name: "Medoc", vineyard: Vineyard(name: "Bordelais", description: "qdkqpdoqkdop", soilAndClimate: "qzkdqpzodkqpd", history: "o,qdqzpdoq",
+                                                             country: Country(name: "France", code: "FR")))
         ),
         wineColor: .red,
         sparklingLevel: .tranquille,
