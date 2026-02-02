@@ -40,21 +40,51 @@ public struct ModelContainerConfigurator: Sendable {
             )
             context.insert(country)
         }
+
         let frenchPredicate = #Predicate<CountryEntity> { $0.code == "FR" }
-        guard let france = context.fetch(frenchPredicate).first else {
+        let descriptor = FetchDescriptor(predicate: frenchPredicate)
+        guard let france = try context.fetch(descriptor).first else {
             fatalError("Failed to seed default countries: France not found")
+        }
+
+        // Create shared pools to avoid duplicate entities
+        var grapeVarietyCache = [UUID: GrapeVarietyEntity]()
+        var vineyardCache = [UUID: VineyardEntity]()
+        var regionCache = [UUID: RegionEntity]()
+
+        let allGrapeVarieties = defaultFrenchAppellations.flatMap(\.mainGrapeVarieties)
+        for defaultGrapeVariety in allGrapeVarieties {
+            let grapeEntity = GrapeVarietyEntity(fromDefault: defaultGrapeVariety)
+            grapeVarietyCache[grapeEntity.id] = grapeEntity
+            context.insert(grapeEntity)
+        }
+
+        let allVineyards = defaultFrenchAppellations.map(\.region.vineyard)
+        for defaultVineyard in allVineyards {
+            let vineyardEntity = VineyardEntity(fromDefault: defaultVineyard, countryEntity: france)
+            vineyardCache[vineyardEntity.id] = vineyardEntity
+            context.insert(vineyardEntity)
+        }
+
+        let allRegions = defaultFrenchAppellations.map(\.region)
+        for defaultRegion in allRegions {
+            let regionEntity = RegionEntity(
+                fromDefault: defaultRegion,
+                countryEntity: france,
+                vineyardCache: vineyardCache
+            )
+            regionCache[regionEntity.id] = regionEntity
+            context.insert(regionEntity)
         }
 
         for frenchAppellation in defaultFrenchAppellations {
             let appellationEntity = AppellationEntity(
                 fromDefault: frenchAppellation,
-                countryEntity: france
+                countryEntity: france,
+                grapeVarietyCache: grapeVarietyCache,
+                regionCache: regionCache
             )
 
-            appellationEntity.region.vineyard.country = france
-            context.insert(appellationEntity.region.vineyard.country)
-            context.insert(appellationEntity.region.vineyard)
-            context.insert(appellationEntity.region)
             context.insert(appellationEntity)
         }
 
@@ -99,27 +129,26 @@ extension GrapeVarietyEntity {
 }
 
 extension AppellationEntity {
-    convenience init(fromDefault defaultAppellation: DefaultWineAppellation, countryEntity: CountryEntity) {
+    convenience init(fromDefault defaultAppellation: DefaultWineAppellation, countryEntity _: CountryEntity, grapeVarietyCache: [UUID: GrapeVarietyEntity], regionCache: [UUID: RegionEntity]) {
         self.init(
             id: defaultAppellation.id,
             name: defaultAppellation.name,
             description: defaultAppellation.description,
             rawWindow: defaultAppellation.rawWindow,
             colors: defaultAppellation.colors.map(\.rawValue),
-            region: RegionEntity(fromDefault: defaultAppellation.region, countryEntity: countryEntity),
-            mainGrapeVarieties: defaultAppellation.mainGrapeVarieties.map { GrapeVarietyEntity(fromDefault: $0) },
+            region: regionCache[defaultAppellation.region.id]!,
+            mainGrapeVarieties: defaultAppellation.mainGrapeVarieties.compactMap { grapeVarietyCache[$0.id] },
             createdAt: Date()
         )
     }
 }
 
 extension RegionEntity {
-    convenience init(fromDefault defaultRegion: DefaultWineRegion, countryEntity: CountryEntity) {
+    convenience init(fromDefault defaultRegion: DefaultWineRegion, countryEntity _: CountryEntity, vineyardCache: [UUID: VineyardEntity]) {
         self.init(
             id: defaultRegion.id,
             name: defaultRegion.name,
-            vineyard: VineyardEntity(fromDefault: defaultRegion.vineyard,
-                                     countryEntity: countryEntity),
+            vineyard: vineyardCache[defaultRegion.vineyard.id]!,
             createdAt: Date()
         )
     }
@@ -138,7 +167,5 @@ extension VineyardEntity {
         )
     }
 }
-
-// MARK:
 
 // swiftlint:enable use_dependency_for_uuid use_dependency_for_date

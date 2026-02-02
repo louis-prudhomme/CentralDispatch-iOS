@@ -133,7 +133,9 @@ enum Parser {
     static func parseAppellationPage(html: String, appellationName _: String) throws -> AlmostAppellation {
         let doc = try SwiftSoup.parse(html)
 
-        let cleanedName = try parseH1(from: doc)
+        let rawName = try parseH1(from: doc)
+        let name = rawName.split(separator: "/").last.map(String.init) ?? rawName
+        let cleanedName = name.cleaned().capitalizeWineRelatedNames()
 
         let colorIcons = try doc.select("i[class*='icon-wine']")
         let colors = colorIcons.compactMap { try? parseColor(from: $0) }
@@ -156,7 +158,7 @@ enum Parser {
             description: description,
             colors: uniqueColors,
             mainGrapeVarieties: grapeVarieties ?? [],
-            rawWindow: drinkingWindow ?? "Not specified."
+            rawWindow: drinkingWindow ?? ""
         )
     }
 
@@ -196,7 +198,7 @@ enum Parser {
         if !drinkingWindow.isEmpty {
             return drinkingWindow.cleaned()
         }
-        return "Non spécifié"
+        return ""
     }
 
     static func parseAppellationDescription(from element: Element) throws -> String {
@@ -366,7 +368,7 @@ enum Parser {
 
         return AlmostGrapeVariety(
             name: name.cleaned().capitalizeWineRelatedNames(),
-            description: description ?? "No description",
+            description: description ?? "",
             color: color,
             synonyms: synonyms,
             dedicatedPageSlug: dedicatedPageSlug
@@ -407,6 +409,10 @@ private let wordsToLeaveInLowercase = [
     "de", "du", "la", "le", "les", "des", "et", "à", "au", "aux", "sur", "en", "pour", "par", "avec", "sans", "sous", "chez", "l'", "d'"
 ]
 
+private let wordsToUppercase = [
+    "IGP"
+]
+
 private extension String {
     func capitalize(by separators: [Character]) -> String {
         var wordsAndSeparators = [String]()
@@ -431,6 +437,8 @@ private extension String {
             } else {
                 if wordsToLeaveInLowercase.contains(part.lowercased()) {
                     return part.lowercased()
+                } else if wordsToUppercase.contains(part.uppercased()) {
+                    return part.uppercased()
                 } else {
                     return part.prefix(1).uppercased() + part.dropFirst().lowercased()
                 }

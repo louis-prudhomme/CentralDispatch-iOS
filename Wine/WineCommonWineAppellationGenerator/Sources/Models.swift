@@ -30,7 +30,7 @@ struct PartialGrapeVariety: Codable {
     let slug: String
 }
 
-struct Vineyard: Codable {
+struct Vineyard: Codable, Hashable {
     let id = UUID()
     let name: String
     let description: String
@@ -39,13 +39,13 @@ struct Vineyard: Codable {
     let regions: [Region]
 }
 
-struct Region: Codable {
+struct Region: Codable, Hashable {
     let id = UUID()
     let name: String
     let appellations: [Appellation]
 }
 
-struct Appellation: Codable {
+struct Appellation: Codable, Hashable {
     let id = UUID()
     let name: String
     let description: String
