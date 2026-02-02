@@ -14,11 +14,12 @@ public final class GrapeVarietyEntity: IdentifiableEntity {
     @Attribute public var createdAt: Date
 
     @Relationship(deleteRule: .nullify, inverse: \WineBottleEntity.grapeVarieties) public var wines: [WineBottleEntity]?
+    @Relationship(deleteRule: .nullify) public var appellations: [AppellationEntity]?
 
     public init(id: UUID, name: String, description: String, color: String, synonyms: Set<String>, createdAt: Date) {
         self.id = id
         self.name = name
-        self.grapeVarietyDescription = description
+        grapeVarietyDescription = description
         self.color = color
         self.synonyms = synonyms
         self.createdAt = createdAt

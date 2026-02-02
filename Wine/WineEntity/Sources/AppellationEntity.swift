@@ -14,13 +14,13 @@ public final class AppellationEntity: IdentifiableEntity {
     @Attribute public var colors: [String]
 
     @Relationship(deleteRule: .nullify) public var region: RegionEntity?
-    @Relationship(deleteRule: .nullify) public var mainGrapeVarieties: [GrapeVarietyEntity]?
+    @Relationship(deleteRule: .nullify, inverse: \GrapeVarietyEntity.appellations) public var mainGrapeVarieties: [GrapeVarietyEntity]?
     @Relationship(deleteRule: .cascade, inverse: \WineBottleEntity.appellation) public var wines: [WineBottleEntity]?
 
     public init(id: UUID, name: String, description: String, rawWindow: String, colors: [String], region: RegionEntity, mainGrapeVarieties: [GrapeVarietyEntity], createdAt: Date) {
         self.id = id
         self.name = name
-        self.appellationDescription = description
+        appellationDescription = description
         self.rawWindow = rawWindow
         self.colors = colors
         self.region = region
