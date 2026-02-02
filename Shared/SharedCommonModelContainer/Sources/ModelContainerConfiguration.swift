@@ -28,10 +28,28 @@ public struct ModelContainerConfigurator: Sendable {
     /// Seeds the database with default wine-producing countries if the database is empty
     public static func seedDatabaseIfNeeded(from modelContainer: ModelContainer) throws {
         let context = ModelContext(modelContainer)
+        let isSeedingNeeded = try checkIfSeedNeeded(into: context)
+        try insertCountriesIfNeeded(if: isSeedingNeeded, into: context)
+
+        let france = try fetchCountryOrThrow(byCode: "FR", in: context)
+        try insertFrenchAppellations(if: isSeedingNeeded, using: france, in: context)
+
+        try context.save()
+    }
+}
+
+// MARK: - Seeding functions
+
+extension ModelContainerConfigurator {
+    static func checkIfSeedNeeded(into context: ModelContext) throws -> Bool {
         let countryDescriptor = FetchDescriptor<CountryEntity>()
         let existingCountries = try context.fetch(countryDescriptor)
 
-        guard existingCountries.isEmpty else { return }
+        return existingCountries.isEmpty
+    }
+
+    static func insertCountriesIfNeeded(if isNeeded: Bool, into context: ModelContext) throws {
+        guard isNeeded else { return }
 
         for defaultCountry in defaultWineProducingCountries {
             let country = CountryEntity(
@@ -40,57 +58,59 @@ public struct ModelContainerConfigurator: Sendable {
             )
             context.insert(country)
         }
+        try context.save()
+    }
 
-        let frenchPredicate = #Predicate<CountryEntity> { $0.code == "FR" }
-        let descriptor = FetchDescriptor(predicate: frenchPredicate)
+    static func fetchCountryOrThrow(byCode code: String, in context: ModelContext) throws -> CountryEntity {
+        let predicate = #Predicate<CountryEntity> { $0.code == code }
+        let descriptor = FetchDescriptor<CountryEntity>(predicate: predicate)
         guard let france = try context.fetch(descriptor).first else {
-            fatalError("Failed to seed default countries: France not found")
+            fatalError("Failed to seed default countries: \(code) not found")
         }
 
-        // Create shared pools to avoid duplicate entities
-        var grapeVarietyCache = [UUID: GrapeVarietyEntity]()
-        var vineyardCache = [UUID: VineyardEntity]()
-        var regionCache = [UUID: RegionEntity]()
+        return france
+    }
 
-        let allGrapeVarieties = defaultFrenchAppellations.flatMap(\.mainGrapeVarieties)
-        for defaultGrapeVariety in allGrapeVarieties {
-            let grapeEntity = GrapeVarietyEntity(fromDefault: defaultGrapeVariety)
-            grapeVarietyCache[grapeEntity.id] = grapeEntity
+    static func insertFrenchAppellations(if needed: Bool, using france: CountryEntity, in context: ModelContext) throws {
+        let entityCache = AppellationEntityCache()
+
+        defaultFrenchGrapeVarieties.forEach { grapeVariety in
+            let grapeEntity = GrapeVarietyEntity(fromDefault: grapeVariety)
+            entityCache.grapeVarietyCache.set(grapeEntity, forKey: grapeEntity.id)
             context.insert(grapeEntity)
         }
 
-        let allVineyards = defaultFrenchAppellations.map(\.region.vineyard)
-        for defaultVineyard in allVineyards {
-            let vineyardEntity = VineyardEntity(fromDefault: defaultVineyard, countryEntity: france)
-            vineyardCache[vineyardEntity.id] = vineyardEntity
+        defaultFrenchWineVineyards.forEach { vineyard in
+            let vineyardEntity = VineyardEntity(fromDefault: vineyard, countryEntity: france)
+            entityCache.vineyardCache.set(vineyardEntity, forKey: vineyardEntity.id)
             context.insert(vineyardEntity)
         }
 
-        let allRegions = defaultFrenchAppellations.map(\.region)
-        for defaultRegion in allRegions {
+        defaultFrenchWineRegions.forEach { region in
             let regionEntity = RegionEntity(
-                fromDefault: defaultRegion,
+                fromDefault: region,
                 countryEntity: france,
-                vineyardCache: vineyardCache
+                vineyardCache: entityCache.vineyardCache
             )
-            regionCache[regionEntity.id] = regionEntity
+            entityCache.regionCache.set(regionEntity, forKey: regionEntity.id)
             context.insert(regionEntity)
         }
 
-        for frenchAppellation in defaultFrenchAppellations {
+        defaultFrenchAppellations.forEach { appellation in
             let appellationEntity = AppellationEntity(
-                fromDefault: frenchAppellation,
+                fromDefault: appellation,
                 countryEntity: france,
-                grapeVarietyCache: grapeVarietyCache,
-                regionCache: regionCache
+                grapeVarietyCache: entityCache.grapeVarietyCache,
+                regionCache: entityCache.regionCache
             )
 
             context.insert(appellationEntity)
+            entityCache.appellationCache.set(appellationEntity, forKey: appellationEntity.id)
         }
-
-        try context.save()
     }
 }
+
+// MARK: - Dependency
 
 extension ModelContainerConfigurator: DependencyKey {
     public static let liveValue = ModelContainerConfigurator {
@@ -109,11 +129,38 @@ public extension DependencyValues {
     }
 }
 
+// MARK: - Companion types
+
+class Cache<Key: Hashable, Value> {
+    private var storage = [Key: Value]()
+
+    func get(forKey key: Key) -> Value? {
+        storage[key]
+    }
+
+    func set(_ value: Value, forKey key: Key) {
+        storage[key] = value
+    }
+
+    func has(key: Key) -> Bool {
+        storage[key] != nil
+    }
+}
+
+class AppellationEntityCache {
+    var grapeVarietyCache = Cache<UUID, GrapeVarietyEntity>()
+    var vineyardCache = Cache<UUID, VineyardEntity>()
+    var regionCache = Cache<UUID, RegionEntity>()
+    var appellationCache = Cache<UUID, AppellationEntity>()
+
+    init() {}
+}
+
 // MARK: - adapter functions to convert between Default types (such as DefaultWineCountry or DefaultGrapeVariety) to Entity types - keeping IDs consistent
 
 // MARK: Specialized initializers
 
-// swiftlint:disable use_dependency_for_uuid use_dependency_for_date
+// swiftlint:disable use_dependency_for_date
 
 extension GrapeVarietyEntity {
     convenience init(fromDefault defaultGrapeVariety: DefaultGrapeVariety) {
@@ -129,26 +176,28 @@ extension GrapeVarietyEntity {
 }
 
 extension AppellationEntity {
-    convenience init(fromDefault defaultAppellation: DefaultWineAppellation, countryEntity _: CountryEntity, grapeVarietyCache: [UUID: GrapeVarietyEntity], regionCache: [UUID: RegionEntity]) {
+    convenience init(fromDefault defaultAppellation: DefaultWineAppellation, countryEntity _: CountryEntity, grapeVarietyCache: Cache<UUID, GrapeVarietyEntity>, regionCache: Cache<UUID, RegionEntity>) {
         self.init(
             id: defaultAppellation.id,
             name: defaultAppellation.name,
             description: defaultAppellation.description,
             rawWindow: defaultAppellation.rawWindow,
             colors: defaultAppellation.colors.map(\.rawValue),
-            region: regionCache[defaultAppellation.region.id]!,
-            mainGrapeVarieties: defaultAppellation.mainGrapeVarieties.compactMap { grapeVarietyCache[$0.id] },
+            // swiftlint:disable:next force_unwrapping
+            region: regionCache.get(forKey: defaultAppellation.region.id)!,
+            mainGrapeVarieties: defaultAppellation.mainGrapeVarieties.compactMap { grapeVarietyCache.get(forKey: $0.id) },
             createdAt: Date()
         )
     }
 }
 
 extension RegionEntity {
-    convenience init(fromDefault defaultRegion: DefaultWineRegion, countryEntity _: CountryEntity, vineyardCache: [UUID: VineyardEntity]) {
+    convenience init(fromDefault defaultRegion: DefaultWineRegion, countryEntity _: CountryEntity, vineyardCache: Cache<UUID, VineyardEntity>) {
         self.init(
             id: defaultRegion.id,
             name: defaultRegion.name,
-            vineyard: vineyardCache[defaultRegion.vineyard.id]!,
+            // swiftlint:disable:next force_unwrapping
+            vineyard: vineyardCache.get(forKey: defaultRegion.vineyard.id)!,
             createdAt: Date()
         )
     }
@@ -168,4 +217,22 @@ extension VineyardEntity {
     }
 }
 
-// swiftlint:enable use_dependency_for_uuid use_dependency_for_date
+// swiftlint:enable use_dependency_for_date
+
+// MARK: - Helpers
+
+private extension Collection {
+    func unique<T: Hashable>(by discriminator: @escaping (Element) -> T) -> [Element] {
+        var set = Set<T>()
+        var arrayOrdered = [Element]()
+        for value in self {
+            // swiftlint:disable:next for_where
+            if !set.contains(discriminator(value)) {
+                set.insert(discriminator(value))
+                arrayOrdered.append(value)
+            }
+        }
+
+        return arrayOrdered
+    }
+}

@@ -119,13 +119,22 @@ private extension Writer {
             }
         }
 
-        var regions = Set<RegionFlattener>()
+        var flattenedRegions = Set<RegionFlattener>()
         for flattener in registry {
-            regions.insert(RegionFlattener(region: flattener.region, vineyard: flattener.vineyard))
+            flattenedRegions.insert(RegionFlattener(region: flattener.region, vineyard: flattener.vineyard))
         }
 
-        let appellations = registry.map(\.appellation.id).map { id in
+        let appellationProps = registry.map(\.appellation.id).map { id in
             "DefaultWineAppellation.`\(id)`"
+        }.joined(separator: ",\n")
+        let grapeVarietyProps = Generator.grapeVarietyRegistry.map(\.id).map { id in
+            "DefaultGrapeVariety.`\(id)`"
+        }.joined(separator: ",\n")
+        let regionProps = flattenedRegions.map(\.region.id).map { id in
+            "DefaultWineRegion.`\(id)`"
+        }.joined(separator: ",\n")
+        let vineyardProps = vineyards.map(\.id).map { id in
+            "DefaultWineVineyard.`\(id)`"
         }.joined(separator: ",\n")
 
         return """
@@ -192,9 +201,21 @@ private extension Writer {
         // swiftlint:disable:next blanket_disable_command
         // swiftlint:disable line_length file_length
 
+        /// Pre-populated list of grape varieties used in French wine appellations
+        let defaultFrenchGrapeVarieties = [
+            \(grapeVarietyProps)
+        ]
+        /// Pre-populated list of French wine vineyards
+        let defaultFrenchWineVineyards = [
+            \(vineyardProps)
+        ]
+        /// Pre-populated list of wine regions within French vineyards
+        let defaultFrenchWineRegions = [
+            \(regionProps)
+        ]
         /// Pre-populated list of French wine appellations
         let defaultFrenchAppellations = [
-            \(appellations)
+            \(appellationProps)
         ]
 
         extension DefaultGrapeVariety {
@@ -206,7 +227,7 @@ private extension Writer {
         }
 
         extension DefaultWineRegion {
-            \(regions.map(formatStaticRegionCode).joined(separator: "\n\n"))
+            \(flattenedRegions.map(formatStaticRegionCode).joined(separator: "\n\n"))
         }
 
         extension DefaultWineAppellation {
