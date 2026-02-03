@@ -222,6 +222,7 @@ public extension AppellationEntity {
         return try Appellation(
             id: id,
             name: name,
+            type: type,
             description: appellationDescription,
             colors: domainColors,
             mainGrapeVarieties: (mainGrapeVarieties ?? []).map { try $0.toDomain() },
@@ -238,6 +239,7 @@ public extension Appellation {
             id: id,
             name: name,
             description: description,
+            type: type,
             rawWindow: rawWindow,
             colors: colors.map { $0.rawValue },
             region: region.toEntity(),

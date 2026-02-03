@@ -64,29 +64,31 @@ extension ModelContainerConfigurator {
     static func fetchCountryOrThrow(byCode code: String, in context: ModelContext) throws -> CountryEntity {
         let predicate = #Predicate<CountryEntity> { $0.code == code }
         let descriptor = FetchDescriptor<CountryEntity>(predicate: predicate)
-        guard let france = try context.fetch(descriptor).first else {
+        guard let country = try context.fetch(descriptor).first else {
             fatalError("Failed to seed default countries: \(code) not found")
         }
 
-        return france
+        return country
     }
 
-    static func insertFrenchAppellations(if needed: Bool, using france: CountryEntity, in context: ModelContext) throws {
+    static func insertFrenchAppellations(if isNeeded: Bool, using france: CountryEntity, in context: ModelContext) throws {
+        guard isNeeded else { return }
+
         let entityCache = AppellationEntityCache()
 
-        defaultFrenchGrapeVarieties.forEach { grapeVariety in
+        for grapeVariety in defaultFrenchGrapeVarieties {
             let grapeEntity = GrapeVarietyEntity(fromDefault: grapeVariety)
             entityCache.grapeVarietyCache.set(grapeEntity, forKey: grapeEntity.id)
             context.insert(grapeEntity)
         }
 
-        defaultFrenchWineVineyards.forEach { vineyard in
+        for vineyard in defaultFrenchWineVineyards {
             let vineyardEntity = VineyardEntity(fromDefault: vineyard, countryEntity: france)
             entityCache.vineyardCache.set(vineyardEntity, forKey: vineyardEntity.id)
             context.insert(vineyardEntity)
         }
 
-        defaultFrenchWineRegions.forEach { region in
+        for region in defaultFrenchWineRegions {
             let regionEntity = RegionEntity(
                 fromDefault: region,
                 countryEntity: france,
@@ -96,7 +98,7 @@ extension ModelContainerConfigurator {
             context.insert(regionEntity)
         }
 
-        defaultFrenchAppellations.forEach { appellation in
+        for appellation in defaultFrenchAppellations {
             let appellationEntity = AppellationEntity(
                 fromDefault: appellation,
                 countryEntity: france,
@@ -181,6 +183,7 @@ extension AppellationEntity {
             id: defaultAppellation.id,
             name: defaultAppellation.name,
             description: defaultAppellation.description,
+            type: defaultAppellation.type,
             rawWindow: defaultAppellation.rawWindow,
             colors: defaultAppellation.colors.map(\.rawValue),
             // swiftlint:disable:next force_unwrapping

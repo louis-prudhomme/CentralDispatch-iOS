@@ -9,6 +9,7 @@ public final class AppellationEntity: IdentifiableEntity {
     @Attribute(.unique) public var id: UUID
     @Attribute public var name: String
     @Attribute public var appellationDescription: String
+    @Attribute public var type: String?
     @Attribute public var rawWindow: String
     @Attribute public var createdAt: Date
     @Attribute public var colors: [String]
@@ -17,10 +18,11 @@ public final class AppellationEntity: IdentifiableEntity {
     @Relationship(deleteRule: .nullify, inverse: \GrapeVarietyEntity.appellations) public var mainGrapeVarieties: [GrapeVarietyEntity]?
     @Relationship(deleteRule: .cascade, inverse: \WineBottleEntity.appellation) public var wines: [WineBottleEntity]?
 
-    public init(id: UUID, name: String, description: String, rawWindow: String, colors: [String], region: RegionEntity, mainGrapeVarieties: [GrapeVarietyEntity], createdAt: Date) {
+    public init(id: UUID, name: String, description: String, type: String?, rawWindow: String, colors: [String], region: RegionEntity, mainGrapeVarieties: [GrapeVarietyEntity], createdAt: Date) {
         self.id = id
         self.name = name
         appellationDescription = description
+        self.type = type
         self.rawWindow = rawWindow
         self.colors = colors
         self.region = region
@@ -38,6 +40,7 @@ public extension AppellationEntity {
         // id is immutable, no update needed
         name = entity.name
         appellationDescription = entity.appellationDescription
+        type = entity.type
         rawWindow = entity.rawWindow
         colors = entity.colors
         region = entity.region
