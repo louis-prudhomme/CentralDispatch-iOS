@@ -17,15 +17,11 @@ struct AppellationSelectionView: View {
                 }
             }
         }
-        .listStyle(.plain)
-        .searchable(text: $store.searchText)
         .loadable(isLoading: store.isLoading)
         .emptyable(store.suggestedAppellations, searchText: store.searchText, isLoading: store.isLoading) {
             emptyCta
         }
-        .alert($store.scope(state: \.alert, action: \.alert))
-        .navigationTitle("Select an Appellation")
-        .navigationBarTitleDisplayMode(.inline)
+        .searchable(text: $store.searchText)
         .toolbar {
             ToolbarItem(placement: .primaryAction) {
                 Button("Create Appellation", systemImage: "plus") {
@@ -33,6 +29,9 @@ struct AppellationSelectionView: View {
                 }
             }
         }
+        .navigationTitle("Select an Appellation")
+        .navigationBarTitleDisplayMode(.inline)
+        .alert($store.scope(state: \.alert, action: \.alert))
         .onAppear { store.send(.onAppear) }
     }
 
