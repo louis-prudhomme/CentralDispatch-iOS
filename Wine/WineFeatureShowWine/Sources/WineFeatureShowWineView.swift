@@ -39,7 +39,9 @@ public struct WineFeatureShowWineView: View {
             }
 
             Section(header: Text("Data")) {
-                Row(header: "Millesime", text: "\(bottle.millesime)")
+                if let millesime = bottle.millesime {
+                    Row(header: "Millesime", text: "\(millesime)")
+                }
 
                 if let winemaker = bottle.winemaker {
                     Row(header: "Winemaker", text: winemaker.name)
@@ -148,31 +150,37 @@ private extension WineFeatureShowWineView.Row where Label == Text {
 
 #Preview {
     // swiftlint:disable use_dependency_for_date use_dependency_for_uuid
+    let grape = GrapeVariety(name: "Cabernet Sauvignon", description: "zpdoqzpdok", color: .black, synonyms: [])
+    let country = Country(name: "France", code: "FR")
+    let vineyard = Vineyard(name: "Bordelais", description: "qdkqpdoqkdop", soilAndClimate: "qzkdqpzodkqpd", history: "o,qdqzpdoq",
+                           country: country)
+    let region = Region(name: "Medoc", vineyard: vineyard)
+    let winemaker = Winemaker(id: UUID(), name: "Château Margaux", createdAt: Date())
+    let location = WineBottlingLocation(id: UUID(),
+                                        name: "Moulis-en-Médoc",
+                                        coordinates: .init(latitude: 44.8378, longitude: -0.5792),
+                                        administrativeDivisions: [
+                                            .init(type: .country, name: "France", code: "FR"),
+                                            .init(type: .region, name: "Bordeaux", code: "BOD")
+                                        ],
+                                        providerId: 1,
+                                        createdAt: Date())
     let bottle = WineBottle(
         id: UUID(),
         name: "Château Margaux",
         millesime: 2_015,
         abv: 13.5,
         pictures: [Data()],
-        bottlingLocation: WineBottlingLocation(id: UUID(),
-                                               name: "Moulis-en-Médoc",
-                                               coordinates: .init(latitude: 44.8378, longitude: -0.5792),
-                                               administrativeDivisions: [
-                                                   .init(type: .country, name: "France", code: "FR"),
-                                                   .init(type: .region, name: "Bordeaux", code: "BOD")
-                                               ],
-                                               providerId: 1,
-                                               createdAt: Date()),
-        grapeVarieties: [GrapeVariety(name: "Cabernet Sauvignon", description: "zpdoqzpdok", color: .black, synonyms: [])],
-        winemaker: Winemaker(id: UUID(), name: "Château Margaux", createdAt: Date()),
+        bottlingLocation: location,
+        grapeVarieties: [grape],
+        winemaker: winemaker,
         appellation: Appellation(
             name: "Médoc",
             description: "zdzdqdqd",
             colors: [.red],
-            mainGrapeVarieties: [GrapeVariety(name: "Cabernet Sauvignon", description: "zpdoqzpdok", color: .black, synonyms: [])],
+            mainGrapeVarieties: [grape],
             rawWindow: "10 ans",
-            region: Region(name: "Medoc", vineyard: Vineyard(name: "Bordelais", description: "qdkqpdoqkdop", soilAndClimate: "qzkdqpzodkqpd", history: "o,qdqzpdoq",
-                                                             country: Country(name: "France", code: "FR")))
+            region: region
         ),
         wineColor: .red,
         sparklingLevel: .tranquille,

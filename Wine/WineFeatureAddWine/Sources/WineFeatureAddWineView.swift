@@ -100,6 +100,7 @@ public struct WineFeatureAddWineView: View {
             ForEach(1_930 ... currentYear, id: \.self) { year in
                 Text(year.formatted(.number.grouping(.never))).tag(year)
             }
+            Text("None").tag(nil as Int?)
         }
         .pickerStyle(.automatic)
     }

@@ -17,8 +17,10 @@ extension WineInteractor {
         }
 
         let currentYear = calendar.component(.year, from: date())
-        guard domain.millesime <= currentYear else {
-            return .failure(WineInteractorError.millesimeInvalid)
+        if let millesime = domain.millesime {
+            guard millesime <= currentYear else {
+                return .failure(WineInteractorError.millesimeInvalid)
+            }
         }
         guard !domain.grapeVarieties.isEmpty else {
             return .failure(WineInteractorError.grapeVarietyEmpty)

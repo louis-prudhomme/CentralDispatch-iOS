@@ -8,7 +8,7 @@ import SwiftData
 public final class WineBottleEntity: IdentifiableEntity {
     @Attribute(.unique) public var id: UUID
     @Attribute public var name: String
-    @Attribute public var millesime: Int
+    @Attribute public var millesime: Int?
     @Attribute public var abv: Double
     @Attribute public var pictures: [Data]
     @Attribute public var wineColor: String
@@ -24,7 +24,7 @@ public final class WineBottleEntity: IdentifiableEntity {
     public init(
         id: UUID,
         name: String,
-        millesime: Int,
+        millesime: Int?,
         abv: Double,
         pictures: [Data],
         bottlingLocation: WineBottlingLocationEntity,

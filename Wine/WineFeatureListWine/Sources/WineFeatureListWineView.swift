@@ -72,19 +72,22 @@ extension WineFeatureListWineView {
             } label: {
                 HStack {
                     VStack(alignment: .leading, spacing: 4) {
-                        Text(
-                            """
-                            \(Text(bottle.name)) - \
-                            \(Text(bottle.millesime.formatted(.number.grouping(.never)))
-                                .foregroundStyle(.secondary))
-                            """
-                        )
-                        .font(.headline)
+                        if let millesime = bottle.millesime {
+                            Text(
+                                """
+                                \(Text(bottle.name)) - \
+                                \(Text(millesime.formatted(.number.grouping(.never))).foregroundStyle(.secondary))
+                                """
+                            )
+                        } else {
+                            Text(bottle.name)
+                        }
 
                         Text(bottle.grapeVarieties.map(\.name).joined(separator: ", "))
                             .font(.subheadline)
                             .foregroundStyle(.secondary)
                     }
+                    .font(.headline)
 
                     Spacer()
 

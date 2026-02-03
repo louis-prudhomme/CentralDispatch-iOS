@@ -3,7 +3,7 @@ import Foundation
 
 public struct PartialWineBottle: Equatable, Sendable {
     public var name: String
-    public var millesime: Int
+    public var millesime: Int?
     public var abv: Double
     public var winemaker: Winemaker?
     public var grapeVarieties: [GrapeVariety]
@@ -15,7 +15,7 @@ public struct PartialWineBottle: Equatable, Sendable {
 
     public init(
         name: String = "",
-        millesime: Int = 1_997,
+        millesime: Int? = 1_997,
         abv: Double = 12.5,
         winemaker: Winemaker? = nil,
         grapeVarieties: [GrapeVariety] = [],

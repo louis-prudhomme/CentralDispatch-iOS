@@ -5,21 +5,21 @@ import SharedCommonDomain
 public struct WineBottle: Interactable {
     public let id: UUID
     public let name: String
-    public let millesime: Int
+    public let millesime: Int?
     public let abv: Double
     public let pictures: [Data]
     public let bottlingLocation: WineBottlingLocation
-    public let createdAt: Date
     public let winemaker: Winemaker? // TODO: a wine can probably have several winemakers
     public let grapeVarieties: [GrapeVariety]
     public let appellation: Appellation
     public let wineColor: WineColor
     public let sparklingLevel: SparklingLevel
+    public let createdAt: Date
 
     public init(
         id: UUID,
         name: String,
-        millesime: Int,
+        millesime: Int?,
         abv: Double,
         pictures: [Data],
         bottlingLocation: WineBottlingLocation,
@@ -46,7 +46,7 @@ public struct WineBottle: Interactable {
 }
 
 public extension WineBottle {
-    init(name: String, millesime: Int, abv: Double, pictures: [Data], bottlingLocation: WineBottlingLocation, grapeVarieties: [GrapeVariety], winemaker: Winemaker?, appellation: Appellation, wineColor: WineColor, sparklingLevel: SparklingLevel) {
+    init(name: String, millesime: Int?, abv: Double, pictures: [Data], bottlingLocation: WineBottlingLocation, grapeVarieties: [GrapeVariety], winemaker: Winemaker?, appellation: Appellation, wineColor: WineColor, sparklingLevel: SparklingLevel) {
         @Dependency(\.uuid) var uuid
         @Dependency(\.date) var date
 
