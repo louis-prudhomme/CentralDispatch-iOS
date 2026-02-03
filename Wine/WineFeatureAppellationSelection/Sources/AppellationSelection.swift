@@ -55,7 +55,6 @@ public struct AppellationSelection {
 
                 case .binding(\.searchText):
                     guard !state.searchText.isEmpty else {
-                        state.suggestedAppellations = []
                         return .none
                     }
 
