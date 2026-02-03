@@ -135,7 +135,7 @@ enum Parser {
 
         let rawName = try parseH1(from: doc)
         let name = rawName.split(separator: "/").last.map(String.init) ?? rawName
-        let isAppellationIgp = rawName.contains("IGP ")
+        let isAppellationIgp = rawName.lowercased().contains("igp ")
         let cleanedName = if isAppellationIgp {
             name.cleaned().capitalizeWineRelatedNames().replacingOccurrences(of: "IGP ", with: "")
         } else {
