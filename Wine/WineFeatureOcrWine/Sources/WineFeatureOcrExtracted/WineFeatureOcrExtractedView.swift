@@ -31,33 +31,13 @@ public struct WineFeatureOcrExtractedView: View {
 
     private var capturedImageView: some View {
         Section {
-            if store.capturedImages.isEmpty {
-                ContentUnavailableView("No pictures captured yet.", systemImage: "camera", description: Text("Trying taking some!"))
-            } else {
-                HStack {
-                    let picturesArray = Array(store.capturedImages)
-                    ForEach(picturesArray.indices, id: \.self) { index in
-                        Picture(
-                            data: picturesArray[index],
-                            index: index
-                        ) { store.send(.removePictureButtonTapped(picturesArray[index])) }
-                    }
-                }
-            }
-
-            HStack(spacing: 12) {
-                Button { store.send(.selectPictureFromCameraButtonTapped) } label: {
-                    Label("Camera", systemImage: "camera")
-                        .frame(maxWidth: .infinity)
-                }
-                .buttonStyle(.bordered)
-
-                Button { store.send(.selectPictureFromLibraryButtonTapped) } label: {
-                    Label("Library", systemImage: "photo.on.rectangle")
-                        .frame(maxWidth: .infinity)
-                }
-                .buttonStyle(.bordered)
-            }
+            PictureSelectionView(
+                pictures: Array(store.capturedImages),
+                showRemoveButton: true,
+                onCameraSelect: { store.send(.selectPictureFromCameraButtonTapped) },
+                onLibrarySelect: { store.send(.selectPictureFromLibraryButtonTapped) },
+                onRemovePicture: { store.send(.removePictureButtonTapped($0)) }
+            )
         }
     }
 
@@ -173,44 +153,6 @@ public struct WineFeatureOcrExtractedView: View {
 
 // MARK: - Components
 
-private struct Picture: View {
-    let data: Data
-    let index: Int
-    let removeAction: () -> Void
-
-    var body: some View {
-        if let image = Image(data: data, label: pictureAccessibilityLabel(index: index)) {
-            image
-                .resizable()
-                .scaledToFill()
-                .frame(width: 100, height: 175)
-                .clipped()
-                .clipShape(RoundedRectangle(cornerRadius: 12))
-                .accessibilityLabel(pictureAccessibilityLabel(index: index))
-                .overlay(alignment: .topTrailing) {
-                    Button("Remove picture \(index + 1)", systemImage: "xmark.circle.fill", role: .destructive) {
-                        removeAction()
-                    }
-                    .labelStyle(.iconOnly)
-                    .buttonStyle(.borderless)
-                    .padding(4)
-                }
-        } else {
-            RoundedRectangle(cornerRadius: 12)
-                .frame(width: 100, height: 175)
-                .foregroundStyle(Material.regular)
-                .overlay {
-                    Label("Couldn't load picture.", systemImage: "photo.trianglebadge.exclamationmark.fill")
-                        .labelStyle(.iconOnly)
-                }
-        }
-    }
-
-    private func pictureAccessibilityLabel(index: Int) -> String {
-        "Picture \(index + 1) of the wine bottle"
-    }
-}
-
 private struct ExtractedDataRow<Label: View>: View {
     let label: String
     let value: String?
@@ -302,12 +244,4 @@ private extension View {
             }
         )
     }
-}
-
-#Preview {
-    HStack {
-        Picture(data: Data(), index: 2, removeAction: {})
-    }
-    .frame(maxWidth: .infinity, maxHeight: .infinity)
-    .background(.pink)
 }

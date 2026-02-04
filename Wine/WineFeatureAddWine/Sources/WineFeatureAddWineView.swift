@@ -170,43 +170,12 @@ public struct WineFeatureAddWineView: View {
     }
 
     var pictureSelection: some View {
-        VStack(spacing: 12) {
-            HStack {
-                ForEach(store.partialWine.pictures.indices, id: \.self) { index in
-                    if let image = Image(data: store.partialWine.pictures[index], label: pictureAccessibilityLabel(index: index)) {
-                        image
-                            .resizable()
-                            .scaledToFit()
-                            .frame(maxHeight: 200)
-                            .clipShape(RoundedRectangle(cornerRadius: 12))
-                            .accessibilityLabel(pictureAccessibilityLabel(index: index))
-                    }
-                }
-            }
-
-            HStack(spacing: 12) {
-                Button { store.send(.selectPictureFromCameraButtonTapped) } label: {
-                    Label("Camera", systemImage: "camera")
-                        .frame(maxWidth: .infinity)
-                }
-                .buttonStyle(.bordered)
-
-                Button { store.send(.selectPictureFromLibraryButtonTapped) } label: {
-                    Label("Library", systemImage: "photo.on.rectangle")
-                        .frame(maxWidth: .infinity)
-                }
-                .buttonStyle(.bordered)
-            }
-        }
-        .padding(.vertical, 8)
-    }
-
-    private func pictureAccessibilityLabel(index: Int) -> String {
-        if !store.partialWine.name.isEmpty {
-            "Picture \(index + 1) of \(store.partialWine.name)"
-        } else {
-            "Picture \(index + 1) of the wine bottle"
-        }
+        PictureSelectionView(
+            pictures: store.partialWine.pictures,
+            wineName: store.partialWine.name,
+            onCameraSelect: { store.send(.selectPictureFromCameraButtonTapped) },
+            onLibrarySelect: { store.send(.selectPictureFromLibraryButtonTapped) }
+        )
     }
 }
 
