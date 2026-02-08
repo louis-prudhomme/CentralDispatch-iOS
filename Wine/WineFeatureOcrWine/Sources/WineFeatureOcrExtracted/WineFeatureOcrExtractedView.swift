@@ -66,41 +66,22 @@ public struct WineFeatureOcrExtractedView: View {
     private var editableInformation: some View {
         Section("Editable information") {
             ForEach(Array(store.extractedData.enumerated()), id: \.offset) { index, _ in
-                VStack {
-                    HStack(alignment: .center, spacing: 8) {
-                        Text(emoji(for: store.extractedData[index].type))
-                            .font(.title3)
-                            .frame(width: 32, alignment: .center)
-
-                        TextField("Extracted text", text: $store.extractedData[index].string)
-                            .lineLimit(2)
-                            .textFieldStyle(.roundedBorder)
-                            .font(.caption)
-
-                        Picker("Type", selection: $store.extractedData[index].type) {
-                            ForEach(ExtractedStringType.allCases) { type in
-                                Text(type.rawValue).tag(type)
+                EditableDataRow(store: $store, index: index)
+                    .swipeActions(edge: .leading, allowsFullSwipe: false) {
+                        Button("Split", systemImage: "rectangle.split.2x1") {
+                            store.send(.splitExtractedString(at: index))
+                        }
+                        if index != 0 {
+                            Button("Merge with top", systemImage: "arrow.trianglehead.merge") {
+                                store.send(.mergeExtractedStringWithPrevious(at: index))
                             }
                         }
-                        .labelsHidden()
-                        .pickerStyle(.menu)
                     }
-                }
-                .swipeActions(edge: .leading, allowsFullSwipe: false) {
-                    Button("Split", systemImage: "rectangle.split.2x1") {
-                        store.send(.splitExtractedString(at: index))
-                    }
-                    if index != 0 {
-                        Button("Merge with top", systemImage: "arrow.trianglehead.merge") {
-                            store.send(.mergeExtractedStringWithPrevious(at: index))
+                    .swipeActions(edge: .trailing) {
+                        Button("Remove", systemImage: "trash", role: .destructive) {
+                            store.send(.deleteExtractedString(at: index))
                         }
                     }
-                }
-                .swipeActions(edge: .trailing) {
-                    Button("Remove", systemImage: "trash", role: .destructive) {
-                        store.send(.deleteExtractedString(at: index))
-                    }
-                }
             }
         }
     }
@@ -117,17 +98,6 @@ public struct WineFeatureOcrExtractedView: View {
                     icon: emoji(for: type)
                 )
             }
-        }
-    }
-
-    private func emoji(for type: ExtractedStringType) -> String {
-        switch type {
-            case .grapeVariety: return "🍇"
-            case .appellation: return "🌱"
-            case .winemaker: return "👨‍🌾"
-            case .bottlingLocation: return "📍"
-            case .name: return "🏷️"
-            case .notKept: return "✖️"
         }
     }
 
@@ -165,6 +135,32 @@ public struct WineFeatureOcrExtractedView: View {
 }
 
 // MARK: - Components
+
+private struct EditableDataRow: View {
+    @Bindable var store: StoreOf<WineFeatureOcrExtracted>
+    let index: Int
+
+    var body: some View {
+        HStack(alignment: .center, spacing: 8) {
+            Text(emoji(for: store.extractedData[index].type))
+                .font(.title3)
+                .frame(width: 32, alignment: .center)
+
+            TextField("Extracted text", text: $store.extractedData[index].string)
+                .lineLimit(2)
+                .textFieldStyle(.roundedBorder)
+                .font(.caption)
+
+            Picker("Type", selection: $store.extractedData[index].type) {
+                ForEach(ExtractedStringType.allCases) { type in
+                    Text(type.rawValue).tag(type)
+                }
+            }
+            .labelsHidden()
+            .pickerStyle(.menu)
+        }
+    }
+}
 
 private struct ExtractedDataRow<Label: View>: View {
     let label: String
@@ -232,6 +228,17 @@ private extension View {
         } `else`: {
             $0.labelStyle(.iconOnly)
         }
+    }
+}
+
+private func emoji(for type: ExtractedStringType) -> String {
+    switch type {
+        case .grapeVariety: return "🍇"
+        case .appellation: return "🌱"
+        case .winemaker: return "👨‍🌾"
+        case .bottlingLocation: return "📍"
+        case .name: return "🏷️"
+        case .notKept: return "✖️"
     }
 }
 
