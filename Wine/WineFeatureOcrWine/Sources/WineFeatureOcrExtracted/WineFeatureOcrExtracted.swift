@@ -23,8 +23,7 @@ public struct WineFeatureOcrExtracted {
         var abv: Double?
         var millesime: Int?
 
-        var extractedData: [String]
-        var extractedStringTypes: [ExtractedStringType]
+        var extractedData: [ExtractedDatum]
 
         var isLoading = false
         var isDisabled = false
@@ -33,11 +32,10 @@ public struct WineFeatureOcrExtracted {
 
         public init(capturedImage: Data, extractedData: WineExtractedData) {
             capturedImages = [capturedImage]
-            self.extractedData = extractedData.extractedStrings
+            self.extractedData = extractedData.extractedStrings.map { ExtractedDatum(string: $0, type: .notKept) }
             millesime = extractedData.millesime
             abv = extractedData.abv
             initialExtractedData = extractedData
-            extractedStringTypes = Array(repeating: .notKept, count: extractedData.extractedStrings.count)
         }
     }
 
@@ -49,6 +47,10 @@ public struct WineFeatureOcrExtracted {
         case additionalPictureSelected(Result<[Data], PictureClientError>)
         case additionalOcrPerformed(Result<OcrExtractedData, OcrClientError>)
         case extractedDataPrefetchFinished(Result<PrefetchedData, WineInteractorError>)
+
+        case deleteExtractedString(at: Int)
+        case splitExtractedString(at: Int)
+        case mergeExtractedStringWithPrevious(at: Int)
 
         case alert(PresentationAction<Never>)
         case binding(BindingAction<State>)
@@ -200,12 +202,35 @@ public struct WineFeatureOcrExtracted {
                     state.isLoading = false
                     return .none
 
+                case let .deleteExtractedString(at: index):
+                    state.extractedData.remove(at: index)
+                    return .none
+
+                case let .splitExtractedString(at: index):
+                    let toSplit = state.extractedData[index]
+                    let rawParts = toSplit
+                        .string
+                        .split(separator: " ")
+                        .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+                        .filter { !$0.isEmpty }
+                    let parts = rawParts.map { ExtractedDatum(string: $0, type: .notKept) }
+                    state.extractedData.remove(at: index)
+                    state.extractedData.insert(contentsOf: parts, at: index)
+                    return .none
+
+                case let .mergeExtractedStringWithPrevious(at: index):
+                    let toMerge = state.extractedData[index].string
+                    let previous = state.extractedData[index - 1].string
+                    state.extractedData.remove(at: index)
+                    state.extractedData[index - 1].string = "\(previous) \(toMerge)"
+                    return .none
+
                 case .alert:
                     return .none
 
-                case .binding(\.extractedStringTypes):
+                case .binding(\.extractedData):
                     let uniqueTags: [ExtractedStringType] = [.appellation, .name, .bottlingLocation, .winemaker]
-                    let uniqueTagsCount = state.extractedStringTypes.reduce(into: [ExtractedStringType: Int]()) { counts, type in
+                    let uniqueTagsCount = state.extractedData.map(\.type).reduce(into: [ExtractedStringType: Int]()) { counts, type in
                         if uniqueTags.contains(type) {
                             counts[type, default: 0] += 1
                         }
@@ -233,6 +258,11 @@ public struct WineFeatureOcrExtracted {
 
 // MARK: - Companion types
 
+struct ExtractedDatum: Equatable {
+    var string: String
+    var type: ExtractedStringType
+}
+
 public enum ExtractedStringType: String, CaseIterable, Equatable, Codable, Identifiable {
     case grapeVariety = "Grape Variety"
     case appellation = "Appellation"
@@ -259,16 +289,7 @@ public struct PrefetchedData {
 
 extension WineFeatureOcrExtracted.State {
     func getStrings(for wantedType: ExtractedStringType) -> [String] {
-        extractedStringTypes
-            .enumerated()
-            .compactMap { index, type in
-                type == wantedType ? extractedData[index] : nil
-            }
-            .map {
-                $0
-                    .trimmingCharacters(in: .whitespacesAndNewlines)
-                    .capitalized
-            }
+        extractedData.filter { $0.type == wantedType }.map(\.string)
     }
 
     var extractedGrapeVarieties: [String] {
@@ -297,7 +318,7 @@ extension WineFeatureOcrExtracted.State {
 extension WineFeatureOcrExtracted.State {
     var extractedWineColor: WineColor? {
         for data in extractedData {
-            let lowercased = data.lowercased()
+            let lowercased = data.string.lowercased()
 
             if lowercased.contains("red") || lowercased.contains("rouge") {
                 return .red
@@ -314,30 +335,19 @@ extension WineFeatureOcrExtracted.State {
 
 // MARK: Merge additional data
 
-private extension WineExtractedData {
-    func mergeWith(other: OcrExtractedData) -> WineExtractedData {
-        WineExtractedData(
-            millesime: millesime ?? other.millesime,
-            abv: abv ?? other.abv,
-            extractedStrings: extractedStrings + other.extractedStrings
-        )
-    }
-}
-
 private extension WineFeatureOcrExtracted.State {
     func mergeWith(_ other: OcrExtractedData) -> Self {
-        var newState = self
-        let mergedData = initialExtractedData.mergeWith(other: other)
-        newState.initialExtractedData = mergedData
-        newState.extractedData = mergedData.extractedStrings
-        if let newMillesime = mergedData.millesime {
-            newState.millesime = newMillesime
+        var mergedState = self
+        if let newMillesime = other.millesime {
+            mergedState.millesime = newMillesime
         }
-        if let newAbv = mergedData.abv {
-            newState.abv = newAbv
+        if let newAbv = other.abv {
+            mergedState.abv = newAbv
         }
-        newState.extractedStringTypes += Array(repeating: .notKept, count: other.extractedStrings.count)
-        return newState
+        let newData = other.extractedStrings.map { ExtractedDatum(string: $0, type: .notKept) }
+        mergedState.extractedData.append(contentsOf: newData)
+
+        return mergedState
     }
 }
 

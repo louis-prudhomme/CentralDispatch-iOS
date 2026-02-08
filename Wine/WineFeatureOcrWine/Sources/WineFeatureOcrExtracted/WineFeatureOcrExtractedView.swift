@@ -68,24 +68,37 @@ public struct WineFeatureOcrExtractedView: View {
             ForEach(Array(store.extractedData.enumerated()), id: \.offset) { index, _ in
                 VStack {
                     HStack(alignment: .center, spacing: 8) {
-                        Text("Extracted text")
-
-                        TextField("Extracted text", text: $store.extractedData[index])
-                            .textFieldStyle(.roundedBorder)
-                            .font(.caption)
-                    }
-
-                    HStack(alignment: .center, spacing: 8) {
-                        Text(emoji(for: store.extractedStringTypes[index]))
+                        Text(emoji(for: store.extractedData[index].type))
                             .font(.title3)
                             .frame(width: 32, alignment: .center)
 
-                        Picker("Type", selection: $store.extractedStringTypes[index]) {
+                        TextField("Extracted text", text: $store.extractedData[index].string)
+                            .lineLimit(2)
+                            .textFieldStyle(.roundedBorder)
+                            .font(.caption)
+
+                        Picker("Type", selection: $store.extractedData[index].type) {
                             ForEach(ExtractedStringType.allCases) { type in
                                 Text(type.rawValue).tag(type)
                             }
                         }
+                        .labelsHidden()
                         .pickerStyle(.menu)
+                    }
+                }
+                .swipeActions(edge: .leading, allowsFullSwipe: false) {
+                    Button("Split", systemImage: "rectangle.split.2x1") {
+                        store.send(.splitExtractedString(at: index))
+                    }
+                    if index != 0 {
+                        Button("Merge with top", systemImage: "arrow.trianglehead.merge") {
+                            store.send(.mergeExtractedStringWithPrevious(at: index))
+                        }
+                    }
+                }
+                .swipeActions(edge: .trailing) {
+                    Button("Remove", systemImage: "trash", role: .destructive) {
+                        store.send(.deleteExtractedString(at: index))
                     }
                 }
             }
@@ -236,7 +249,7 @@ private extension View {
                         "Château Margaux",
                         "2015",
                         "13.5% ABV",
-                        "Bordeaux, France"
+                        "Bordeaux, France super long text which doubtless will be truncated"
                     ]
                 )
             )) {
