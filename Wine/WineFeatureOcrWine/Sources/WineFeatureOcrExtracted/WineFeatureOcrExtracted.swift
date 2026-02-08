@@ -27,6 +27,10 @@ public struct WineFeatureOcrExtracted {
 
         var isLoading = false
         var isDisabled = false
+        var extractedDataBeforeEditing: [ExtractedDatum]?
+        var isEditing: Bool {
+            extractedDataBeforeEditing != nil
+        }
 
         @Presents var alert: AlertState<Never>?
 
@@ -47,6 +51,10 @@ public struct WineFeatureOcrExtracted {
         case additionalPictureSelected(Result<[Data], PictureClientError>)
         case additionalOcrPerformed(Result<OcrExtractedData, OcrClientError>)
         case extractedDataPrefetchFinished(Result<PrefetchedData, WineInteractorError>)
+
+        case editButtonTapped
+        case cancelEditingButtonTapped
+        case doneEditingButtonTapped
 
         case deleteExtractedString(at: Int)
         case splitExtractedString(at: Int)
@@ -200,6 +208,19 @@ public struct WineFeatureOcrExtracted {
                         TextState([errorMessage, error.localizedDescription].joined(separator: "\n"))
                     }
                     state.isLoading = false
+                    return .none
+
+                case .editButtonTapped:
+                    state.extractedDataBeforeEditing = state.extractedData
+                    return .none
+
+                case .cancelEditingButtonTapped:
+                    state.extractedData = state.extractedDataBeforeEditing ?? state.extractedData
+                    state.extractedDataBeforeEditing = nil
+                    return .none
+
+                case .doneEditingButtonTapped:
+                    state.extractedDataBeforeEditing = nil
                     return .none
 
                 case let .deleteExtractedString(at: index):

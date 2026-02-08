@@ -18,15 +18,20 @@ public struct WineFeatureOcrExtractedView: View {
 
     private var extractionResultView: some View {
         List {
-            capturedImageView
+            if !store.isEditing {
+                capturedImageView
 
-            likelyCorrectInformation
+                likelyCorrectInformation
+            }
 
             editableInformation
 
-            taggedDataPresentation
+            if !store.isEditing {
+                taggedDataPresentation
+            }
         }
-        .toolbar { actionButtons }
+        .toolbar { toolbar }
+        .navigationBarBackButtonHidden(store.isEditing)
     }
 
     private var capturedImageView: some View {
@@ -66,7 +71,7 @@ public struct WineFeatureOcrExtractedView: View {
     private var editableInformation: some View {
         Section("Editable information") {
             ForEach(Array(store.extractedData.enumerated()), id: \.offset) { index, _ in
-                EditableDataRow(store: $store, index: index)
+                EditableDataRow(store: store, index: index)
                     .swipeActions(edge: .leading, allowsFullSwipe: false) {
                         Button("Split", systemImage: "rectangle.split.2x1") {
                             store.send(.splitExtractedString(at: index))
@@ -113,7 +118,28 @@ public struct WineFeatureOcrExtractedView: View {
         store.capturedImages.count < 2
     }
 
-    @ToolbarContentBuilder private var actionButtons: some ToolbarContent {
+    @ToolbarContentBuilder private var toolbar: some ToolbarContent {
+        if store.isEditing {
+            editingToolbar
+        } else {
+            viewToolbar
+        }
+    }
+
+    @ToolbarContentBuilder private var editingToolbar: some ToolbarContent {
+        ToolbarItem(placement: .confirmationAction) {
+            Button("Done") {
+                store.send(.doneEditingButtonTapped, animation: .default)
+            }
+        }
+        ToolbarItem(placement: .cancellationAction) {
+            Button("Cancel", role: .destructive) {
+                store.send(.cancelEditingButtonTapped, animation: .default)
+            }
+        }
+    }
+
+    @ToolbarContentBuilder private var viewToolbar: some ToolbarContent {
         ToolbarItemGroup(placement: .bottomBar) {
             Button(addAnotherPictureLabel, systemImage: "photo.badge.plus") {
                 store.send(.selectPictureFromCameraButtonTapped)
@@ -130,6 +156,12 @@ public struct WineFeatureOcrExtractedView: View {
             .modulableButtonStyle(isPrimary: !shouldPutForwardTakingAnotherPicture)
             .modulableLabelStyle(isPrimary: !shouldPutForwardTakingAnotherPicture)
             .id("continueButton \(store.isDisabled) \(store.isLoading)")
+        }
+
+        ToolbarItem(placement: .topBarTrailing) {
+            Button("Edit", systemImage: "pencil") {
+                store.send(.editButtonTapped, animation: .default)
+            }
         }
     }
 }
