@@ -24,6 +24,10 @@ public struct WineFeatureOcrExtractedView: View {
                 likelyCorrectInformation
             }
 
+            if store.isEditing {
+                editionTip
+            }
+
             editableInformation
 
             if !store.isEditing {
@@ -34,6 +38,14 @@ public struct WineFeatureOcrExtractedView: View {
         .navigationBarBackButtonHidden(store.isEditing)
     }
 
+    private var editionTip: some View {
+        HStack(alignment: .firstTextBaseline) {
+            Image(systemName: "lightbulb")
+                .foregroundStyle(.yellow, .primary)
+            Text("You can also swipe items on the left or on the right on the previous secreen.")
+        }
+    }
+
     private var capturedImageView: some View {
         Section {
             PictureSelectionView(
@@ -41,7 +53,7 @@ public struct WineFeatureOcrExtractedView: View {
                 showRemoveButton: true,
                 onCameraSelect: { store.send(.selectPictureFromCameraButtonTapped) },
                 onLibrarySelect: { store.send(.selectPictureFromLibraryButtonTapped) },
-                onRemovePicture: { store.send(.removePictureButtonTapped($0)) }
+                onRemovePicture: { store.send(.removePictureButtonTapped($0), animation: .default) }
             )
         }
     }
@@ -71,22 +83,42 @@ public struct WineFeatureOcrExtractedView: View {
     private var editableInformation: some View {
         Section("Editable information") {
             ForEach(Array(store.extractedData.enumerated()), id: \.offset) { index, _ in
-                EditableDataRow(store: store, index: index)
-                    .swipeActions(edge: .leading, allowsFullSwipe: false) {
-                        Button("Split", systemImage: "rectangle.split.2x1") {
-                            store.send(.splitExtractedString(at: index))
+                HStack(alignment: .center, spacing: 8) {
+                    if !store.isEditing {
+                        Text(emoji(for: store.extractedData[index].type))
+                            .font(.title3)
+                            .frame(width: 32, alignment: .center)
+                    }
+                    if store.isEditing {
+                        let isSelected = store.selectedIndexes.contains(index)
+                        Toggle(isOn: Binding(
+                            get: { isSelected },
+                            set: { store.send(.rowSelectionToggled(index, $0)) }
+                        )) {
+                            let systemImage = isSelected ? "checkmark.circle.fill" : "circle"
+                            Label("Select \(store.extractedData[index].string)", systemImage: systemImage)
                         }
-                        if index != 0 {
-                            Button("Merge with top", systemImage: "arrow.trianglehead.merge") {
-                                store.send(.mergeExtractedStringWithPrevious(at: index))
+                        .labelStyle(.iconOnly)
+                        .toggleStyle(.button)
+                        .buttonStyle(.plain)
+                    }
+
+                    TextField("Extracted text", text: $store.extractedData[index].string)
+                        .lineLimit(2)
+                        .textFieldStyle(.roundedBorder)
+                        .font(.caption)
+
+                    if !store.isEditing {
+                        Picker("Type", selection: $store.extractedData[index].type) {
+                            ForEach(ExtractedStringType.allCases) { type in
+                                Text(type.rawValue).tag(type)
                             }
                         }
+                        .labelsHidden()
+                        .pickerStyle(.menu)
                     }
-                    .swipeActions(edge: .trailing) {
-                        Button("Remove", systemImage: "trash", role: .destructive) {
-                            store.send(.deleteExtractedString(at: index))
-                        }
-                    }
+                }
+                .extractedDataSwipeActions(using: store, for: index)
             }
         }
     }
@@ -132,33 +164,65 @@ public struct WineFeatureOcrExtractedView: View {
                 store.send(.doneEditingButtonTapped, animation: .default)
             }
         }
+
         ToolbarItem(placement: .cancellationAction) {
             Button("Cancel", role: .destructive) {
                 store.send(.cancelEditingButtonTapped, animation: .default)
             }
         }
+
+        ToolbarItemGroup(placement: .bottomBar) {
+            if !store.selectedIndexes.isEmpty {
+                if let selected = store.selectedIndexes.first {
+                    if store.selectedIndexes.count == 1 {
+                        Button("Merge", systemImage: "arrow.trianglehead.merge") {
+                            store.send(.mergeExtractedStringWithPrevious(at: selected), animation: .default)
+                        }
+                    } else {
+                        Button("Merge", systemImage: "arrow.down.and.line.horizontal.and.arrow.up") {
+                            store.send(.mergeSelectedButtonTapped, animation: .default)
+                        }
+                    }
+
+                    Button("Split", systemImage: "arrow.up.and.line.horizontal.and.arrow.down") {
+                        store.send(.splitExtractedString(at: selected), animation: .default)
+                    }
+                    .disabled(store.selectedIndexes.count != 1)
+                }
+
+                Button("Delete (\(store.selectedIndexes.count))", systemImage: "trash", role: .destructive) {
+                    store.send(.deleteSelectedButtonTapped, animation: .default)
+                }
+            }
+        }
     }
 
     @ToolbarContentBuilder private var viewToolbar: some ToolbarContent {
-        ToolbarItemGroup(placement: .bottomBar) {
-            Button(addAnotherPictureLabel, systemImage: "photo.badge.plus") {
-                store.send(.selectPictureFromCameraButtonTapped)
-            }
-            .controlSize(.large)
-            .modulableButtonStyle(isPrimary: shouldPutForwardTakingAnotherPicture)
-            .modulableLabelStyle(isPrimary: shouldPutForwardTakingAnotherPicture)
-            .id("addAnotherPictureButton")
-
-            CellarButton("Continue", systemImage: "arrow.right", isLoading: store.isLoading, isDisabled: store.isDisabled) {
+        ToolbarItemGroup(placement: .confirmationAction) {
+            CellarButton("Continue", isLoading: store.isLoading, isDisabled: store.isDisabled) {
                 store.send(.confirmExtractionButtonTapped)
             }
-            .controlSize(.large)
-            .modulableButtonStyle(isPrimary: !shouldPutForwardTakingAnotherPicture)
-            .modulableLabelStyle(isPrimary: !shouldPutForwardTakingAnotherPicture)
-            .id("continueButton \(store.isDisabled) \(store.isLoading)")
         }
 
-        ToolbarItem(placement: .topBarTrailing) {
+        if store.capturedImages.count < 2 {
+            ToolbarItemGroup(placement: .bottomBar) {
+                Button("Add a second picture from your camera", systemImage: "camera") {
+                    store.send(.selectPictureFromCameraButtonTapped)
+                }
+                .labelStyle(.titleAndIcon)
+
+                Button("Add a second picture from your library", systemImage: "photo.badge") {
+                    store.send(.selectPictureFromLibraryButtonTapped)
+                }
+                .labelStyle(.titleAndIcon)
+            }
+        }
+
+        if #available(iOS 26.0, *) {
+            ToolbarSpacer(placement: .bottomBar)
+        }
+
+        ToolbarItem(placement: .bottomBar) {
             Button("Edit", systemImage: "pencil") {
                 store.send(.editButtonTapped, animation: .default)
             }
@@ -167,32 +231,6 @@ public struct WineFeatureOcrExtractedView: View {
 }
 
 // MARK: - Components
-
-private struct EditableDataRow: View {
-    @Bindable var store: StoreOf<WineFeatureOcrExtracted>
-    let index: Int
-
-    var body: some View {
-        HStack(alignment: .center, spacing: 8) {
-            Text(emoji(for: store.extractedData[index].type))
-                .font(.title3)
-                .frame(width: 32, alignment: .center)
-
-            TextField("Extracted text", text: $store.extractedData[index].string)
-                .lineLimit(2)
-                .textFieldStyle(.roundedBorder)
-                .font(.caption)
-
-            Picker("Type", selection: $store.extractedData[index].type) {
-                ForEach(ExtractedStringType.allCases) { type in
-                    Text(type.rawValue).tag(type)
-                }
-            }
-            .labelsHidden()
-            .pickerStyle(.menu)
-        }
-    }
-}
 
 private struct ExtractedDataRow<Label: View>: View {
     let label: String
@@ -244,21 +282,21 @@ private extension ExtractedDataRow where Label == Image {
 // MARK: - Helpers
 
 private extension View {
-    func modulableButtonStyle(isPrimary: Bool) -> some View {
-        `if`(isPrimary) {
-            $0.buttonStyle(.borderedProminent)
-        } `else`: {
-            $0.buttonStyle(.bordered)
+    func extractedDataSwipeActions(using store: StoreOf<WineFeatureOcrExtracted>, for index: Int) -> some View {
+        swipeActions(edge: .leading, allowsFullSwipe: false) {
+            Button("Split", systemImage: "arrow.up.and.line.horizontal.and.arrow.down") {
+                store.send(.splitExtractedString(at: index))
+            }
+            if index != 0 {
+                Button("Merge with top", systemImage: "arrow.trianglehead.merge") {
+                    store.send(.mergeExtractedStringWithPrevious(at: index))
+                }
+            }
         }
-    }
-}
-
-private extension View {
-    func modulableLabelStyle(isPrimary: Bool) -> some View {
-        `if`(isPrimary) {
-            $0.labelStyle(.titleAndIcon)
-        } `else`: {
-            $0.labelStyle(.iconOnly)
+        .swipeActions(edge: .trailing) {
+            Button("Remove", systemImage: "trash", role: .destructive) {
+                store.send(.deleteExtractedString(at: index))
+            }
         }
     }
 }

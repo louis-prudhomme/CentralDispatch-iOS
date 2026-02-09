@@ -1,3 +1,4 @@
+import Foundation
 import SharedCommonArchitecture
 import SharedCommonDependencies
 import SharedCommonPictureClient
@@ -7,12 +8,6 @@ import Vision
 import WineCommonLocationClient
 import WineCommonOcrClient
 import WineInteractor
-
-// TODO: try & parse appellations, winemakers & grape varieties from extracted strings
-// TODO: multiple pictures
-// TODO: mechanism to split strings with spaces into several (ex : "Syrah Grenache" => "Syrah", "Grenache")
-// TODO: better UX for extracted stuff
-// TODO: avoid duplicated extracted string tags
 
 @Reducer
 public struct WineFeatureOcrExtracted {
@@ -27,10 +22,10 @@ public struct WineFeatureOcrExtracted {
 
         var isLoading = false
         var isDisabled = false
+        var isEditing = false
+
         var extractedDataBeforeEditing: [ExtractedDatum]?
-        var isEditing: Bool {
-            extractedDataBeforeEditing != nil
-        }
+        var selectedIndexes = [Int]()
 
         @Presents var alert: AlertState<Never>?
 
@@ -53,6 +48,9 @@ public struct WineFeatureOcrExtracted {
         case extractedDataPrefetchFinished(Result<PrefetchedData, WineInteractorError>)
 
         case editButtonTapped
+        case rowSelectionToggled(Int, Bool)
+        case mergeSelectedButtonTapped
+        case deleteSelectedButtonTapped
         case cancelEditingButtonTapped
         case doneEditingButtonTapped
 
@@ -212,15 +210,51 @@ public struct WineFeatureOcrExtracted {
 
                 case .editButtonTapped:
                     state.extractedDataBeforeEditing = state.extractedData
+                    state.isEditing = true
+                    return .none
+
+                case let .rowSelectionToggled(index, isSelected):
+                    if isSelected {
+                        state.selectedIndexes.append(index)
+                    } else {
+                        state.selectedIndexes.removeAll { $0 == index }
+                    }
+                    return .none
+
+                case .mergeSelectedButtonTapped:
+                    let sortedIndexes = state.selectedIndexes.sorted(by: <)
+                    guard sortedIndexes.count > 1 else { return .none }
+                    guard let firstIndex = sortedIndexes.first else { return .none }
+
+                    state.extractedData[firstIndex].string = sortedIndexes
+                        .compactMap { state.extractedData[$0] }
+                        .map(\.string)
+                        .joined(separator: " ")
+                    for index in sortedIndexes.reversed() where index != firstIndex {
+                        state.extractedData.remove(at: index)
+                    }
+                    state.selectedIndexes = []
+
+                    return .none
+
+                case .deleteSelectedButtonTapped:
+                    for index in state.selectedIndexes {
+                        state.extractedData.remove(at: index)
+                    }
+                    state.selectedIndexes = []
                     return .none
 
                 case .cancelEditingButtonTapped:
                     state.extractedData = state.extractedDataBeforeEditing ?? state.extractedData
                     state.extractedDataBeforeEditing = nil
+                    state.isEditing = false
+                    state.selectedIndexes = []
                     return .none
 
                 case .doneEditingButtonTapped:
                     state.extractedDataBeforeEditing = nil
+                    state.isEditing = false
+                    state.selectedIndexes = []
                     return .none
 
                 case let .deleteExtractedString(at: index):
@@ -237,6 +271,7 @@ public struct WineFeatureOcrExtracted {
                     let parts = rawParts.map { ExtractedDatum(string: $0, type: .notKept) }
                     state.extractedData.remove(at: index)
                     state.extractedData.insert(contentsOf: parts, at: index)
+                    state.selectedIndexes = []
                     return .none
 
                 case let .mergeExtractedStringWithPrevious(at: index):
@@ -244,6 +279,7 @@ public struct WineFeatureOcrExtracted {
                     let previous = state.extractedData[index - 1].string
                     state.extractedData.remove(at: index)
                     state.extractedData[index - 1].string = "\(previous) \(toMerge)"
+                    state.selectedIndexes = []
                     return .none
 
                 case .alert:
@@ -281,7 +317,7 @@ public struct WineFeatureOcrExtracted {
 
 struct ExtractedDatum: Equatable {
     var string: String
-    var type: ExtractedStringType
+    var type = ExtractedStringType.notKept
 }
 
 public enum ExtractedStringType: String, CaseIterable, Equatable, Codable, Identifiable {
