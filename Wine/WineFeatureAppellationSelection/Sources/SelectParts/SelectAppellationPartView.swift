@@ -30,7 +30,7 @@ struct SelectAppellationPartView<Part: AppellationPart, IError: ClientError>: Vi
             }
         }
         .toolbar {
-            ToolbarItem(placement: .topBarTrailing) {
+            ToolbarItem(placement: .secondaryAction) {
                 Button("Add a \(store.partType.lowercased())", systemImage: "plus") {
                     store.send(.createPartButtonTapped)
                 }

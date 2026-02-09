@@ -23,7 +23,7 @@ struct CountrySelectionView: View {
             }
         }
         .toolbar {
-            ToolbarItem(placement: .topBarTrailing) {
+            ToolbarItem(placement: .secondaryAction) {
                 Button("Add a country", systemImage: "plus") {
                     store.send(.createCountryButtonTapped)
                 }

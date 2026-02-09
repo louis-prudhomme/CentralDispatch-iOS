@@ -21,7 +21,7 @@ struct AddAppellationPartView<Part: AppellationPart, IError: ClientError>: View 
             }
         }
         .toolbar {
-            ToolbarItem(placement: .bottomBar) {
+            ToolbarItem(placement: .confirmationAction) {
                 CellarButton("Create \(store.partName)", systemImage: "plus", isLoading: store.isLoading) {
                     store.send(.submitPartButtonTapped)
                 }

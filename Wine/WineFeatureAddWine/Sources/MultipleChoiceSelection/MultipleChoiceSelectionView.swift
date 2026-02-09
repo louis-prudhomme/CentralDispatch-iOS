@@ -59,7 +59,7 @@ struct MultipleChoiceSelectionView<Choice: Choosable, IError: ClientError>: View
         }
 
         if store.isMultiSelect {
-            ToolbarItem(placement: .bottomBar) {
+            ToolbarItem(placement: .confirmationAction) {
                 submitButton
             }
         }

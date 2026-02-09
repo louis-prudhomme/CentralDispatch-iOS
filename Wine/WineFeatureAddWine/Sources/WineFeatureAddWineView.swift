@@ -63,12 +63,10 @@ public struct WineFeatureAddWineView: View {
             }
         }
         .toolbar {
-            ToolbarItem(placement: .bottomBar) {
+            ToolbarItem(placement: .confirmationAction) {
                 CellarButton("Create \(store.partialWine.name)", systemImage: "plus", isLoading: store.isLoading) {
                     store.send(.submitButtonTapped)
                 }
-                .buttonStyle(.borderedProminent)
-                .controlSize(.large)
             }
         }
         .alert($store.scope(state: \.alert, action: \.alert))

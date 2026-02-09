@@ -17,11 +17,10 @@ struct AddChoiceView<Choice: Choosable, IError: ClientError>: View {
             }
         }
         .toolbar {
-            ToolbarItem(placement: .bottomBar) {
+            ToolbarItem(placement: .confirmationAction) {
                 CellarButton("Create \(store.choiceName)", systemImage: "plus", isLoading: store.isLoading) {
                     store.send(.submitChoiceButtonTapped)
                 }
-                .buttonStyle(.borderedProminent)
                 .disabled(store.choiceName.isEmpty)
             }
         }

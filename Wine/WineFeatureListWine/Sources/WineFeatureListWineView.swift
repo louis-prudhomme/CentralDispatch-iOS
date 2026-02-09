@@ -37,21 +37,13 @@ public struct WineFeatureListWineView: View {
     }
 
     @ToolbarContentBuilder var toolbarContent: some ToolbarContent {
-        // TODO: find a proper way to have a "close" button without breaking toolbar constraints
-        // ToolbarItem(placement: .topBarLeading) {
-        //     Button("Return to Root", systemImage: "xmark") {
-        //         store.send(.delegate(.popToRoot))
-        //     }
-        // }
-        ToolbarItem(placement: .topBarLeading) {
-            EmptyView()
-        }
-
-        ToolbarItemGroup(placement: .primaryAction) {
+        ToolbarItem(placement: .primaryAction) {
             Button("Scan wine label", systemImage: "camera.viewfinder") {
                 store.send(.delegate(.ocrButtonTapped))
             }
+        }
 
+        ToolbarItem(placement: .secondaryAction) {
             Button("Add a wine", systemImage: "plus") {
                 store.send(.delegate(.addButtonTapped))
             }
